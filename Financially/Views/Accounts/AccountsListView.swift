@@ -97,6 +97,12 @@ struct AccountRowView: View {
         HStack(spacing: 12) {
             if account.accountType == .bank, let bankName = account.bankName {
                 BankLogoView(bankName: bankName, size: 40)
+            } else if account.accountType == .psx {
+                Image("PSXLogo")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 40, height: 40)
+                    .clipShape(RoundedRectangle(cornerRadius: 10))
             } else {
                 ZStack {
                     RoundedRectangle(cornerRadius: 10)
@@ -110,9 +116,11 @@ struct AccountRowView: View {
             VStack(alignment: .leading, spacing: 2) {
                 Text(account.name)
                     .font(.headline)
+                    .lineLimit(1)
                 Text(accountSubtitle)
                     .font(.caption)
                     .foregroundStyle(.secondary)
+                    .lineLimit(1)
             }
 
             Spacer()
@@ -120,10 +128,12 @@ struct AccountRowView: View {
             VStack(alignment: .trailing, spacing: 2) {
                 Text(displayBalance.formattedCurrency(currency: account.currency))
                     .font(.headline)
+                    .fixedSize(horizontal: true, vertical: false)
                 if account.accountType == .psx || account.accountType == .mutualFund {
                     Text(pnlValue.formattedCurrency(currency: account.currency))
                         .font(.caption)
                         .foregroundStyle(pnlValue >= 0 ? .incomeGreen : .expenseRed)
+                        .fixedSize(horizontal: true, vertical: false)
                 }
             }
         }

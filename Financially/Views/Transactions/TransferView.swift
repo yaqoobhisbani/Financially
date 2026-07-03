@@ -91,11 +91,19 @@ struct TransferView: View {
             }
             .sheet(isPresented: $showSourcePicker) {
                 AccountPickerView(title: "Select Source", filterType: nil) { account in
+                    guard account.accountType == .bank || account.accountType == .cash else {
+                        errorMessage = "Can only transfer from Bank or Cash accounts."
+                        return
+                    }
                     sourceAccount = account
                 }
             }
             .sheet(isPresented: $showDestPicker) {
                 AccountPickerView(title: "Select Destination", filterType: nil) { account in
+                    guard account.accountType == .bank || account.accountType == .cash else {
+                        errorMessage = "Can only transfer to Bank or Cash accounts. Use Add Cash in PSX view instead."
+                        return
+                    }
                     destinationAccount = account
                 }
             }

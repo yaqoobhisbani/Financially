@@ -65,7 +65,7 @@ struct BankCashAccountDetailView: View {
 
     private var balanceSection: some View {
         Section {
-            VStack(spacing: 8) {
+            VStack(alignment: .leading, spacing: 4) {
                 if account.accountType == .mutualFund {
                     HStack {
                         Text("Invested")

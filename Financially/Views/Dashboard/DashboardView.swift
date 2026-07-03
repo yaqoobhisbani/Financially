@@ -125,6 +125,12 @@ struct DashboardView: View {
         VStack(alignment: .leading, spacing: 4) {
             if account.accountType == .bank, let bankName = account.bankName {
                 BankLogoView(bankName: bankName, size: 32)
+            } else if account.accountType == .psx {
+                Image("PSXLogo")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 32, height: 32)
+                    .clipShape(RoundedRectangle(cornerRadius: 8))
             } else {
                 Image(systemName: accountIcon(account))
                     .font(.title3)

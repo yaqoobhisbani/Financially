@@ -163,7 +163,8 @@ struct LedgerService {
         let sourceBalance = source.currentBalance - transaction.amount
         source.currentBalance = sourceBalance
 
-        investment.investedAmount += transaction.amount
+        let destBalance = investment.currentBalance + transaction.amount
+        investment.currentBalance = destBalance
 
         let debit = LedgerEntry(
             transactionId: transaction.id,
@@ -181,7 +182,7 @@ struct LedgerService {
             accountId: investment.id,
             entryType: .credit,
             amount: transaction.amount,
-            runningBalance: investment.currentValue,
+            runningBalance: destBalance,
             date: transaction.date
         )
         credit.account = investment
@@ -189,7 +190,8 @@ struct LedgerService {
     }
 
     private func createWithdrawalEntries(transaction: Transaction, investment: Account, destination: Account) {
-        investment.investedAmount -= transaction.amount
+        let sourceBalance = investment.currentBalance - transaction.amount
+        investment.currentBalance = sourceBalance
 
         let destBalance = destination.currentBalance + transaction.amount
         destination.currentBalance = destBalance
@@ -199,7 +201,7 @@ struct LedgerService {
             accountId: investment.id,
             entryType: .debit,
             amount: transaction.amount,
-            runningBalance: investment.currentValue,
+            runningBalance: sourceBalance,
             date: transaction.date
         )
         debit.account = investment
