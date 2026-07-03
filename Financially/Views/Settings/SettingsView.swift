@@ -41,7 +41,16 @@ struct SecuritySettingsView: View {
             Section {
                 Toggle(isOn: Binding(
                     get: { authManager.biometricEnabled },
-                    set: { authManager.biometricEnabled = $0 }
+                    set: { newValue in
+                        if newValue {
+                            authManager.biometricEnabled = true
+                            authManager.isAuthenticated = false
+                            Task { await authManager.authenticate() }
+                        } else {
+                            authManager.biometricEnabled = false
+                            authManager.isAuthenticated = true
+                        }
+                    }
                 )) {
                     Label(authManager.biometricType.displayName, systemImage: authManager.biometricType.icon)
                 }
