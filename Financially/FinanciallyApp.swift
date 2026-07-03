@@ -42,20 +42,12 @@ struct FinanciallyApp: App {
             Category.self,
         ])
 
+        let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
+
         do {
-            let config = ModelConfiguration(
-                schema: schema,
-                isStoredInMemoryOnly: false,
-                cloudKitDatabase: .private("iCloud.com.yaqoobdev.Financially")
-            )
             return try ModelContainer(for: schema, configurations: [config])
         } catch {
-            let localConfig = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
-            do {
-                return try ModelContainer(for: schema, configurations: [localConfig])
-            } catch {
-                fatalError("Could not create ModelContainer: \(error)")
-            }
+            fatalError("Could not create ModelContainer: \(error)")
         }
     }()
 }

@@ -3,8 +3,8 @@ import CloudKit
 
 @Observable
 final class CloudKitManager {
-    private let container: CKContainer
-    private let database: CKDatabase
+    private let container = CKContainer.default()
+    private var database: CKDatabase?
 
     var syncStatus: SyncStatus = .unknown
     var isAvailable = false
@@ -16,13 +16,10 @@ final class CloudKitManager {
         case failed(String)
     }
 
-    init(containerIdentifier: String = "iCloud.com.yaqoobdev.Financially") {
-        self.container = CKContainer(identifier: containerIdentifier)
-        self.database = container.privateCloudDatabase
-    }
-
     func setup() async {
         syncStatus = .syncing
+        database = container.privateCloudDatabase
+
         do {
             let status = try await container.accountStatus()
             switch status {
@@ -31,9 +28,12 @@ final class CloudKitManager {
                 try await setupZone()
                 try await subscribe()
                 syncStatus = .synced
-            case .noAccount, .restricted, .couldNotDetermine, .temporarilyUnavailable:
+            case .noAccount, .restricted, .couldNotDetermine:
                 isAvailable = false
                 syncStatus = .failed("iCloud account not available")
+            case .temporarilyUnavailable:
+                isAvailable = false
+                syncStatus = .failed("iCloud temporarily unavailable")
             @unknown default:
                 isAvailable = false
                 syncStatus = .failed("Unknown iCloud status")
@@ -45,6 +45,7 @@ final class CloudKitManager {
     }
 
     private func setupZone() async throws {
+        guard let database = database else { return }
         let zoneID = CKRecordZone.ID(zoneName: "FinanciallyZone")
         let zone = CKRecordZone(zoneID: zoneID)
         do {
@@ -55,6 +56,7 @@ final class CloudKitManager {
     }
 
     private func subscribe() async throws {
+        guard let database = database else { return }
         let subscription = CKDatabaseSubscription(subscriptionID: "financially-sync")
         let notification = CKSubscription.NotificationInfo()
         notification.shouldSendContentAvailable = true
@@ -62,7 +64,7 @@ final class CloudKitManager {
         do {
             _ = try await database.save(subscription)
         } catch {
-            // Subscription may already exist — that's fine
+            // fine
         }
     }
 }
