@@ -1,80 +1,94 @@
-//
-//  ContentView.swift
-//  Financially
-//
-//  Created by Muhammad Yaqoob on 03/07/2026.
-//
-
 import SwiftUI
 import SwiftData
 
 struct ContentView: View {
-    @Environment(\.modelContext) private var modelContext
-    @Query private var items: [Item]
+    @AppStorage("colorScheme") private var colorScheme: String = "System"
 
     var body: some View {
-        NavigationViewWrapper {
-            List {
-                ForEach(items) { item in
-                    NavigationLink {
-                        Text("Item at \(item.timestamp, format: Date.FormatStyle(date: .numeric, time: .standard))")
-                    } label: {
-                        Text(item.timestamp, format: Date.FormatStyle(date: .numeric, time: .standard))
-                    }
-                }
-                .onDelete(perform: deleteItems)
-            }
-#if os(macOS)
-            .navigationSplitViewColumnWidth(min: 180, ideal: 200)
-#endif
-            .toolbar {
-#if os(iOS)
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    EditButton()
-                }
-#endif
-                ToolbarItem {
-                    Button(action: addItem) {
-                        Label("Add Item", systemImage: "plus")
-                    }
-                }
-            }
-        }
-    }
-
-    private func addItem() {
-        withAnimation {
-            let newItem = Item(timestamp: Date())
-            modelContext.insert(newItem)
-        }
-    }
-
-    private func deleteItems(offsets: IndexSet) {
-        withAnimation {
-            for index in offsets {
-                modelContext.delete(items[index])
-            }
-        }
-    }
-}
-
-fileprivate struct NavigationViewWrapper<Content: View>: View {
-    let content: () -> Content
-
-    var body: some View {
-#if os(macOS)
+        #if os(macOS)
         NavigationSplitView {
-            content()
+            sidebarContent
         } detail: {
-            Text("Select an item")
+            DashboardView()
         }
-#else
-        content()
-#endif
+        #else
+        tabBarContent
+        #endif
+    }
+
+    @ViewBuilder
+    private var tabBarContent: some View {
+        TabView {
+            DashboardView()
+                .tabItem {
+                    Label("Dashboard", systemImage: "house.fill")
+                }
+
+            AccountsListView()
+                .tabItem {
+                    Label("Accounts", systemImage: "creditcard.fill")
+                }
+
+            LoansListView()
+                .tabItem {
+                    Label("Loans", systemImage: "arrow.left.arrow.right")
+                }
+
+            SettingsView()
+                .tabItem {
+                    Label("More", systemImage: "ellipsis.circle.fill")
+                }
+        }
+    }
+
+    @ViewBuilder
+    private var sidebarContent: some View {
+        List {
+            NavigationLink(destination: DashboardView()) {
+                Label("Dashboard", systemImage: "house.fill")
+            }
+
+            Section("Accounts") {
+                NavigationLink(destination: filteredAccountsView(.bank)) {
+                    Label("Bank", systemImage: "building.columns.fill")
+                }
+                NavigationLink(destination: filteredAccountsView(.cash)) {
+                    Label("Cash", systemImage: "wallet.pass.fill")
+                }
+                NavigationLink(destination: filteredAccountsView(.psx)) {
+                    Label("PSX", systemImage: "chart.line.uptrend.xyaxis")
+                }
+                NavigationLink(destination: filteredAccountsView(.mutualFund)) {
+                    Label("Mutual Funds", systemImage: "chart.pie.fill")
+                }
+            }
+
+            NavigationLink(destination: LoansListView()) {
+                Label("Loans", systemImage: "arrow.left.arrow.right")
+            }
+
+            NavigationLink(destination: CreditorsListView()) {
+                Label("Liabilities", systemImage: "arrow.right.circle")
+            }
+
+            Section("Tools") {
+                NavigationLink(destination: ReportsListView()) {
+                    Label("Reports", systemImage: "chart.bar.fill")
+                }
+                NavigationLink(destination: SettingsView()) {
+                    Label("Settings", systemImage: "gearshape.fill")
+                }
+            }
+        }
+        .listStyle(.sidebar)
+    }
+
+    private func filteredAccountsView(_ type: AccountType) -> some View {
+        AccountsListView()
     }
 }
 
 #Preview {
     ContentView()
-        .modelContainer(for: Item.self, inMemory: true)
+        .modelContainer(for: [Account.self, Transaction.self, LedgerEntry.self, Debtor.self, Creditor.self, InvestmentEntry.self, Category.self], inMemory: true)
 }

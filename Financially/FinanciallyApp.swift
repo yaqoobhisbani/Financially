@@ -1,32 +1,58 @@
-//
-//  FinanciallyApp.swift
-//  Financially
-//
-//  Created by Muhammad Yaqoob on 03/07/2026.
-//
-
 import SwiftUI
 import SwiftData
 
 @main
 struct FinanciallyApp: App {
-    var sharedModelContainer: ModelContainer = {
-        let schema = Schema([
-            Item.self,
-        ])
-        let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
-
-        do {
-            return try ModelContainer(for: schema, configurations: [modelConfiguration])
-        } catch {
-            fatalError("Could not create ModelContainer: \(error)")
-        }
-    }()
+    @State private var authManager = BiometricAuthManager()
+    @AppStorage("colorScheme") private var colorScheme: String = "System"
 
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            AuthGateView {
+                ContentView()
+                    .onAppear {
+                        SeedCategories.seedIfNeeded(modelContext: sharedModelContainer.mainContext)
+                    }
+            }
+            .environment(authManager)
+            .preferredColorScheme(scheme)
         }
         .modelContainer(sharedModelContainer)
     }
+
+    private var scheme: ColorScheme? {
+        switch colorScheme {
+        case "Dark": return .dark
+        case "Light": return .light
+        default: return nil
+        }
+    }
+
+    var sharedModelContainer: ModelContainer = {
+        let schema = Schema([
+            Account.self,
+            Transaction.self,
+            LedgerEntry.self,
+            Debtor.self,
+            Creditor.self,
+            InvestmentEntry.self,
+            Category.self,
+        ])
+
+        do {
+            let config = ModelConfiguration(
+                schema: schema,
+                isStoredInMemoryOnly: false,
+                cloudKitDatabase: .private("iCloud.com.financially.app")
+            )
+            return try ModelContainer(for: schema, configurations: [config])
+        } catch {
+            let localConfig = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
+            do {
+                return try ModelContainer(for: schema, configurations: [localConfig])
+            } catch {
+                fatalError("Could not create ModelContainer: \(error)")
+            }
+        }
+    }()
 }
