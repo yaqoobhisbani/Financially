@@ -40,7 +40,6 @@ struct CreateAccountView: View {
                         Text("Bank").tag(AccountType.bank)
                         Text("Cash").tag(AccountType.cash)
                         Text("PSX Stock").tag(AccountType.psx)
-                        Text("Mutual Fund").tag(AccountType.mutualFund)
                     }
                 }
 
@@ -65,14 +64,11 @@ struct CreateAccountView: View {
 
                     case .psx:
                         TextField("Broker Name", text: $brokerName)
-
-                    case .mutualFund:
-                        TextField("Fund House", text: $fundHouse)
                     }
                 }
 
                 Section("Balance") {
-                    if accountType == .psx || accountType == .mutualFund {
+                    if accountType == .psx {
                         HStack {
                             Text("Invested Amount")
                             Spacer()

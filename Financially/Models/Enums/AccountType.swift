@@ -4,7 +4,6 @@ enum AccountType: String, Codable, CaseIterable {
     case bank
     case cash
     case psx
-    case mutualFund
 }
 
 enum BankSubType: String, Codable, CaseIterable {

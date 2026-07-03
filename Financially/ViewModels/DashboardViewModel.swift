@@ -64,7 +64,7 @@ final class DashboardViewModel {
     }
 
     private var totalInvestmentValues: Decimal {
-        accounts.filter { $0.accountType == .psx || $0.accountType == .mutualFund }
+        accounts.filter { $0.accountType == .psx }
             .reduce(0) { $0 + $1.currentValue }
     }
 

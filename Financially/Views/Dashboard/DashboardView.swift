@@ -233,9 +233,6 @@ struct DashboardView: View {
             if account.accountType == .psx {
                 return sum + psxPortfolioValue(account)
             }
-            if account.accountType == .mutualFund {
-                return sum + account.currentValue
-            }
             return sum + account.currentBalance
         }
     }
@@ -304,7 +301,6 @@ struct DashboardView: View {
             case .bank: return "building.columns.fill"
             case .cash: return "wallet.pass.fill"
             case .psx: return "chart.line.uptrend.xyaxis"
-            case .mutualFund: return "chart.pie.fill"
             }
         }()
     }

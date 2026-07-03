@@ -40,7 +40,6 @@ struct EditAccountView: View {
                         Text("Bank").tag(AccountType.bank)
                         Text("Cash").tag(AccountType.cash)
                         Text("PSX Stock").tag(AccountType.psx)
-                        Text("Mutual Fund").tag(AccountType.mutualFund)
                     }
                 }
 
@@ -65,9 +64,6 @@ struct EditAccountView: View {
 
                     case .psx:
                         TextField("Broker Name", text: $brokerName)
-
-                    case .mutualFund:
-                        TextField("Fund House", text: $fundHouse)
                     }
                 }
 

@@ -65,7 +65,7 @@ struct TransactionValidator {
 
         case .investmentAddCapital:
             guard let dest = destinationAccount else { throw .accountNotFound(UUID()) }
-            guard dest.accountType == .psx || dest.accountType == .mutualFund else {
+            guard dest.accountType == .psx else {
                 throw .accountTypeMismatch
             }
             guard sourceAccount.accountType == .bank || sourceAccount.accountType == .cash else {
@@ -74,7 +74,7 @@ struct TransactionValidator {
             try validateSufficientBalance(account: sourceAccount, amount: transaction.amount)
 
         case .investmentWithdrawal:
-            guard sourceAccount.accountType == .psx || sourceAccount.accountType == .mutualFund else {
+            guard sourceAccount.accountType == .psx else {
                 throw .accountTypeMismatch
             }
             guard let dest = destinationAccount else { throw .accountNotFound(UUID()) }
@@ -110,7 +110,7 @@ struct TransactionValidator {
             try validateSufficientBalance(account: sourceAccount, amount: transaction.amount)
 
         case .investmentProfitLoss:
-            guard sourceAccount.accountType == .psx || sourceAccount.accountType == .mutualFund else {
+            guard sourceAccount.accountType == .psx else {
                 throw .accountTypeMismatch
             }
         }

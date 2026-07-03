@@ -9,7 +9,7 @@ struct InvestmentReport: View {
     @State private var selectedPreset = DateRangePickerView.DatePreset.thisMonth
 
     private var investmentAccounts: [Account] {
-        accounts.filter { $0.accountType == .psx || $0.accountType == .mutualFund }
+        accounts.filter { $0.accountType == .psx }
     }
 
     private func entries(for account: Account) -> [InvestmentEntry] {

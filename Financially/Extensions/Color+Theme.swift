@@ -14,7 +14,6 @@ extension Color {
     static let accountBank = Color.blue
     static let accountCash = Color.green
     static let accountPSX = Color.indigo
-    static let accountMutualFund = Color.teal
 
     static let liquidGlass = Color.white.opacity(0.7)
     static let liquidGlassDark = Color.black.opacity(0.3)

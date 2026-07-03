@@ -13,7 +13,6 @@ struct AccountsListView: View {
         case bank = "Bank"
         case cash = "Cash"
         case psx = "PSX"
-        case mutualFund = "MF"
     }
 
     private var filteredAccounts: [Account] {
@@ -22,7 +21,6 @@ struct AccountsListView: View {
         case .bank: return accounts.filter { $0.accountType == .bank }
         case .cash: return accounts.filter { $0.accountType == .cash }
         case .psx: return accounts.filter { $0.accountType == .psx }
-        case .mutualFund: return accounts.filter { $0.accountType == .mutualFund }
         }
     }
 
@@ -129,7 +127,7 @@ struct AccountRowView: View {
                 Text(displayBalance.formattedCurrency(currency: account.currency))
                     .font(.headline)
                     .fixedSize(horizontal: true, vertical: false)
-                if account.accountType == .psx || account.accountType == .mutualFund {
+                if account.accountType == .psx {
                     Text(pnlValue.formattedCurrency(currency: account.currency))
                         .font(.caption)
                         .foregroundStyle(pnlValue >= 0 ? .incomeGreen : .expenseRed)
@@ -149,7 +147,6 @@ struct AccountRowView: View {
         case .bank: return "building.columns.fill"
         case .cash: return "wallet.pass.fill"
         case .psx: return "chart.line.uptrend.xyaxis"
-        case .mutualFund: return "chart.pie.fill"
         }
     }
 
@@ -165,7 +162,6 @@ struct AccountRowView: View {
         case .bank: return .accountBank
         case .cash: return .accountCash
         case .psx: return .accountPSX
-        case .mutualFund: return .accountMutualFund
         }
     }
 
@@ -177,8 +173,6 @@ struct AccountRowView: View {
             return account.cashSubType?.rawValue.capitalized ?? "Cash"
         case .psx:
             return account.brokerName ?? "PSX Account"
-        case .mutualFund:
-            return account.fundHouse ?? "Mutual Fund"
         }
     }
 }

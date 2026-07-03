@@ -53,9 +53,6 @@ struct ContentView: View {
                 NavigationLink(destination: filteredAccountsView(.psx)) {
                     Label("PSX", systemImage: "chart.line.uptrend.xyaxis")
                 }
-                NavigationLink(destination: filteredAccountsView(.mutualFund)) {
-                    Label("Mutual Funds", systemImage: "chart.pie.fill")
-                }
             }
 
             NavigationLink(destination: LoansListView()) {

@@ -9,7 +9,7 @@ struct AccountDetailView: View {
             switch account.accountType {
             case .psx:
                 PSXAccountDetailView(account: account)
-            case .bank, .cash, .mutualFund:
+            case .bank, .cash:
                 BankCashAccountDetailView(account: account)
             }
         }
@@ -66,39 +66,13 @@ struct BankCashAccountDetailView: View {
     private var balanceSection: some View {
         Section {
             VStack(alignment: .leading, spacing: 4) {
-                if account.accountType == .mutualFund {
-                    HStack {
-                        Text("Invested")
-                        Spacer()
-                        Text(account.investedAmount.formattedCurrency(currency: account.currency))
-                    }
-                    HStack {
-                        Text("P/L")
-                        Spacer()
-                        Text(account.totalProfitLoss.formattedCurrency(currency: account.currency))
-                            .foregroundStyle(account.totalProfitLoss >= 0 ? .incomeGreen : .expenseRed)
-                    }
-                    HStack {
-                        Text("Current Value")
-                            .font(.headline)
-                        Spacer()
-                        Text(account.currentValue.formattedCurrency(currency: account.currency))
-                            .font(.headline)
-                    }
-                    HStack {
-                        Text("Return")
-                        Spacer()
-                        Text("\(account.returnPercentage)")
-                            .foregroundStyle(account.returnPercentage >= 0 ? .incomeGreen : .expenseRed)
-                    }
-                } else {
-                    Text(account.currentBalance.formattedCurrency(currency: account.currency))
-                        .font(.largeTitle.bold())
-                    Text(account.initialBalance == account.currentBalance ? "Initial balance" : "From initial \(account.initialBalance.formattedCurrency(currency: account.currency))")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
+                Text(account.currentBalance.formattedCurrency(currency: account.currency))
+                    .font(.largeTitle.bold())
+                Text(account.initialBalance == account.currentBalance ? "Initial balance" : "From initial \(account.initialBalance.formattedCurrency(currency: account.currency))")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.vertical, 8)
         }
     }

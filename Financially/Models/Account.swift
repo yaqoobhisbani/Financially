@@ -25,7 +25,7 @@ final class Account {
     var notes: String?
 
     var currentValue: Decimal {
-        if accountType == .psx || accountType == .mutualFund {
+        if accountType == .psx {
             return investedAmount + totalProfitLoss
         }
         return currentBalance

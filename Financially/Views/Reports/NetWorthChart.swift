@@ -26,7 +26,7 @@ struct NetWorthChart: View {
         while current <= endDate {
             let monthTxs = accounts.filter { $0.isActive }
             let totalAssets = monthTxs.reduce(0) { sum, acct in
-                sum + (acct.accountType == .psx || acct.accountType == .mutualFund ? acct.currentValue : acct.currentBalance)
+                sum + (acct.accountType == .psx ? acct.currentValue : acct.currentBalance)
             }
             let totalLiabilities = creditors.reduce(0) { $0 + $1.outstandingBalance }
             let totalReceivables = debtors.reduce(0) { $0 + $1.outstandingBalance }
