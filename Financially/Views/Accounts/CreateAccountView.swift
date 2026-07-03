@@ -7,18 +7,30 @@ struct CreateAccountView: View {
 
     @State private var name = ""
     @State private var accountType: AccountType = .bank
-    @State private var bankSubType: BankSubType = .traditional
+    @State private var selectedBank: String?
     @State private var cashSubType: CashSubType = .wallet
-    @State private var bankName = ""
     @State private var accountNumber = ""
     @State private var brokerName = ""
     @State private var fundHouse = ""
     @State private var initialBalanceString = ""
     @State private var investedAmountString = ""
-    @State private var icon = ""
-    @State private var color = ""
     @State private var notes = ""
     @State private var errorMessage: String?
+
+    private let popularBanks = [
+        "Meezan Bank",
+        "HBL",
+        "UBL",
+        "National Bank",
+        "Allied Bank",
+        "MCB",
+        "Bank Alfalah",
+        "SadaPay",
+        "NayaPay",
+        "JazzCash",
+        "EasyPaisa",
+        "Other",
+    ]
 
     var body: some View {
         NavigationStack {
@@ -37,12 +49,11 @@ struct CreateAccountView: View {
 
                     switch accountType {
                     case .bank:
-                        Picker("Sub Type", selection: $bankSubType) {
-                            ForEach(BankSubType.allCases, id: \.self) { sub in
-                                Text(sub.rawValue.capitalized).tag(sub)
+                        Picker("Bank", selection: $selectedBank) {
+                            ForEach(popularBanks, id: \.self) { bank in
+                                Text(bank).tag(bank as String?)
                             }
                         }
-                        TextField("Bank Name", text: $bankName)
                         TextField("Account Number (last 4 digits)", text: $accountNumber)
 
                     case .cash:
@@ -84,11 +95,6 @@ struct CreateAccountView: View {
                     }
                 }
 
-                Section("Appearance (Optional)") {
-                    TextField("Icon (SF Symbol name)", text: $icon)
-                    TextField("Color (hex, e.g. 007AFF)", text: $color)
-                }
-
                 Section("Notes (Optional)") {
                     TextField("Notes", text: $notes)
                 }
@@ -128,20 +134,21 @@ struct CreateAccountView: View {
         let account = Account(
             name: name,
             accountType: accountType,
-            bankSubType: accountType == .bank ? bankSubType : nil,
             cashSubType: accountType == .cash ? cashSubType : nil,
-            bankName: bankName.isEmpty ? nil : bankName,
+            bankName: accountType == .bank ? selectedBank : nil,
             accountNumber: accountNumber.isEmpty ? nil : accountNumber,
             brokerName: brokerName.isEmpty ? nil : brokerName,
             fundHouse: fundHouse.isEmpty ? nil : fundHouse,
             initialBalance: initialBalance,
             investedAmount: investedAmount,
-            icon: icon.isEmpty ? nil : icon,
-            color: color.isEmpty ? nil : color,
             notes: notes.isEmpty ? nil : notes
         )
 
         modelContext.insert(account)
         dismiss()
     }
+}
+
+#Preview {
+    CreateAccountView()
 }

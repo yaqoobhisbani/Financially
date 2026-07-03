@@ -91,7 +91,6 @@ struct AccountDetailView: View {
         Section("Info") {
             LabeledContent("Type", value: accountTypeLabel)
             if account.accountType == .bank {
-                if let sub = account.bankSubType { LabeledContent("Sub Type", value: sub.rawValue.capitalized) }
                 if let bank = account.bankName { LabeledContent("Bank", value: bank) }
                 if let num = account.accountNumber { LabeledContent("Account #", value: num) }
             }

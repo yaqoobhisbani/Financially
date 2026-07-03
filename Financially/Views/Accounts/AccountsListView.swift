@@ -132,7 +132,6 @@ struct AccountRowView: View {
     private var accountSubtitle: String {
         switch account.accountType {
         case .bank:
-            if let sub = account.bankSubType { return sub.rawValue.capitalized }
             return account.bankName ?? "Bank Account"
         case .cash:
             return account.cashSubType?.rawValue.capitalized ?? "Cash"
