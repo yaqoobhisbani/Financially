@@ -4,6 +4,7 @@ import SwiftData
 struct AccountPickerView: View {
     @Environment(\.dismiss) private var dismiss
     @Query private var accounts: [Account]
+    @Query private var allHoldings: [StockHolding]
     let title: String
     let filterType: AccountType?
     let onSelect: (Account) -> Void
@@ -19,7 +20,7 @@ struct AccountPickerView: View {
     var body: some View {
         NavigationStack {
             List(filteredAccounts) { account in
-                AccountRowView(account: account)
+                AccountRowView(account: account, holdings: allHoldings)
                     .contentShape(Rectangle())
                     .onTapGesture {
                         onSelect(account)

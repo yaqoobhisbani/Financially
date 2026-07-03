@@ -52,6 +52,9 @@ struct SettingsView: View {
                     NavigationLink(destination: CategoriesManagementView()) {
                         Label("Categories", systemImage: "list.bullet")
                     }
+                    NavigationLink(destination: StockInfoManagementView()) {
+                        Label("Stocks", systemImage: "chart.line.uptrend.xyaxis")
+                    }
                 }
 
                 Section("About") {

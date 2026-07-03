@@ -139,8 +139,8 @@ struct CreateAccountView: View {
             accountNumber: accountNumber.isEmpty ? nil : accountNumber,
             brokerName: brokerName.isEmpty ? nil : brokerName,
             fundHouse: fundHouse.isEmpty ? nil : fundHouse,
-            initialBalance: initialBalance,
-            investedAmount: investedAmount,
+            initialBalance: accountType == .psx ? investedAmount : initialBalance,
+            investedAmount: accountType == .psx ? 0 : investedAmount,
             notes: notes.isEmpty ? nil : notes
         )
 

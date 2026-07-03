@@ -39,6 +39,12 @@ final class Account {
     @Relationship(deleteRule: .cascade)
     var ledgerEntries: [LedgerEntry]?
 
+    func syncFromHoldings(_ holdings: [StockHolding]) {
+        guard accountType == .psx else { return }
+        investedAmount = holdings.reduce(0) { $0 + $1.totalCost }
+        totalProfitLoss = holdings.reduce(0) { $0 + $1.currentValue - $1.totalCost }
+    }
+
     init(
         id: UUID = UUID(),
         name: String,

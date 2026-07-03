@@ -8,6 +8,7 @@ struct DashboardView: View {
     @Query private var transactions: [Transaction]
     @Query private var debtors: [Debtor]
     @Query private var creditors: [Creditor]
+    @Query private var allHoldings: [StockHolding]
 
     @State private var showExpense = false
     @State private var showIncome = false
@@ -43,6 +44,18 @@ struct DashboardView: View {
         .sheet(isPresented: $showExpense) { AddExpenseView() }
         .sheet(isPresented: $showIncome) { AddIncomeView() }
         .sheet(isPresented: $showTransfer) { TransferView() }
+    }
+
+    private func psxPortfolioValue(_ account: Account) -> Decimal {
+        allHoldings.filter { $0.accountId == account.id }.reduce(0) { $0 + $1.currentValue }
+    }
+
+    private func psxTotalCost(_ account: Account) -> Decimal {
+        allHoldings.filter { $0.accountId == account.id }.reduce(0) { $0 + $1.totalCost }
+    }
+
+    private func psxProfitLoss(_ account: Account) -> Decimal {
+        psxPortfolioValue(account) - psxTotalCost(account)
     }
 
     // MARK: - Summary Cards
@@ -115,14 +128,20 @@ struct DashboardView: View {
             } else {
                 Image(systemName: accountIcon(account))
                     .font(.title3)
+                    .frame(height: 32)
             }
             Text(account.name)
                 .font(.caption)
                 .lineLimit(1)
-            Text(account.currentBalance.formattedCurrency(currency: account.currency))
+            Text(account.accountType == .psx ? psxPortfolioValue(account).formattedCurrency(currency: account.currency) : account.currentBalance.formattedCurrency(currency: account.currency))
                 .font(.caption.bold())
+            if account.accountType == .psx {
+                Text(psxProfitLoss(account).formattedCurrency(currency: account.currency))
+                    .font(.caption2)
+                    .foregroundStyle(psxProfitLoss(account) >= 0 ? .incomeGreen : .expenseRed)
+            }
         }
-        .frame(width: 100)
+        .frame(width: 100, height: 100)
         .padding()
         .background(.ultraThinMaterial)
         .clipShape(RoundedRectangle(cornerRadius: 12))
@@ -205,7 +224,10 @@ struct DashboardView: View {
 
     private var computeTotalAssets: Decimal {
         accounts.filter { $0.isActive }.reduce(0) { sum, account in
-            if account.accountType == .psx || account.accountType == .mutualFund {
+            if account.accountType == .psx {
+                return sum + psxPortfolioValue(account)
+            }
+            if account.accountType == .mutualFund {
                 return sum + account.currentValue
             }
             return sum + account.currentBalance

@@ -4,6 +4,7 @@ import SwiftData
 struct AccountsListView: View {
     @Environment(\.modelContext) private var modelContext
     @Query private var accounts: [Account]
+    @Query private var allHoldings: [StockHolding]
     @State private var selectedSegment: AccountSegment = .all
     @State private var showCreateSheet = false
 
@@ -39,7 +40,7 @@ struct AccountsListView: View {
                 List {
                     ForEach(filteredAccounts) { account in
                         NavigationLink(destination: AccountDetailView(account: account)) {
-                            AccountRowView(account: account)
+                            AccountRowView(account: account, holdings: allHoldings)
                         }
                     }
                 }
@@ -66,6 +67,31 @@ struct AccountsListView: View {
 
 struct AccountRowView: View {
     let account: Account
+    let holdings: [StockHolding]
+
+    private var psxHoldings: [StockHolding] {
+        holdings.filter { $0.accountId == account.id }
+    }
+
+    private var psxPortfolioValue: Decimal {
+        psxHoldings.reduce(0) { $0 + $1.currentValue }
+    }
+
+    private var psxTotalCost: Decimal {
+        psxHoldings.reduce(0) { $0 + $1.totalCost }
+    }
+
+    private var psxProfitLoss: Decimal {
+        psxPortfolioValue - psxTotalCost
+    }
+
+    private var displayBalance: Decimal {
+        account.accountType == .psx ? psxPortfolioValue : account.currentBalance
+    }
+
+    private var pnlValue: Decimal {
+        account.accountType == .psx ? psxProfitLoss : account.totalProfitLoss
+    }
 
     var body: some View {
         HStack(spacing: 12) {
@@ -92,12 +118,12 @@ struct AccountRowView: View {
             Spacer()
 
             VStack(alignment: .trailing, spacing: 2) {
-                Text(account.currentBalance.formattedCurrency(currency: account.currency))
+                Text(displayBalance.formattedCurrency(currency: account.currency))
                     .font(.headline)
                 if account.accountType == .psx || account.accountType == .mutualFund {
-                    Text(account.totalProfitLoss.formattedCurrency(currency: account.currency))
+                    Text(pnlValue.formattedCurrency(currency: account.currency))
                         .font(.caption)
-                        .foregroundStyle(account.totalProfitLoss >= 0 ? .incomeGreen : .expenseRed)
+                        .foregroundStyle(pnlValue >= 0 ? .incomeGreen : .expenseRed)
                 }
             }
         }
