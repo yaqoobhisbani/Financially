@@ -4,6 +4,8 @@
 <dict>
 	<key>NSFaceIDUsageDescription</key>
 	<string>Financially uses Face ID to protect your financial data and keep your accounts, transactions, and personal information secure.</string>
+	<key>NSContactsUsageDescription</key>
+	<string>Financially needs access to your contacts to import names, phone numbers, and email addresses for debtors and creditors.</string>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>remote-notification</string>

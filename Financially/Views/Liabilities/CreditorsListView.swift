@@ -4,8 +4,7 @@ import SwiftData
 struct CreditorsListView: View {
     @Environment(\.modelContext) private var modelContext
     @Query(sort: \Creditor.name) private var creditors: [Creditor]
-    @State private var showCreateCreditor = false
-    @State private var newCreditorName = ""
+    @State private var showCreate = false
 
     var activeCreditors: [Creditor] { creditors.filter { !$0.isSettled } }
     var settledCreditors: [Creditor] { creditors.filter { $0.isSettled } }
@@ -43,31 +42,15 @@ struct CreditorsListView: View {
         .navigationTitle("Creditors")
         .toolbar {
             ToolbarItem {
-                Button(action: { showCreateCreditor = true }) {
+                Button(action: { showCreate = true }) {
                     Label("Add Creditor", systemImage: "plus")
                 }
             }
         }
-        .sheet(isPresented: $showCreateCreditor) {
-            NavigationStack {
-                Form {
-                    TextField("Name", text: $newCreditorName)
-                }
-                .navigationTitle("New Creditor")
-                .toolbar {
-                    ToolbarItem(placement: .cancellationAction) {
-                        Button("Cancel") { showCreateCreditor = false; newCreditorName = "" }
-                    }
-                    ToolbarItem(placement: .confirmationAction) {
-                        Button("Add") {
-                            let creditor = Creditor(name: newCreditorName)
-                            modelContext.insert(creditor)
-                            newCreditorName = ""
-                            showCreateCreditor = false
-                        }
-                        .disabled(newCreditorName.isEmpty)
-                    }
-                }
+        .sheet(isPresented: $showCreate) {
+            PersonFormView(title: "New Creditor") { name, phone, email in
+                let creditor = Creditor(name: name, phone: phone, email: email)
+                modelContext.insert(creditor)
             }
         }
     }
@@ -83,6 +66,11 @@ struct CreditorRowView: View {
                     .font(.headline)
                 if let phone = creditor.phone {
                     Text(phone)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+                if let email = creditor.email {
+                    Text(email)
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }

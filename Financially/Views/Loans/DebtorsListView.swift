@@ -4,8 +4,7 @@ import SwiftData
 struct DebtorsListView: View {
     @Environment(\.modelContext) private var modelContext
     @Query(sort: \Debtor.name) private var debtors: [Debtor]
-    @State private var showCreateDebtor = false
-    @State private var newDebtorName = ""
+    @State private var showCreate = false
 
     var activeDebtors: [Debtor] { debtors.filter { !$0.isSettled } }
     var settledDebtors: [Debtor] { debtors.filter { $0.isSettled } }
@@ -43,31 +42,15 @@ struct DebtorsListView: View {
         .navigationTitle("Debtors")
         .toolbar {
             ToolbarItem {
-                Button(action: { showCreateDebtor = true }) {
+                Button(action: { showCreate = true }) {
                     Label("Add Debtor", systemImage: "plus")
                 }
             }
         }
-        .sheet(isPresented: $showCreateDebtor) {
-            NavigationStack {
-                Form {
-                    TextField("Name", text: $newDebtorName)
-                }
-                .navigationTitle("New Debtor")
-                .toolbar {
-                    ToolbarItem(placement: .cancellationAction) {
-                        Button("Cancel") { showCreateDebtor = false; newDebtorName = "" }
-                    }
-                    ToolbarItem(placement: .confirmationAction) {
-                        Button("Add") {
-                            let debtor = Debtor(name: newDebtorName)
-                            modelContext.insert(debtor)
-                            newDebtorName = ""
-                            showCreateDebtor = false
-                        }
-                        .disabled(newDebtorName.isEmpty)
-                    }
-                }
+        .sheet(isPresented: $showCreate) {
+            PersonFormView(title: "New Debtor") { name, phone, email in
+                let debtor = Debtor(name: name, phone: phone, email: email)
+                modelContext.insert(debtor)
             }
         }
     }
@@ -83,6 +66,11 @@ struct DebtorRowView: View {
                     .font(.headline)
                 if let phone = debtor.phone {
                     Text(phone)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+                if let email = debtor.email {
+                    Text(email)
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }

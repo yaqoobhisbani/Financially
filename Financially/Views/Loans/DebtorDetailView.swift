@@ -17,6 +17,7 @@ struct DebtorDetailView: View {
 
     var body: some View {
         List {
+            contactSection
             summarySection
             actionsSection
             historySection
@@ -27,6 +28,21 @@ struct DebtorDetailView: View {
         }
         .sheet(isPresented: $showRepayment) {
             RecordRepaymentView(debtor: debtor)
+        }
+    }
+
+    private var contactSection: some View {
+        Section("Contact") {
+            if let phone = debtor.phone {
+                Label(phone, systemImage: "phone")
+            }
+            if let email = debtor.email {
+                Label(email, systemImage: "envelope")
+            }
+            if debtor.phone == nil && debtor.email == nil {
+                Text("No contact info")
+                    .foregroundStyle(.secondary)
+            }
         }
     }
 

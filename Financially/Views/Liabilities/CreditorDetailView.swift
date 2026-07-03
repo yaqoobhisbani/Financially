@@ -17,6 +17,7 @@ struct CreditorDetailView: View {
 
     var body: some View {
         List {
+            contactSection
             summarySection
             actionsSection
             historySection
@@ -27,6 +28,29 @@ struct CreditorDetailView: View {
         }
         .sheet(isPresented: $showPayback) {
             PayBackView(creditor: creditor)
+        }
+    }
+
+    private var contactSection: some View {
+        Section("Contact") {
+            if let phone = creditor.phone {
+                HStack(alignment: .firstTextBaseline) {
+                    Image(systemName: "phone")
+                        .foregroundStyle(.secondary)
+                    Text(phone)
+                }
+            }
+            if let email = creditor.email {
+                HStack(alignment: .firstTextBaseline) {
+                    Image(systemName: "envelope")
+                        .foregroundStyle(.secondary)
+                    Text(email)
+                }
+            }
+            if creditor.phone == nil && creditor.email == nil {
+                Text("No contact info")
+                    .foregroundStyle(.secondary)
+            }
         }
     }
 

@@ -6,6 +6,7 @@ final class Creditor {
     @Attribute(.unique) var id: UUID
     var name: String
     var phone: String?
+    var email: String?
     var totalReceived: Decimal
     var totalReturned: Decimal
     var createdAt: Date
@@ -24,6 +25,7 @@ final class Creditor {
         id: UUID = UUID(),
         name: String,
         phone: String? = nil,
+        email: String? = nil,
         totalReceived: Decimal = 0,
         totalReturned: Decimal = 0,
         notes: String? = nil
@@ -31,6 +33,7 @@ final class Creditor {
         self.id = id
         self.name = name
         self.phone = phone
+        self.email = email
         self.totalReceived = totalReceived
         self.totalReturned = totalReturned
         self.createdAt = Date()
