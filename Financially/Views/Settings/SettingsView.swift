@@ -40,14 +40,14 @@ struct SecuritySettingsView: View {
         List {
             Section {
                 Toggle(isOn: Binding(
-                    get: { authManager.biometricsEnabled },
-                    set: { authManager.biometricsEnabled = $0 }
+                    get: { authManager.biometricEnabled },
+                    set: { authManager.biometricEnabled = $0 }
                 )) {
-                    Label(authManager.biometricsAvailable ? "Face ID / Touch ID" : "Biometrics", systemImage: "faceid")
+                    Label(authManager.biometricType.displayName, systemImage: authManager.biometricType.icon)
                 }
-                .disabled(!authManager.biometricsAvailable)
+                .disabled(authManager.biometricType == .none)
             } footer: {
-                if !authManager.biometricsAvailable {
+                if authManager.biometricType == .none {
                     Text("Biometrics are not available on this device")
                 } else {
                     Text("Require authentication to access the app")

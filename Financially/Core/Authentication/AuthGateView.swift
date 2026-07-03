@@ -2,7 +2,6 @@ import SwiftUI
 
 struct AuthGateView<Content: View>: View {
     @Environment(BiometricAuthManager.self) private var authManager
-    @State private var hasAttempted = false
     let content: Content
 
     init(@ViewBuilder content: () -> Content) {
@@ -11,11 +10,11 @@ struct AuthGateView<Content: View>: View {
 
     var body: some View {
         Group {
-            if authManager.isAuthenticated {
+            if authManager.isAuthenticated || !authManager.biometricEnabled {
                 content
             } else {
                 VStack(spacing: 24) {
-                    Image(systemName: "lock.shield.fill")
+                    Image(systemName: authManager.biometricType.icon)
                         .font(.system(size: 64))
                         .foregroundStyle(.tint)
 
@@ -25,14 +24,23 @@ struct AuthGateView<Content: View>: View {
                     Text("Your financial data is protected")
                         .foregroundStyle(.secondary)
 
-                    if !hasAttempted {
+                    if let error = authManager.errorMessage {
+                        Text(error)
+                            .font(.callout)
+                            .foregroundStyle(.red)
+                            .multilineTextAlignment(.center)
+                    }
+
+                    if authManager.isProcessing {
                         ProgressView()
                             .controlSize(.large)
                     } else {
-                        Button(action: authenticate) {
+                        Button {
+                            Task { await authManager.authenticate() }
+                        } label: {
                             Label(
-                                authManager.biometricsAvailable ? "Unlock with Face ID / Touch ID" : "Enter",
-                                systemImage: authManager.biometricsAvailable ? "faceid" : "arrow.right"
+                                "Unlock with \(authManager.biometricType.displayName)",
+                                systemImage: authManager.biometricType.icon
                             )
                         }
                         .buttonStyle(.borderedProminent)
@@ -41,20 +49,11 @@ struct AuthGateView<Content: View>: View {
                 }
                 .padding()
                 .onAppear {
-                    if !authManager.biometricsEnabled || !authManager.biometricsAvailable {
-                        authManager.isAuthenticated = true
-                    } else {
-                        authenticate()
+                    if authManager.biometricEnabled {
+                        Task { await authManager.authenticate() }
                     }
                 }
             }
-        }
-    }
-
-    private func authenticate() {
-        hasAttempted = true
-        Task {
-            _ = await authManager.authenticate()
         }
     }
 }

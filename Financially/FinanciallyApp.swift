@@ -3,7 +3,7 @@ import SwiftData
 
 @main
 struct FinanciallyApp: App {
-    @State private var authManager = BiometricAuthManager()
+    @State private var authManager = BiometricAuthManager.shared
     @AppStorage("colorScheme") private var colorScheme: String = "System"
 
     var body: some Scene {
@@ -16,6 +16,9 @@ struct FinanciallyApp: App {
             }
             .environment(authManager)
             .preferredColorScheme(scheme)
+            .onAppear {
+                authManager.checkAvailability()
+            }
         }
         .modelContainer(sharedModelContainer)
     }
