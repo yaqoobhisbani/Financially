@@ -20,9 +20,6 @@ struct SettingsView: View {
                     NavigationLink(destination: CategoriesManagementView()) {
                         Label("Categories", systemImage: "list.bullet")
                     }
-                    NavigationLink(destination: DataSettingsView()) {
-                        Label("Data & Sync", systemImage: "arrow.triangle.2.circlepath")
-                    }
                 }
 
                 Section("About") {
@@ -61,29 +58,6 @@ struct SecuritySettingsView: View {
     }
 }
 
-struct DataSettingsView: View {
-    var body: some View {
-        List {
-            Section("Sync") {
-                LabeledContent("iCloud", value: "Connected")
-                LabeledContent("Last Sync", value: "Just now")
-            }
-
-            Section("Storage") {
-                LabeledContent("Local Data", value: "Stored on device")
-            }
-
-            Section {
-                Button("Export Data (Coming Soon)", systemImage: "square.and.arrow.up") {}
-                    .foregroundStyle(.secondary)
-                Button("Import Data (Coming Soon)", systemImage: "square.and.arrow.down") {}
-                    .foregroundStyle(.secondary)
-            }
-        }
-        .navigationTitle("Data & Sync")
-    }
-}
-
 struct AboutView: View {
     var body: some View {
         List {
@@ -103,12 +77,11 @@ struct AboutView: View {
 
             Section {
                 LabeledContent("Platforms", value: "iOS, macOS")
-                LabeledContent("Architecture", value: "SwiftUI + SwiftData + CloudKit")
-                LabeledContent("Data", value: "End-to-end encrypted via iCloud")
+                LabeledContent("Architecture", value: "SwiftUI + SwiftData")
             }
 
             Section {
-                Text("Financially is a personal finance management application that combines expense tracking, investment logging, loan management, and liability tracking into a single, unified experience. All data is synced via CloudKit through your Apple Account.")
+                Text("Financially is a personal finance management application that combines expense tracking, investment logging, loan management, and liability tracking into a single, unified experience.")
                     .font(.body)
             }
         }
