@@ -101,32 +101,32 @@ struct LedgerService {
         let sourceRunningBalance = source.currentBalance - transaction.amount
         source.currentBalance = sourceRunningBalance
 
-        let credit = LedgerEntry(
+        let debit = LedgerEntry(
             transactionId: transaction.id,
             accountId: source.id,
-            entryType: .credit,
+            entryType: .debit,
             amount: transaction.amount,
             runningBalance: sourceRunningBalance,
             date: transaction.date
         )
-        credit.account = source
-        modelContext.insert(credit)
+        debit.account = source
+        modelContext.insert(debit)
     }
 
     private func createIncomeEntries(transaction: Transaction, destination: Account) {
         let destRunningBalance = destination.currentBalance + transaction.amount
         destination.currentBalance = destRunningBalance
 
-        let debit = LedgerEntry(
+        let credit = LedgerEntry(
             transactionId: transaction.id,
             accountId: destination.id,
-            entryType: .debit,
+            entryType: .credit,
             amount: transaction.amount,
             runningBalance: destRunningBalance,
             date: transaction.date
         )
-        debit.account = destination
-        modelContext.insert(debit)
+        credit.account = destination
+        modelContext.insert(credit)
     }
 
     private func createTransferEntries(transaction: Transaction, source: Account, destination: Account) {
@@ -136,27 +136,27 @@ struct LedgerService {
         let destBalance = destination.currentBalance + transaction.amount
         destination.currentBalance = destBalance
 
-        let credit = LedgerEntry(
+        let debit = LedgerEntry(
             transactionId: transaction.id,
             accountId: source.id,
-            entryType: .credit,
+            entryType: .debit,
             amount: transaction.amount,
             runningBalance: sourceBalance,
             date: transaction.date
         )
-        credit.account = source
-        modelContext.insert(credit)
+        debit.account = source
+        modelContext.insert(debit)
 
-        let debit = LedgerEntry(
+        let credit = LedgerEntry(
             transactionId: transaction.id,
             accountId: destination.id,
-            entryType: .debit,
+            entryType: .credit,
             amount: transaction.amount,
             runningBalance: destBalance,
             date: transaction.date
         )
-        debit.account = destination
-        modelContext.insert(debit)
+        credit.account = destination
+        modelContext.insert(credit)
     }
 
     private func createAddCapitalEntries(transaction: Transaction, source: Account, investment: Account) {
@@ -165,34 +165,16 @@ struct LedgerService {
 
         investment.investedAmount += transaction.amount
 
-        let credit = LedgerEntry(
+        let debit = LedgerEntry(
             transactionId: transaction.id,
             accountId: source.id,
-            entryType: .credit,
+            entryType: .debit,
             amount: transaction.amount,
             runningBalance: sourceBalance,
             date: transaction.date
         )
-        credit.account = source
-        modelContext.insert(credit)
-
-        let debit = LedgerEntry(
-            transactionId: transaction.id,
-            accountId: investment.id,
-            entryType: .debit,
-            amount: transaction.amount,
-            runningBalance: investment.currentValue,
-            date: transaction.date
-        )
-        debit.account = investment
+        debit.account = source
         modelContext.insert(debit)
-    }
-
-    private func createWithdrawalEntries(transaction: Transaction, investment: Account, destination: Account) {
-        investment.investedAmount -= transaction.amount
-
-        let destBalance = destination.currentBalance + transaction.amount
-        destination.currentBalance = destBalance
 
         let credit = LedgerEntry(
             transactionId: transaction.id,
@@ -204,81 +186,99 @@ struct LedgerService {
         )
         credit.account = investment
         modelContext.insert(credit)
+    }
+
+    private func createWithdrawalEntries(transaction: Transaction, investment: Account, destination: Account) {
+        investment.investedAmount -= transaction.amount
+
+        let destBalance = destination.currentBalance + transaction.amount
+        destination.currentBalance = destBalance
 
         let debit = LedgerEntry(
             transactionId: transaction.id,
-            accountId: destination.id,
+            accountId: investment.id,
             entryType: .debit,
+            amount: transaction.amount,
+            runningBalance: investment.currentValue,
+            date: transaction.date
+        )
+        debit.account = investment
+        modelContext.insert(debit)
+
+        let credit = LedgerEntry(
+            transactionId: transaction.id,
+            accountId: destination.id,
+            entryType: .credit,
             amount: transaction.amount,
             runningBalance: destBalance,
             date: transaction.date
         )
-        debit.account = destination
-        modelContext.insert(debit)
+        credit.account = destination
+        modelContext.insert(credit)
     }
 
     private func createLoanGivenEntries(transaction: Transaction, source: Account) {
         let sourceBalance = source.currentBalance - transaction.amount
         source.currentBalance = sourceBalance
 
-        let credit = LedgerEntry(
+        let debit = LedgerEntry(
             transactionId: transaction.id,
             accountId: source.id,
-            entryType: .credit,
+            entryType: .debit,
             amount: transaction.amount,
             runningBalance: sourceBalance,
             date: transaction.date
         )
-        credit.account = source
-        modelContext.insert(credit)
+        debit.account = source
+        modelContext.insert(debit)
     }
 
     private func createLoanRepaymentEntries(transaction: Transaction, destination: Account) {
         let destBalance = destination.currentBalance + transaction.amount
         destination.currentBalance = destBalance
 
-        let debit = LedgerEntry(
+        let credit = LedgerEntry(
             transactionId: transaction.id,
             accountId: destination.id,
-            entryType: .debit,
+            entryType: .credit,
             amount: transaction.amount,
             runningBalance: destBalance,
             date: transaction.date
         )
-        debit.account = destination
-        modelContext.insert(debit)
+        credit.account = destination
+        modelContext.insert(credit)
     }
 
     private func createLiabilityReceivedEntries(transaction: Transaction, destination: Account) {
         let destBalance = destination.currentBalance + transaction.amount
         destination.currentBalance = destBalance
 
-        let debit = LedgerEntry(
+        let credit = LedgerEntry(
             transactionId: transaction.id,
             accountId: destination.id,
-            entryType: .debit,
+            entryType: .credit,
             amount: transaction.amount,
             runningBalance: destBalance,
             date: transaction.date
         )
-        debit.account = destination
-        modelContext.insert(debit)
+        credit.account = destination
+        modelContext.insert(credit)
     }
 
     private func createLiabilityPaybackEntries(transaction: Transaction, source: Account) {
         let sourceBalance = source.currentBalance - transaction.amount
         source.currentBalance = sourceBalance
 
-        let credit = LedgerEntry(
+        let debit = LedgerEntry(
             transactionId: transaction.id,
             accountId: source.id,
-            entryType: .credit,
+            entryType: .debit,
             amount: transaction.amount,
             runningBalance: sourceBalance,
             date: transaction.date
         )
-        credit.account = source
-        modelContext.insert(credit)
+        debit.account = source
+        modelContext.insert(debit)
     }
 
     private func createProfitLossEntries(transaction: Transaction, investment: Account) {

@@ -19,12 +19,12 @@ struct AccountPickerView: View {
     var body: some View {
         NavigationStack {
             List(filteredAccounts) { account in
-                Button {
-                    onSelect(account)
-                    dismiss()
-                } label: {
-                    AccountRowView(account: account)
-                }
+                AccountRowView(account: account)
+                    .contentShape(Rectangle())
+                    .onTapGesture {
+                        onSelect(account)
+                        dismiss()
+                    }
             }
             .navigationTitle(title)
             #if os(iOS)

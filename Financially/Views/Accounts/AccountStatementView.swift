@@ -8,8 +8,10 @@ struct AccountStatementView: View {
     @State private var startDate: Date = Date().startOfMonth
     @State private var endDate: Date = Date()
     @State private var selectedPreset: DatePreset = .thisMonth
+    @State private var selectedTransaction: Transaction?
 
     @Query private var allEntries: [LedgerEntry]
+    @Query private var allTransactions: [Transaction]
 
     enum DatePreset: String, CaseIterable {
         case thisMonth = "This Month"
@@ -35,45 +37,18 @@ struct AccountStatementView: View {
                 dateFilterBar
 
                 List {
-                    Section {
-                        HStack {
-                            Text("Opening Balance")
-                            Spacer()
-                            Text(openingBalance.formattedCurrency(currency: account.currency))
-                                .foregroundStyle(.secondary)
-                        }
-                        HStack {
-                            Text("Closing Balance")
-                            Spacer()
-                            Text(closingBalance.formattedCurrency(currency: account.currency))
-                                .bold()
-                        }
-                    }
+                    openingClosingSection
 
                     ForEach(filteredEntries) { entry in
-                        HStack {
-                            VStack(alignment: .leading) {
-                                Text(entry.entryType == .debit ? "Debit" : "Credit")
-                                    .font(.headline)
-                                Text(entry.date.formattedDate())
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
+                        LedgerRowView(entry: entry, currency: account.currency)
+                            .contentShape(Rectangle())
+                            .onTapGesture {
+                                selectedTransaction = allTransactions.first { $0.id == entry.transactionId }
                             }
-                            Spacer()
-                            VStack(alignment: .trailing) {
-                                Text(entry.amount.formattedCurrency(currency: account.currency))
-                                Text("Bal: \(entry.runningBalance.formattedCurrency(currency: account.currency))")
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
-                            }
-                        }
                     }
 
                     if filteredEntries.isEmpty {
-                        Text("No entries in this period")
-                            .foregroundStyle(.secondary)
-                            .frame(maxWidth: .infinity, alignment: .center)
-                            .padding()
+                        ContentUnavailableView("No Entries", systemImage: "tray", description: Text("No transactions in this period"))
                     }
                 }
                 #if os(iOS)
@@ -88,6 +63,37 @@ struct AccountStatementView: View {
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Done") { dismiss() }
                 }
+            }
+            .sheet(item: $selectedTransaction) { tx in
+                NavigationStack {
+                    TransactionDetailView(transaction: tx)
+                }
+            }
+        }
+    }
+
+    private var openingClosingSection: some View {
+        Section {
+            HStack {
+                Label("Opening Balance", systemImage: "arrow.forward")
+                    .foregroundStyle(.secondary)
+                Spacer()
+                Text(openingBalance.formattedCurrency(currency: account.currency))
+            }
+            HStack {
+                Label("Closing Balance", systemImage: "arrow.down.left.circle")
+                    .fontWeight(.semibold)
+                Spacer()
+                Text(closingBalance.formattedCurrency(currency: account.currency))
+                    .fontWeight(.bold)
+            }
+            HStack {
+                Label("Net Change", systemImage: "arrow.up.arrow.down")
+                    .foregroundStyle(.secondary)
+                Spacer()
+                Text(netChange.formattedCurrency(currency: account.currency))
+                    .foregroundStyle(netChange >= 0 ? .incomeGreen : .expenseRed)
+                    .fontWeight(.semibold)
             }
         }
     }
@@ -138,6 +144,10 @@ struct AccountStatementView: View {
         case .custom:
             break
         }
+    }
+
+    private var netChange: Decimal {
+        closingBalance - openingBalance
     }
 
     private var openingBalance: Decimal {

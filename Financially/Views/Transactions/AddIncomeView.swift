@@ -118,12 +118,12 @@ struct AddIncomeView: View {
     private var categoryPickerSheet: some View {
         NavigationStack {
             List(incomeCategories) { cat in
-                Button {
-                    category = cat
-                    showCategoryPicker = false
-                } label: {
-                    Label(cat.name, systemImage: cat.icon)
-                }
+                Label(cat.name, systemImage: cat.icon)
+                    .contentShape(Rectangle())
+                    .onTapGesture {
+                        category = cat
+                        showCategoryPicker = false
+                    }
             }
             .navigationTitle("Category")
             #if os(iOS)

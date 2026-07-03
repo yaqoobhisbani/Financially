@@ -6,8 +6,10 @@ struct AccountDetailView: View {
     let account: Account
 
     @Query private var ledgerEntries: [LedgerEntry]
+    @Query private var allTransactions: [Transaction]
     @State private var showStatement = false
     @State private var showEdit = false
+    @State private var selectedTransaction: Transaction?
 
     init(account: Account) {
         self.account = account
@@ -44,6 +46,9 @@ struct AccountDetailView: View {
         }
         .sheet(isPresented: $showStatement) {
             AccountStatementView(account: account)
+        }
+        .sheet(isPresented: $showEdit) {
+            EditAccountView(account: account)
         }
     }
 
@@ -128,22 +133,11 @@ struct AccountDetailView: View {
     private var recentTransactionsSection: some View {
         Section("Recent Transactions") {
             ForEach(Array(ledgerEntries.prefix(20))) { entry in
-                HStack {
-                    VStack(alignment: .leading) {
-                        Text(entry.entryType == .debit ? "Debit" : "Credit")
-                            .font(.headline)
-                        Text(entry.date.formattedDate())
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
+                LedgerRowView(entry: entry, currency: account.currency)
+                    .contentShape(Rectangle())
+                    .onTapGesture {
+                        selectedTransaction = allTransactions.first { $0.id == entry.transactionId }
                     }
-                    Spacer()
-                    VStack(alignment: .trailing) {
-                        Text(entry.amount.formattedCurrency(currency: account.currency))
-                        Text("Balance: \(entry.runningBalance.formattedCurrency(currency: account.currency))")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                    }
-                }
             }
 
             if ledgerEntries.isEmpty {
@@ -151,6 +145,11 @@ struct AccountDetailView: View {
                     .foregroundStyle(.secondary)
                     .frame(maxWidth: .infinity, alignment: .center)
                     .padding()
+            }
+        }
+        .sheet(item: $selectedTransaction) { tx in
+            NavigationStack {
+                TransactionDetailView(transaction: tx)
             }
         }
     }

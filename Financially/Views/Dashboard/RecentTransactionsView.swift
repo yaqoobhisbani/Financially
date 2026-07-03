@@ -3,6 +3,7 @@ import SwiftData
 
 struct RecentTransactionsView: View {
     let transactions: [Transaction]
+    @State private var selectedTransaction: Transaction?
 
     @Query private var allAccounts: [Account]
 
@@ -55,6 +56,8 @@ struct RecentTransactionsView: View {
                     }
                     .padding(.horizontal)
                     .padding(.vertical, 6)
+                    .contentShape(Rectangle())
+                    .onTapGesture { selectedTransaction = tx }
 
                     if tx.id != transactions.last?.id {
                         Divider()
@@ -66,6 +69,11 @@ struct RecentTransactionsView: View {
         .padding(.vertical, 8)
         .background(.ultraThinMaterial)
         .clipShape(RoundedRectangle(cornerRadius: 14))
+        .sheet(item: $selectedTransaction) { tx in
+            NavigationStack {
+                TransactionDetailView(transaction: tx)
+            }
+        }
     }
 
     private func txIcon(_ type: TransactionType) -> String {

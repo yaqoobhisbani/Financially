@@ -14,6 +14,14 @@ final class LedgerEntry {
 
     var account: Account?
 
+    var isInflow: Bool {
+        entryType == .credit
+    }
+
+    var formattedLabel: String {
+        isInflow ? "Credit" : "Debit"
+    }
+
     init(
         id: UUID = UUID(),
         transactionId: UUID,

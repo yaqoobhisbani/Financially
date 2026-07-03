@@ -36,7 +36,7 @@ struct FinanciallyApp: App {
             Account.self,
             Transaction.self,
             LedgerEntry.self,
-            Debtor.self,
+       Debtor.self,
             Creditor.self,
             InvestmentEntry.self,
             Category.self,

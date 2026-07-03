@@ -59,7 +59,7 @@ struct TransactionDetailView: View {
             }
         }
 .navigationTitle("Transaction")
-    #if os(iOS)
+        #if os(iOS)
     .navigationBarTitleDisplayMode(.inline)
     #endif
     }
