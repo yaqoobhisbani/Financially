@@ -7,9 +7,29 @@ struct StockInfoManagementView: View {
     @State private var showingAdd = false
     @State private var editingStock: StockInfo?
     @State private var editRate = ""
+    @State private var isSyncing = false
+    @State private var syncProgress: Double = 0
+    @State private var syncTotal = 0
+    @State private var syncCurrent = 0
+    @State private var syncMessage = ""
 
     var body: some View {
         List {
+            if isSyncing {
+                Section {
+                    VStack(spacing: 8) {
+                        ProgressView(value: syncProgress, total: Double(syncTotal))
+                        Text(syncMessage)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                        Text("\(syncCurrent) of \(syncTotal)")
+                            .font(.caption2)
+                            .foregroundStyle(.tertiary)
+                    }
+                    .padding(.vertical, 4)
+                }
+            }
+
             ForEach(stockList) { stock in
                 HStack {
                     VStack(alignment: .leading) {
@@ -21,14 +41,14 @@ struct StockInfoManagementView: View {
                     }
                     Spacer()
                     VStack(alignment: .trailing) {
-                        Button {
-                            editingStock = stock
-                            editRate = "\(stock.currentRate)"
-                        } label: {
-                            Text(stock.currentRate.formattedCurrency())
-                                .font(.subheadline.weight(.medium))
-                                .foregroundStyle(.primary)
-                        }
+                        Text(stock.currentRate.formattedCurrency())
+                            .font(.subheadline.weight(.medium))
+                            .foregroundStyle(.primary)
+                            .contentShape(Rectangle())
+                            .onTapGesture {
+                                editingStock = stock
+                                editRate = "\(stock.currentRate)"
+                            }
                         Text("per share")
                             .font(.caption2)
                             .foregroundStyle(.tertiary)
@@ -57,10 +77,17 @@ struct StockInfoManagementView: View {
         }
         .navigationTitle("Stocks")
         .toolbar {
-            ToolbarItem {
+            ToolbarItem(placement: .primaryAction) {
                 Button(action: { showingAdd = true }) {
                     Label("Add", systemImage: "plus")
                 }
+                .disabled(isSyncing)
+            }
+            ToolbarItem(placement: .primaryAction) {
+                Button(action: { Task { await syncAllPrices() } }) {
+                    Label("Sync", systemImage: "arrow.triangle.2.circlepath")
+                }
+                .disabled(isSyncing || stockList.isEmpty)
             }
         }
         .sheet(isPresented: $showingAdd) {
@@ -81,6 +108,51 @@ struct StockInfoManagementView: View {
             if let stock = editingStock {
                 Text("Update rate for \(stock.ticker)")
             }
+        }
+    }
+
+    private func syncAllPrices() async {
+        isSyncing = true
+        syncTotal = stockList.count
+        syncCurrent = 0
+        syncProgress = 0
+
+        for stock in stockList {
+            syncCurrent += 1
+            syncMessage = "Fetching \(stock.ticker)..."
+            syncProgress = Double(syncCurrent - 1)
+
+            if let price = await fetchPrice(for: stock.ticker) {
+                stock.currentRate = price
+                syncRateToHoldings(ticker: stock.ticker, rate: price)
+            }
+
+            syncProgress = Double(syncCurrent)
+        }
+
+        syncMessage = "Done!"
+        try? modelContext.save()
+        isSyncing = false
+    }
+
+    private func fetchPrice(for ticker: String) async -> Decimal? {
+        guard let url = URL(string: "https://dps.psx.com.pk/company/\(ticker)") else { return nil }
+
+        do {
+            let (data, _) = try await URLSession.shared.data(from: url)
+            guard let html = String(data: data, encoding: .utf8) else { return nil }
+
+            let pattern = #"quote__price.*?Rs\.\s*([\d,.]+)"#
+            guard let regex = try? NSRegularExpression(pattern: pattern, options: [.dotMatchesLineSeparators]),
+                  let match = regex.firstMatch(in: html, options: [], range: NSRange(html.startIndex..., in: html)),
+                  let range = Range(match.range(at: 1), in: html) else {
+                return nil
+            }
+
+            let priceString = html[range].replacingOccurrences(of: ",", with: "")
+            return Decimal(string: priceString)
+        } catch {
+            return nil
         }
     }
 
