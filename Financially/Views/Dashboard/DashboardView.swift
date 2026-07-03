@@ -131,8 +131,12 @@ struct DashboardView: View {
 
     private func accountCard(_ account: Account) -> some View {
         VStack(alignment: .leading, spacing: 4) {
-            Image(systemName: accountIcon(account))
-                .font(.title3)
+            if account.accountType == .bank, let bankName = account.bankName {
+                BankLogoView(bankName: bankName, size: 32)
+            } else {
+                Image(systemName: accountIcon(account))
+                    .font(.title3)
+            }
             Text(account.name)
                 .font(.caption)
                 .lineLimit(1)

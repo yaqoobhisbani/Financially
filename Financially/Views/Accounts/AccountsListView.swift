@@ -69,12 +69,16 @@ struct AccountRowView: View {
 
     var body: some View {
         HStack(spacing: 12) {
-            ZStack {
-                RoundedRectangle(cornerRadius: 10)
-                    .fill(accountColor.opacity(0.2))
-                    .frame(width: 40, height: 40)
-                Image(systemName: accountIcon)
-                    .foregroundStyle(accountColor)
+            if account.accountType == .bank, let bankName = account.bankName {
+                BankLogoView(bankName: bankName, size: 40)
+            } else {
+                ZStack {
+                    RoundedRectangle(cornerRadius: 10)
+                        .fill(accountColor.opacity(0.2))
+                        .frame(width: 40, height: 40)
+                    Image(systemName: accountIcon)
+                        .foregroundStyle(accountColor)
+                }
             }
 
             VStack(alignment: .leading, spacing: 2) {

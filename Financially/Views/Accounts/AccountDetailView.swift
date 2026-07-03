@@ -96,7 +96,17 @@ struct AccountDetailView: View {
         Section("Info") {
             LabeledContent("Type", value: accountTypeLabel)
             if account.accountType == .bank {
-                if let bank = account.bankName { LabeledContent("Bank", value: bank) }
+                if let bank = account.bankName {
+                    HStack {
+                        BankLogoView(bankName: bank, size: 28)
+                        VStack(alignment: .leading) {
+                            Text("Bank")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                            Text(bank)
+                        }
+                    }
+                }
                 if let num = account.accountNumber { LabeledContent("Account #", value: num) }
             }
             if account.accountType == .cash, let sub = account.cashSubType {
