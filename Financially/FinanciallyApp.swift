@@ -4,14 +4,17 @@ import SwiftData
 @main
 struct FinanciallyApp: App {
     @State private var authManager = BiometricAuthManager()
+    @State private var cloudKitManager = CloudKitManager()
     @AppStorage("colorScheme") private var colorScheme: String = "System"
 
     var body: some Scene {
         WindowGroup {
             AuthGateView {
                 ContentView()
+                    .environment(cloudKitManager)
                     .onAppear {
                         SeedCategories.seedIfNeeded(modelContext: sharedModelContainer.mainContext)
+                        Task { await cloudKitManager.setup() }
                     }
             }
             .environment(authManager)
@@ -43,7 +46,7 @@ struct FinanciallyApp: App {
             let config = ModelConfiguration(
                 schema: schema,
                 isStoredInMemoryOnly: false,
-                cloudKitDatabase: .private("iCloud.com.financially.app")
+                cloudKitDatabase: .private("iCloud.com.yaqoobdev.Financially")
             )
             return try ModelContainer(for: schema, configurations: [config])
         } catch {

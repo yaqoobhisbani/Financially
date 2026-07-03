@@ -1,4 +1,3 @@
-import Foundation
 import CloudKit
 import SwiftData
 
@@ -17,9 +16,6 @@ final class SyncMonitor {
     }
 
     func sync() async {
-        // SwiftData + CloudKit native sync handles this automatically
-        // when using @Model with CKContainer integration.
-        // This monitor tracks status and handles error reporting.
         cloudKitManager.syncStatus = .synced
     }
 }
