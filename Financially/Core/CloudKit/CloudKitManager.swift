@@ -21,6 +21,14 @@ final class CloudKitManager {
         database = container.privateCloudDatabase
 
         do {
+            _ = try await container.userRecordID()
+        } catch {
+            isAvailable = false
+            syncStatus = .failed("CloudKit not available (no entitlements)")
+            return
+        }
+
+        do {
             let status = try await container.accountStatus()
             switch status {
             case .available:
