@@ -84,7 +84,7 @@ struct AccountRowView: View {
     }
 
     private var displayBalance: Decimal {
-        account.accountType == .psx ? psxPortfolioValue : account.currentBalance
+        account.accountType == .psx ? account.currentBalance + psxPortfolioValue : account.currentBalance
     }
 
     private var pnlValue: Decimal {

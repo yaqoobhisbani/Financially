@@ -170,7 +170,7 @@ struct PSXAccountDetailView: View {
             .frame(maxWidth: .infinity)
             .padding(.vertical, 12)
             .padding(.horizontal, 4)
-            .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 12))
+            .background(Color(.systemBackground), in: RoundedRectangle(cornerRadius: 12))
         }
         .buttonStyle(.plain)
     }

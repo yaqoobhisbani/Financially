@@ -139,7 +139,7 @@ struct DashboardView: View {
             Text(account.name)
                 .font(.caption)
                 .lineLimit(1)
-            Text(account.accountType == .psx ? psxPortfolioValue(account).formattedCurrency(currency: account.currency) : account.currentBalance.formattedCurrency(currency: account.currency))
+            Text(account.accountType == .psx ? (account.currentBalance + psxPortfolioValue(account)).formattedCurrency(currency: account.currency) : account.currentBalance.formattedCurrency(currency: account.currency))
                 .font(.caption.bold())
             if account.accountType == .psx {
                 Text(psxProfitLoss(account).formattedCurrency(currency: account.currency))
@@ -231,7 +231,7 @@ struct DashboardView: View {
     private var computeTotalAssets: Decimal {
         accounts.filter { $0.isActive }.reduce(0) { sum, account in
             if account.accountType == .psx {
-                return sum + psxPortfolioValue(account)
+                return sum + account.currentBalance + psxPortfolioValue(account)
             }
             return sum + account.currentBalance
         }
