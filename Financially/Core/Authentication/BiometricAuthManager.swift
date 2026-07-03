@@ -3,7 +3,7 @@ import LocalAuthentication
 
 @Observable
 final class BiometricAuthManager {
-    private let context = LAContext()
+    private var context = LAContext()
     private let reason = "Unlock Financially to access your financial data"
 
     var isAuthenticated = false
@@ -18,6 +18,7 @@ final class BiometricAuthManager {
     }
 
     private func checkAvailability() {
+        context = LAContext()
         var error: NSError?
         biometricsAvailable = context.canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, error: &error)
     }
@@ -28,9 +29,11 @@ final class BiometricAuthManager {
             return true
         }
 
+        context = LAContext()
+
         do {
             let success = try await context.evaluatePolicy(
-                .deviceOwnerAuthentication,
+                .deviceOwnerAuthenticationWithBiometrics,
                 localizedReason: reason
             )
             isAuthenticated = success

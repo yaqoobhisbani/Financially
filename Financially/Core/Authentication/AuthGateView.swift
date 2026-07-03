@@ -2,7 +2,7 @@ import SwiftUI
 
 struct AuthGateView<Content: View>: View {
     @Environment(BiometricAuthManager.self) private var authManager
-    @State private var showingRetry = false
+    @State private var hasAttempted = false
     let content: Content
 
     init(@ViewBuilder content: () -> Content) {
@@ -25,29 +25,36 @@ struct AuthGateView<Content: View>: View {
                     Text("Your financial data is protected")
                         .foregroundStyle(.secondary)
 
-                    Button(action: authenticate) {
-                        Label(
-                            authManager.biometricsAvailable ? "Unlock with Face ID / Touch ID" : "Enter",
-                            systemImage: authManager.biometricsAvailable ? "faceid" : "arrow.right"
-                        )
+                    if !hasAttempted {
+                        ProgressView()
+                            .controlSize(.large)
+                    } else {
+                        Button(action: authenticate) {
+                            Label(
+                                authManager.biometricsAvailable ? "Unlock with Face ID / Touch ID" : "Enter",
+                                systemImage: authManager.biometricsAvailable ? "faceid" : "arrow.right"
+                            )
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .controlSize(.large)
                     }
-                    .buttonStyle(.borderedProminent)
-                    .controlSize(.large)
                 }
                 .padding()
-            }
-        }
-        .onAppear {
-            if !authManager.biometricsEnabled || !authManager.biometricsAvailable {
-                authManager.isAuthenticated = true
+                .onAppear {
+                    if !authManager.biometricsEnabled || !authManager.biometricsAvailable {
+                        authManager.isAuthenticated = true
+                    } else {
+                        authenticate()
+                    }
+                }
             }
         }
     }
 
     private func authenticate() {
+        hasAttempted = true
         Task {
-            let success = await authManager.authenticate()
-            showingRetry = !success
+            _ = await authManager.authenticate()
         }
     }
 }
