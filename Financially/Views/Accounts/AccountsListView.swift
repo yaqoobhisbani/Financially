@@ -12,7 +12,7 @@ struct AccountsListView: View {
         case bank = "Bank"
         case cash = "Cash"
         case psx = "PSX"
-        case mutualFund = "Mutual Fund"
+        case mutualFund = "MF"
     }
 
     private var filteredAccounts: [Account] {
