@@ -9,15 +9,14 @@ struct DashboardView: View {
     @Query private var debtors: [Debtor]
     @Query private var creditors: [Creditor]
 
-    @State private var showAddExpense = false
-    @State private var showAddIncome = false
+    @State private var showExpense = false
+    @State private var showIncome = false
     @State private var showTransfer = false
 
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 16) {
-                    quickActionBar
                     summaryCards
                     accountsGridScroll
                     expenseChartWidget
@@ -28,42 +27,22 @@ struct DashboardView: View {
                 .padding()
             }
             .navigationTitle("Dashboard")
-            .sheet(isPresented: $showAddExpense) {
-                AddExpenseView()
-            }
-            .sheet(isPresented: $showAddIncome) {
-                AddIncomeView()
-            }
-            .sheet(isPresented: $showTransfer) {
-                TransferView()
+            .toolbar {
+                ToolbarItem(placement: .primaryAction) {
+                    Menu {
+                        Button("Expense", systemImage: "cart.fill") { showExpense = true }
+                        Button("Income", systemImage: "dollarsign.circle.fill") { showIncome = true }
+                        Button("Transfer", systemImage: "arrow.left.arrow.right") { showTransfer = true }
+                    } label: {
+                        Image(systemName: "plus")
+                            .font(.title3)
+                    }
+                }
             }
         }
-    }
-
-    // MARK: - Quick Actions
-
-    private var quickActionBar: some View {
-        HStack(spacing: 12) {
-            quickActionButton("Expense", icon: "cart.fill", color: .expenseRed) { showAddExpense = true }
-            quickActionButton("Income", icon: "dollarsign.circle.fill", color: .incomeGreen) { showAddIncome = true }
-            quickActionButton("Transfer", icon: "arrow.left.arrow.right", color: .blue) { showTransfer = true }
-        }
-    }
-
-    private func quickActionButton(_ label: String, icon: String, color: Color, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
-            VStack(spacing: 8) {
-                Image(systemName: icon)
-                    .font(.title2)
-                Text(label)
-                    .font(.caption)
-            }
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 12)
-            .background(color.opacity(0.15))
-            .clipShape(RoundedRectangle(cornerRadius: 12))
-        }
-        .buttonStyle(.plain)
+        .sheet(isPresented: $showExpense) { AddExpenseView() }
+        .sheet(isPresented: $showIncome) { AddIncomeView() }
+        .sheet(isPresented: $showTransfer) { TransferView() }
     }
 
     // MARK: - Summary Cards

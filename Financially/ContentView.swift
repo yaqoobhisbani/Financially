@@ -12,12 +12,6 @@ struct ContentView: View {
             DashboardView()
         }
         #else
-        tabBarContent
-        #endif
-    }
-
-    @ViewBuilder
-    private var tabBarContent: some View {
         TabView {
             DashboardView()
                 .tabItem {
@@ -39,6 +33,7 @@ struct ContentView: View {
                     Label("More", systemImage: "ellipsis.circle.fill")
                 }
         }
+        #endif
     }
 
     @ViewBuilder

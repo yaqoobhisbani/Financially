@@ -1,18 +1,50 @@
 import SwiftUI
 
 struct SettingsView: View {
+    @AppStorage("colorScheme") private var colorScheme: ColorSchemeOption = .system
+    @Environment(BiometricAuthManager.self) private var authManager
+
+    enum ColorSchemeOption: String, CaseIterable {
+        case light = "Light"
+        case dark = "Dark"
+        case system = "System"
+    }
+
     var body: some View {
         NavigationStack {
             List {
                 Section("Appearance") {
-                    NavigationLink(destination: ThemeSettingsView()) {
-                        Label("Theme", systemImage: "paintpalette.fill")
+                    Picker("Theme", selection: $colorScheme) {
+                        ForEach(ColorSchemeOption.allCases, id: \.rawValue) { option in
+                            Text(option.rawValue).tag(option)
+                        }
                     }
                 }
 
-                Section("Security") {
-                    NavigationLink(destination: SecuritySettingsView()) {
-                        Label("Security", systemImage: "lock.fill")
+                Section {
+                    Toggle(isOn: Binding(
+                        get: { authManager.biometricEnabled },
+                        set: { newValue in
+                            if newValue {
+                                authManager.biometricEnabled = true
+                                authManager.isAuthenticated = false
+                                Task { await authManager.authenticate() }
+                            } else {
+                                authManager.biometricEnabled = false
+                                authManager.isAuthenticated = true
+                            }
+                        }
+                    )) {
+                        Label(authManager.biometricType.displayName, systemImage: authManager.biometricType.icon)
+                    }
+                    .disabled(authManager.biometricType == .none)
+                } header: {
+                    Text("Security")
+                } footer: {
+                    if authManager.biometricType == .none {
+                        Text("Biometrics are not available on this device")
+                    } else {
+                        Text("Require authentication to access the app")
                     }
                 }
 
@@ -29,41 +61,16 @@ struct SettingsView: View {
                 }
             }
             .navigationTitle("Settings")
+            .preferredColorScheme(colorScheme == .system ? nil : colorScheme == .dark ? .dark : .light)
         }
     }
-}
 
-struct SecuritySettingsView: View {
-    @Environment(BiometricAuthManager.self) private var authManager
-
-    var body: some View {
-        List {
-            Section {
-                Toggle(isOn: Binding(
-                    get: { authManager.biometricEnabled },
-                    set: { newValue in
-                        if newValue {
-                            authManager.biometricEnabled = true
-                            authManager.isAuthenticated = false
-                            Task { await authManager.authenticate() }
-                        } else {
-                            authManager.biometricEnabled = false
-                            authManager.isAuthenticated = true
-                        }
-                    }
-                )) {
-                    Label(authManager.biometricType.displayName, systemImage: authManager.biometricType.icon)
-                }
-                .disabled(authManager.biometricType == .none)
-            } footer: {
-                if authManager.biometricType == .none {
-                    Text("Biometrics are not available on this device")
-                } else {
-                    Text("Require authentication to access the app")
-                }
-            }
+    private func icon(for option: ColorSchemeOption) -> String {
+        switch option {
+        case .light: return "sun.max.fill"
+        case .dark: return "moon.fill"
+        case .system: return "iphone"
         }
-        .navigationTitle("Security")
     }
 }
 
