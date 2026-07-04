@@ -45,10 +45,3 @@ struct BankLogoView: View {
         }
     }
 }
-
-extension Account {
-    var bankLogoName: String? {
-        guard accountType == .bank else { return nil }
-        return bankName
-    }
-}

@@ -88,12 +88,12 @@ struct PSXAccountDetailView: View {
                 heroRightColor: totalUnrealizedPAndL >= 0 ? .incomeGreen : .expenseRed,
                 detailRows: [
                     [
-                        SummaryMetric(label: "Available Cash", value: account.currentBalance.formattedCurrency(currency: account.currency)),
-                        SummaryMetric(label: "Holdings Value", value: totalHoldingValue.formattedCurrency(currency: account.currency), color: .incomeGreen)
+                        AnyView(SummaryMetric(label: "Available Cash", value: account.currentBalance.formattedCurrency(currency: account.currency))),
+                        AnyView(SummaryMetric(label: "Holdings Value", value: totalHoldingValue.formattedCurrency(currency: account.currency), color: .incomeGreen))
                     ],
                     [
-                        SummaryMetric(label: "Total Cost", value: totalCostBasis.formattedCurrency(currency: account.currency)),
-                        SummaryMetric(label: "Return", value: totalPAndLPercentage.formatted(.number.precision(.fractionLength(2))) + "%", color: totalUnrealizedPAndL >= 0 ? .incomeGreen : .expenseRed)
+                        AnyView(SummaryMetric(label: "Total Cost", value: totalCostBasis.formattedCurrency(currency: account.currency))),
+                        AnyView(SummaryMetricView(label: "Return") { PercentageText(value: totalPAndLPercentage).foregroundStyle(totalUnrealizedPAndL >= 0 ? .incomeGreen : .expenseRed) })
                     ]
                 ]
             )

@@ -15,24 +15,36 @@ struct CommodityHoldingDetailView: View {
     var body: some View {
         List {
             Section("Summary") {
-                SummaryBalanceView(
-                    heroLeftLabel: "Current Value",
-                    heroLeftValue: holding.currentValue.formattedCurrency(),
-                    heroRightLabel: "Return",
-                    heroRightValue: holding.returnPercentage.formatted(.number.precision(.fractionLength(2))) + "%",
-                    heroRightColor: holding.unrealizedPAndL >= 0 ? .incomeGreen : .expenseRed,
-                    detailRows: [
-                        [
-                            SummaryMetric(label: "Grams", value: holding.totalGrams.formattedNumber()),
-                            SummaryMetric(label: "Avg Cost/g", value: holding.avgCostPerGram.formattedCurrency()),
-                            SummaryMetric(label: "Total Cost", value: holding.totalCost.formattedCurrency())
-                        ],
-                        [
-                            SummaryMetric(label: "Unrealized P&L", value: holding.unrealizedPAndL.formattedCurrency(), color: holding.unrealizedPAndL >= 0 ? .incomeGreen : .expenseRed),
-                            SummaryMetric(label: "Fees Paid", value: holding.totalFeesPaid.formattedCurrency(), color: .secondary)
-                        ]
-                    ]
-                )
+                VStack(spacing: 12) {
+                    HStack {
+                        SummaryMetric(
+                            label: "Current Value",
+                            value: holding.currentValue.formattedCurrency(),
+                            valueFont: .title.bold()
+                        )
+                        Spacer()
+                        SummaryMetricView(label: "Return") {
+                            PercentageText(value: holding.returnPercentage)
+                                .font(.title3.bold())
+                                .foregroundStyle(holding.unrealizedPAndL >= 0 ? .incomeGreen : .expenseRed)
+                        }
+                    }
+
+                    Divider()
+
+                    HStack(alignment: .top, spacing: 16) {
+                        SummaryMetric(label: "Grams", value: holding.totalGrams.formattedNumber())
+                        SummaryMetric(label: "Avg Cost/g", value: holding.avgCostPerGram.formattedCurrency())
+                        SummaryMetric(label: "Total Cost", value: holding.totalCost.formattedCurrency())
+                    }
+
+                    HStack(alignment: .top, spacing: 16) {
+                        SummaryMetric(label: "Unrealized P&L", value: holding.unrealizedPAndL.formattedCurrency(), color: holding.unrealizedPAndL >= 0 ? .incomeGreen : .expenseRed)
+                        Spacer()
+                        SummaryMetric(label: "Fees Paid", value: holding.totalFeesPaid.formattedCurrency(), color: .secondary)
+                    }
+                }
+                .padding(.vertical, 8)
             }
 
             Section("Trade History") {

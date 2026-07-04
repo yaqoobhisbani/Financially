@@ -18,6 +18,20 @@ struct SummaryMetric: View {
     }
 }
 
+struct SummaryMetricView<Content: View>: View {
+    let label: String
+    @ViewBuilder let content: Content
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Text(label)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+            content
+        }
+    }
+}
+
 struct SummaryBalanceView: View {
     let heroLeftLabel: String
     let heroLeftValue: String
@@ -26,7 +40,7 @@ struct SummaryBalanceView: View {
     var heroRightValue: String? = nil
     var heroRightColor: Color = .primary
     var heroRightFont: Font = .title3.bold()
-    var detailRows: [[SummaryMetric]] = []
+    var detailRows: [[AnyView]] = []
 
     var body: some View {
         VStack(spacing: 12) {

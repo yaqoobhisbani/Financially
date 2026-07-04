@@ -53,11 +53,11 @@ struct CommodityDetailView: View {
                 heroRightColor: totalUnrealizedPAndL >= 0 ? .incomeGreen : .expenseRed,
                 detailRows: [
                     [
-                        SummaryMetric(label: "Holdings Value", value: totalHoldingValue.formattedCurrency(), color: .incomeGreen),
-                        SummaryMetric(label: "Total Cost", value: totalCostBasis.formattedCurrency())
+                        AnyView(SummaryMetric(label: "Holdings Value", value: totalHoldingValue.formattedCurrency(), color: .incomeGreen)),
+                        AnyView(SummaryMetric(label: "Total Cost", value: totalCostBasis.formattedCurrency()))
                     ],
                     [
-                        SummaryMetric(label: "Return", value: totalPAndLPercentage.formatted(.number.precision(.fractionLength(2))) + "%", color: totalUnrealizedPAndL >= 0 ? .incomeGreen : .expenseRed)
+                        AnyView(SummaryMetricView(label: "Return") { PercentageText(value: totalPAndLPercentage).foregroundStyle(totalUnrealizedPAndL >= 0 ? .incomeGreen : .expenseRed) })
                     ]
                 ]
             )

@@ -40,8 +40,7 @@ struct RecentTransactionsView: View {
             }
         }
         .padding(.vertical, 8)
-        .background(.ultraThinMaterial)
-        .clipShape(RoundedRectangle(cornerRadius: 14))
+        .liquidGlassCard()
         .sheet(item: $selectedTransaction) { tx in
             NavigationStack {
                 TransactionDetailView(transaction: tx)

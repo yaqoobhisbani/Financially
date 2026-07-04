@@ -151,8 +151,7 @@ struct DashboardView: View {
         }
         .frame(width: 100, height: 100)
         .padding()
-        .background(.ultraThinMaterial)
-        .clipShape(RoundedRectangle(cornerRadius: 12))
+        .liquidGlassCard()
     }
 
     private var activeCommodityHoldings: [CommodityHolding] {
@@ -269,8 +268,7 @@ struct DashboardView: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding()
-        .background(.ultraThinMaterial)
-        .clipShape(RoundedRectangle(cornerRadius: 12))
+        .liquidGlassCard()
     }
 
     // MARK: - Recent Transactions

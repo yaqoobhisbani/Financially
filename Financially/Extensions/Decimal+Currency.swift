@@ -16,9 +16,4 @@ extension Decimal {
         formatter.maximumFractionDigits = 4
         return formatter.string(from: self as NSDecimalNumber) ?? "0"
     }
-
-    func formattedWithSign(currency: String = "PKR", isPositive: Bool) -> String {
-        let formatted = formattedCurrency(currency: currency)
-        return isPositive ? "+\(formatted)" : "-\(formatted)"
-    }
 }
