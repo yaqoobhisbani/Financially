@@ -17,22 +17,12 @@ struct GiveLoanView: View {
         NavigationStack {
             Form {
                 Section("Source Account") {
-                    Button(action: { showAccountPicker = true }) {
-                        HStack {
-                            Text("From")
-                            Spacer()
-                            if let account = sourceAccount {
-                                Text(account.name)
-                                    .foregroundStyle(.primary)
-                            } else {
-                                Text("Select Bank or Cash account")
-                                    .foregroundStyle(.secondary)
-                            }
-                            Image(systemName: "chevron.right")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                        }
-                    }
+                    AccountPickerButton(
+                        label: "From",
+                        accountName: sourceAccount?.name,
+                        placeholder: "Select Bank or Cash account",
+                        action: { showAccountPicker = true }
+                    )
                 }
 
                 Section("Amount") {
@@ -47,12 +37,7 @@ struct GiveLoanView: View {
                     TextField("Description (optional)", text: $description)
                 }
 
-                if let errorMessage = errorMessage {
-                    Section {
-                        Text(errorMessage)
-                            .foregroundStyle(.red)
-                    }
-                }
+                FormErrorSection(message: errorMessage)
 
                 Section {
                     VStack(alignment: .leading, spacing: 4) {
@@ -69,15 +54,7 @@ struct GiveLoanView: View {
             }
             .navigationTitle("Give Loan")
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") { dismiss() }
-                }
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Give Loan") { save() }
-                        .disabled(sourceAccount == nil || amount.isEmpty)
-                }
-            }
+            .formToolbar(label: "Give Loan", isDisabled: sourceAccount == nil || amount.isEmpty) { save() }
             .sheet(isPresented: $showAccountPicker) {
                 AccountPickerView(title: "Select Source", filterType: nil) { account in
                     sourceAccount = account

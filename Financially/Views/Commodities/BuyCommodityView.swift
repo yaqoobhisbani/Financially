@@ -69,30 +69,12 @@ struct BuyCommodityView: View {
                     }
                 }
 
-                Section("Fees") {
-                    HStack {
-                        Text("Brokerage Fee")
-                        Spacer()
-                        TextField("0", text: $brokerageFee)
-                            .keyboardType(.decimalPad)
-                            .multilineTextAlignment(.trailing)
-                    }
-                    HStack {
-                        Text("Tax")
-                        Spacer()
-                        TextField("0", text: $tax)
-                            .keyboardType(.decimalPad)
-                            .multilineTextAlignment(.trailing)
-                    }
-                    if let net = netAmount {
-                        HStack {
-                            Text("Net Cost")
-                            Spacer()
-                            Text(net.formattedCurrency())
-                                .font(.headline)
-                        }
-                    }
-                }
+                FeeSection(
+                    brokerageFee: $brokerageFee,
+                    tax: $tax,
+                    netLabel: "Net Cost",
+                    netValue: netAmount?.formattedCurrency()
+                )
 
                 Section {
                     DatePicker("Date", selection: $date, displayedComponents: .date)
@@ -102,24 +84,11 @@ struct BuyCommodityView: View {
                     TextField("Optional", text: $notes)
                 }
 
-                if let errorMessage = errorMessage {
-                    Section {
-                        Text(errorMessage)
-                            .foregroundStyle(.red)
-                    }
-                }
+                FormErrorSection(message: errorMessage)
             }
             .navigationTitle("Buy Commodity")
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") { dismiss() }
-                }
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Buy") { save() }
-                        .disabled(selectedCommodity == nil || grams.isEmpty || pricePerGram.isEmpty)
-                }
-            }
+            .formToolbar(label: "Buy", isDisabled: selectedCommodity == nil || grams.isEmpty || pricePerGram.isEmpty) { save() }
             .sheet(isPresented: $showCommodityPicker) {
                 commodityPicker
             }

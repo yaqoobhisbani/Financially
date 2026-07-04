@@ -184,30 +184,12 @@ struct InvestmentsListView: View {
     private var commoditiesActionsSection: some View {
         Section {
             HStack(spacing: 10) {
-                commodityActionCard("Buy", icon: "plus.circle.fill", color: .incomeGreen) { showBuyCommodity = true }
-                commodityActionCard("Sell", icon: "minus.circle.fill", color: .expenseRed) { showSellCommodity = true }
+                ActionCard(label: "Buy", icon: "plus.circle.fill", color: .incomeGreen) { showBuyCommodity = true }
+                ActionCard(label: "Sell", icon: "minus.circle.fill", color: .expenseRed) { showSellCommodity = true }
             }
             .listRowInsets(EdgeInsets())
             .listRowBackground(Color.clear)
         }
-    }
-
-    private func commodityActionCard(_ label: String, icon: String, color: Color, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
-            VStack(spacing: 6) {
-                Image(systemName: icon)
-                    .font(.title3)
-                    .foregroundStyle(color)
-                Text(label)
-                    .font(.caption2.weight(.medium))
-                    .foregroundStyle(.primary)
-            }
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 12)
-            .padding(.horizontal, 4)
-            .background(Color(.systemBackground), in: RoundedRectangle(cornerRadius: 12))
-        }
-        .buttonStyle(.plain)
     }
 }
 

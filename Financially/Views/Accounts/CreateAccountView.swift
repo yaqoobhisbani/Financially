@@ -99,24 +99,11 @@ struct CreateAccountView: View {
                     TextField("Notes", text: $notes)
                 }
 
-                if let errorMessage = errorMessage {
-                    Section {
-                        Text(errorMessage)
-                            .foregroundStyle(.red)
-                    }
-                }
+                FormErrorSection(message: errorMessage)
             }
             .navigationTitle("New Account")
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") { dismiss() }
-                }
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Save") { saveAccount() }
-                        .disabled(name.isEmpty)
-                }
-            }
+            .formToolbar(label: "Save", isDisabled: name.isEmpty) { saveAccount() }
         }
     }
 

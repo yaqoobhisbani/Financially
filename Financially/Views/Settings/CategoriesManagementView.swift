@@ -108,19 +108,11 @@ struct AddCategoryView: View {
                 }
             }
             .navigationTitle("New Category")
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") { dismiss() }
-                }
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Save") {
-                        let maxOrder = (try? modelContext.fetchCount(FetchDescriptor<Category>())) ?? 0
-                        let category = Category(name: name, icon: icon, categoryType: categoryType, sortOrder: maxOrder, isDefault: false)
-                        modelContext.insert(category)
-                        dismiss()
-                    }
-                    .disabled(name.isEmpty)
-                }
+            .formToolbar(label: "Save", isDisabled: name.isEmpty) {
+                let maxOrder = (try? modelContext.fetchCount(FetchDescriptor<Category>())) ?? 0
+                let category = Category(name: name, icon: icon, categoryType: categoryType, sortOrder: maxOrder, isDefault: false)
+                modelContext.insert(category)
+                dismiss()
             }
         }
     }

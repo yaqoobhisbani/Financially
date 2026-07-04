@@ -139,20 +139,10 @@ struct AddCommodityInfoView: View {
                     AmountField(amount: $ratePerGram, suffix: "/ gram")
                 }
 
-                if let errorMessage = errorMessage {
-                    Section { Text(errorMessage).foregroundStyle(.red) }
-                }
+                FormErrorSection(message: errorMessage)
             }
             .navigationTitle("New Commodity")
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") { dismiss() }
-                }
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Save") { save() }
-                        .disabled(name.isEmpty || symbol.isEmpty)
-                }
-            }
+            .formToolbar(label: "Save", isDisabled: name.isEmpty || symbol.isEmpty) { save() }
         }
     }
 

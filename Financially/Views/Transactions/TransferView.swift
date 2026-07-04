@@ -18,39 +18,19 @@ struct TransferView: View {
         NavigationStack {
             Form {
                 Section("Accounts") {
-                    Button(action: { showSourcePicker = true }) {
-                        HStack {
-                            Text("From")
-                            Spacer()
-                            if let account = sourceAccount {
-                                Text(account.name)
-                                    .foregroundStyle(.primary)
-                            } else {
-                                Text("Select source")
-                                    .foregroundStyle(.secondary)
-                            }
-                            Image(systemName: "chevron.right")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                        }
-                    }
+                    AccountPickerButton(
+                        label: "From",
+                        accountName: sourceAccount?.name,
+                        placeholder: "Select source",
+                        action: { showSourcePicker = true }
+                    )
 
-                    Button(action: { showDestPicker = true }) {
-                        HStack {
-                            Text("To")
-                            Spacer()
-                            if let account = destinationAccount {
-                                Text(account.name)
-                                    .foregroundStyle(.primary)
-                            } else {
-                                Text("Select destination")
-                                    .foregroundStyle(.secondary)
-                            }
-                            Image(systemName: "chevron.right")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                        }
-                    }
+                    AccountPickerButton(
+                        label: "To",
+                        accountName: destinationAccount?.name,
+                        placeholder: "Select destination",
+                        action: { showDestPicker = true }
+                    )
                 }
 
                 Section("Amount") {
@@ -65,23 +45,10 @@ struct TransferView: View {
                     TextField("Description (optional)", text: $description)
                 }
 
-                if let errorMessage = errorMessage {
-                    Section {
-                        Text(errorMessage)
-                            .foregroundStyle(.red)
-                    }
-                }
+                FormErrorSection(message: errorMessage)
             }
             .navigationTitle("Transfer")
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") { dismiss() }
-                }
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Transfer") { saveTransfer() }
-                        .disabled(sourceAccount == nil || destinationAccount == nil || amount.isEmpty)
-                }
-            }
+            .formToolbar(label: "Transfer", isDisabled: sourceAccount == nil || destinationAccount == nil || amount.isEmpty) { saveTransfer() }
             .sheet(isPresented: $showSourcePicker) {
                 AccountPickerView(title: "Select Source", filterType: nil) { account in
                     guard account.accountType == .bank || account.accountType == .cash else {

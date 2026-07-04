@@ -143,34 +143,16 @@ struct PSXAccountDetailView: View {
     private var actionsSection: some View {
         Section {
             HStack(spacing: 10) {
-                actionCard("Buy", icon: "plus.circle.fill", color: .incomeGreen) { showBuy = true }
-                actionCard("Sell", icon: "minus.circle.fill", color: .expenseRed) { showSell = true }
-                actionCard("Add Cash", icon: "arrow.down.circle.fill", color: .blue) { showAddCash = true }
-                actionCard("Withdraw", icon: "arrow.up.circle.fill", color: .orange) { showWithdraw = true }
+                ActionCard(label: "Buy", icon: "plus.circle.fill", color: .incomeGreen) { showBuy = true }
+                ActionCard(label: "Sell", icon: "minus.circle.fill", color: .expenseRed) { showSell = true }
+                ActionCard(label: "Add Cash", icon: "arrow.down.circle.fill", color: .blue) { showAddCash = true }
+                ActionCard(label: "Withdraw", icon: "arrow.up.circle.fill", color: .orange) { showWithdraw = true }
             }
             .listRowInsets(EdgeInsets())
             .listRowBackground(Color.clear)
         } header: {
             Text("Actions")
         }
-    }
-
-    private func actionCard(_ label: String, icon: String, color: Color, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
-            VStack(spacing: 6) {
-                Image(systemName: icon)
-                    .font(.title3)
-                    .foregroundStyle(color)
-                Text(label)
-                    .font(.caption2.weight(.medium))
-                    .foregroundStyle(.primary)
-            }
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 12)
-            .padding(.horizontal, 4)
-            .background(Color(.systemBackground), in: RoundedRectangle(cornerRadius: 12))
-        }
-        .buttonStyle(.plain)
     }
 
     // MARK: - Holdings
@@ -285,17 +267,10 @@ struct PSXAddCashView: View {
 
                 Section { DatePicker("Date", selection: $date, displayedComponents: .date) }
 
-                if let errorMessage = errorMessage {
-                    Section { Text(errorMessage).foregroundStyle(.red) }
-                }
+                FormErrorSection(message: errorMessage)
             }
             .navigationTitle("Add Cash")
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Add") { save() }.disabled(sourceAccount == nil || amount.isEmpty)
-                }
-            }
+            .formToolbar(label: "Add", isDisabled: sourceAccount == nil || amount.isEmpty) { save() }
             .sheet(isPresented: $showAccountPicker) {
                 AccountPickerView(title: "Select Source", filterType: nil) { account in
                     sourceAccount = account
@@ -367,17 +342,10 @@ struct PSXWithdrawCashView: View {
 
                 Section { DatePicker("Date", selection: $date, displayedComponents: .date) }
 
-                if let errorMessage = errorMessage {
-                    Section { Text(errorMessage).foregroundStyle(.red) }
-                }
+                FormErrorSection(message: errorMessage)
             }
             .navigationTitle("Withdraw Cash")
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Withdraw") { save() }.disabled(destinationAccount == nil || amount.isEmpty)
-                }
-            }
+            .formToolbar(label: "Withdraw", isDisabled: destinationAccount == nil || amount.isEmpty) { save() }
             .sheet(isPresented: $showAccountPicker) {
                 AccountPickerView(title: "Select Destination", filterType: nil) { account in
                     destinationAccount = account

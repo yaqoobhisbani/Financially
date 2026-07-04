@@ -81,30 +81,12 @@ struct SellSharesView: View {
                     }
                 }
 
-                Section("Fees") {
-                    HStack {
-                        Text("Brokerage Fee")
-                        Spacer()
-                        TextField("0", text: $brokerageFee)
-                            .keyboardType(.decimalPad)
-                            .multilineTextAlignment(.trailing)
-                    }
-                    HStack {
-                        Text("Tax")
-                        Spacer()
-                        TextField("0", text: $tax)
-                            .keyboardType(.decimalPad)
-                            .multilineTextAlignment(.trailing)
-                    }
-                    if let net = netProceeds {
-                        HStack {
-                            Text("Net Proceeds")
-                            Spacer()
-                            Text(net.formattedCurrency(currency: account.currency))
-                                .font(.headline)
-                        }
-                    }
-                }
+                FeeSection(
+                    brokerageFee: $brokerageFee,
+                    tax: $tax,
+                    netLabel: "Net Proceeds",
+                    netValue: netProceeds?.formattedCurrency(currency: account.currency)
+                )
 
                 Section {
                     DatePicker("Date", selection: $date, displayedComponents: .date)
@@ -114,23 +96,10 @@ struct SellSharesView: View {
                     TextField("Optional", text: $notes)
                 }
 
-                if let errorMessage = errorMessage {
-                    Section {
-                        Text(errorMessage)
-                            .foregroundStyle(.red)
-                    }
-                }
+                FormErrorSection(message: errorMessage)
             }
             .navigationTitle("Sell Shares")
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") { dismiss() }
-                }
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Sell") { save() }
-                        .disabled(selectedHolding == nil || shares.isEmpty || pricePerShare.isEmpty)
-                }
-            }
+            .formToolbar(label: "Sell", isDisabled: selectedHolding == nil || shares.isEmpty || pricePerShare.isEmpty) { save() }
             .sheet(isPresented: $showHoldingPicker) {
                 holdingPicker
             }

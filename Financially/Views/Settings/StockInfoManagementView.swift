@@ -188,20 +188,10 @@ struct AddStockInfoView: View {
                     AmountField(amount: $currentRate)
                 }
 
-                if let errorMessage = errorMessage {
-                    Section { Text(errorMessage).foregroundStyle(.red) }
-                }
+                FormErrorSection(message: errorMessage)
             }
             .navigationTitle("New Stock")
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") { dismiss() }
-                }
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Save") { save() }
-                        .disabled(companyName.isEmpty || ticker.isEmpty)
-                }
-            }
+            .formToolbar(label: "Save", isDisabled: companyName.isEmpty || ticker.isEmpty) { save() }
         }
     }
 

@@ -102,32 +102,14 @@ struct CommodityDetailView: View {
     private var actionsSection: some View {
         Section {
             HStack(spacing: 10) {
-                actionCard("Buy", icon: "plus.circle.fill", color: .incomeGreen) { showBuy = true }
-                actionCard("Sell", icon: "minus.circle.fill", color: .expenseRed) { showSell = true }
+                ActionCard(label: "Buy", icon: "plus.circle.fill", color: .incomeGreen) { showBuy = true }
+                ActionCard(label: "Sell", icon: "minus.circle.fill", color: .expenseRed) { showSell = true }
             }
             .listRowInsets(EdgeInsets())
             .listRowBackground(Color.clear)
         } header: {
             Text("Actions")
         }
-    }
-
-    private func actionCard(_ label: String, icon: String, color: Color, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
-            VStack(spacing: 6) {
-                Image(systemName: icon)
-                    .font(.title3)
-                    .foregroundStyle(color)
-                Text(label)
-                    .font(.caption2.weight(.medium))
-                    .foregroundStyle(.primary)
-            }
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 12)
-            .padding(.horizontal, 4)
-            .background(Color(.systemBackground), in: RoundedRectangle(cornerRadius: 12))
-        }
-        .buttonStyle(.plain)
     }
 
     // MARK: - Holdings

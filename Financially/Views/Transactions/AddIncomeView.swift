@@ -32,22 +32,11 @@ struct AddIncomeView: View {
         NavigationStack {
             Form {
                 Section("Account") {
-                    Button(action: { showAccountPicker = true }) {
-                        HStack {
-                            Text("Destination")
-                            Spacer()
-                            if let account = destinationAccount {
-                                Text(account.name)
-                                    .foregroundStyle(.primary)
-                            } else {
-                                Text("Select account")
-                                    .foregroundStyle(.secondary)
-                            }
-                            Image(systemName: "chevron.right")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                        }
-                    }
+                    AccountPickerButton(
+                        label: "Destination",
+                        accountName: destinationAccount?.name,
+                        action: { showAccountPicker = true }
+                    )
                 }
 
                 Section("Amount") {
@@ -80,23 +69,10 @@ struct AddIncomeView: View {
                     TextField("Description (optional)", text: $description)
                 }
 
-                if let errorMessage = errorMessage {
-                    Section {
-                        Text(errorMessage)
-                            .foregroundStyle(.red)
-                    }
-                }
+                FormErrorSection(message: errorMessage)
             }
             .navigationTitle("Add Income")
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") { dismiss() }
-                }
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Save") { saveIncome() }
-                        .disabled(destinationAccount == nil || amount.isEmpty || category == nil)
-                }
-            }
+            .formToolbar(label: "Save", isDisabled: destinationAccount == nil || amount.isEmpty || category == nil) { saveIncome() }
             .sheet(isPresented: $showAccountPicker) {
                 AccountPickerView(title: "Select Destination", filterType: nil) { account in
                     destinationAccount = account

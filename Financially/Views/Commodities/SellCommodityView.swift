@@ -79,30 +79,12 @@ struct SellCommodityView: View {
                     }
                 }
 
-                Section("Fees") {
-                    HStack {
-                        Text("Brokerage Fee")
-                        Spacer()
-                        TextField("0", text: $brokerageFee)
-                            .keyboardType(.decimalPad)
-                            .multilineTextAlignment(.trailing)
-                    }
-                    HStack {
-                        Text("Tax")
-                        Spacer()
-                        TextField("0", text: $tax)
-                            .keyboardType(.decimalPad)
-                            .multilineTextAlignment(.trailing)
-                    }
-                    if let net = netProceeds {
-                        HStack {
-                            Text("Net Proceeds")
-                            Spacer()
-                            Text(net.formattedCurrency())
-                                .font(.headline)
-                        }
-                    }
-                }
+                FeeSection(
+                    brokerageFee: $brokerageFee,
+                    tax: $tax,
+                    netLabel: "Net Proceeds",
+                    netValue: netProceeds?.formattedCurrency()
+                )
 
                 Section {
                     DatePicker("Date", selection: $date, displayedComponents: .date)
@@ -112,24 +94,11 @@ struct SellCommodityView: View {
                     TextField("Optional", text: $notes)
                 }
 
-                if let errorMessage = errorMessage {
-                    Section {
-                        Text(errorMessage)
-                            .foregroundStyle(.red)
-                    }
-                }
+                FormErrorSection(message: errorMessage)
             }
             .navigationTitle("Sell Commodity")
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") { dismiss() }
-                }
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Sell") { save() }
-                        .disabled(selectedHolding == nil || grams.isEmpty || pricePerGram.isEmpty)
-                }
-            }
+            .formToolbar(label: "Sell", isDisabled: selectedHolding == nil || grams.isEmpty || pricePerGram.isEmpty) { save() }
             .sheet(isPresented: $showHoldingPicker) {
                 holdingPicker
             }

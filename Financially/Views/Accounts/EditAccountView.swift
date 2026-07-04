@@ -71,24 +71,11 @@ struct EditAccountView: View {
                     TextField("Notes", text: $notes)
                 }
 
-                if let errorMessage = errorMessage {
-                    Section {
-                        Text(errorMessage)
-                            .foregroundStyle(.red)
-                    }
-                }
+                FormErrorSection(message: errorMessage)
             }
             .navigationTitle("Edit Account")
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") { dismiss() }
-                }
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Save") { save() }
-                        .disabled(name.isEmpty)
-                }
-            }
+            .formToolbar(label: "Save", isDisabled: name.isEmpty) { save() }
         }
     }
 
