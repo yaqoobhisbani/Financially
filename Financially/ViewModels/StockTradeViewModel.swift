@@ -50,12 +50,18 @@ final class StockTradeViewModel {
         )
         modelContext.insert(trade)
 
-        let newTotal = holding.totalShares + shares
-        let newCost = holding.totalCost + total
-        holding.totalShares = newTotal
-        holding.totalCost = newCost
-        holding.totalFeesPaid += fees
-        holding.avgCostPerShare = newTotal > 0 ? newCost / Decimal(newTotal) : 0
+        let update = TradeService.weightedAverageBuyInt(
+            currentQuantity: holding.totalShares,
+            currentCost: holding.totalCost,
+            currentFees: holding.totalFeesPaid,
+            addedQuantity: shares,
+            addedCost: total,
+            addedFees: fees
+        )
+        holding.totalShares = update.quantity
+        holding.totalCost = update.cost
+        holding.totalFeesPaid = update.fees
+        holding.avgCostPerShare = update.avgCost
 
         account.currentBalance -= netAmount
         syncAccountFromHoldings()
@@ -83,18 +89,16 @@ final class StockTradeViewModel {
         )
         modelContext.insert(trade)
 
-        let remainingShares = holding.totalShares - shares
-        if remainingShares == 0 {
-            holding.totalShares = 0
-            holding.totalCost = 0
-            holding.avgCostPerShare = 0
-        } else {
-            let avgCostPerShare = holding.totalCost / Decimal(holding.totalShares)
-            holding.totalCost -= Decimal(shares) * avgCostPerShare
-            holding.totalShares = remainingShares
-            holding.avgCostPerShare = holding.totalShares > 0 ? holding.totalCost / Decimal(holding.totalShares) : 0
-        }
-        holding.totalFeesPaid += fees
+        let update = TradeService.weightedAverageSellInt(
+            currentQuantity: holding.totalShares,
+            currentCost: holding.totalCost,
+            currentFees: holding.totalFeesPaid,
+            soldQuantity: shares
+        )
+        holding.totalShares = update.quantity
+        holding.totalCost = update.cost
+        holding.totalFeesPaid = update.fees
+        holding.avgCostPerShare = update.avgCost
 
         account.currentBalance += netProceeds
         syncAccountFromHoldings()

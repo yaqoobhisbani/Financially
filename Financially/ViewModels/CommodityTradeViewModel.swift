@@ -47,12 +47,18 @@ final class CommodityTradeViewModel {
         )
         modelContext.insert(trade)
 
-        let newTotalGrams = holding.totalGrams + grams
-        let newCost = holding.totalCost + total
-        holding.totalGrams = newTotalGrams
-        holding.totalCost = newCost
-        holding.totalFeesPaid += fees
-        holding.avgCostPerGram = newTotalGrams > 0 ? newCost / newTotalGrams : 0
+        let update = TradeService.weightedAverageBuy(
+            currentQuantity: holding.totalGrams,
+            currentCost: holding.totalCost,
+            currentFees: holding.totalFeesPaid,
+            addedQuantity: grams,
+            addedCost: total,
+            addedFees: fees
+        )
+        holding.totalGrams = update.quantity
+        holding.totalCost = update.cost
+        holding.totalFeesPaid = update.fees
+        holding.avgCostPerGram = update.avgCost
     }
 
     func sell(holding: CommodityHolding, grams: Decimal, pricePerGram: Decimal, brokerageFee: Decimal, tax: Decimal, netProceeds: Decimal, date: Date, notes: String?) {
@@ -75,17 +81,15 @@ final class CommodityTradeViewModel {
         )
         modelContext.insert(trade)
 
-        let remainingGrams = holding.totalGrams - grams
-        if remainingGrams == 0 {
-            holding.totalGrams = 0
-            holding.totalCost = 0
-            holding.avgCostPerGram = 0
-        } else {
-            let avgCostPerGram = holding.totalCost / holding.totalGrams
-            holding.totalCost -= grams * avgCostPerGram
-            holding.totalGrams = remainingGrams
-            holding.avgCostPerGram = holding.totalGrams > 0 ? holding.totalCost / holding.totalGrams : 0
-        }
-        holding.totalFeesPaid += fees
+        let update = TradeService.weightedAverageSell(
+            currentQuantity: holding.totalGrams,
+            currentCost: holding.totalCost,
+            currentFees: holding.totalFeesPaid,
+            soldQuantity: grams
+        )
+        holding.totalGrams = update.quantity
+        holding.totalCost = update.cost
+        holding.totalFeesPaid = update.fees
+        holding.avgCostPerGram = update.avgCost
     }
 }
