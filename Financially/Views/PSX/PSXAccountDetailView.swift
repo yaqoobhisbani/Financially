@@ -168,6 +168,7 @@ struct PSXAddCashView: View {
     @Environment(\.dismiss) private var dismiss
     let account: Account
 
+    @Query private var accounts: [Account]
     @State private var sourceAccount: Account?
     @State private var amount = ""
     @State private var date = Date()
@@ -203,7 +204,7 @@ struct PSXAddCashView: View {
             .navigationTitle("Add Cash")
             .formToolbar(label: "Add", isDisabled: sourceAccount == nil || amount.isEmpty) { save() }
             .sheet(isPresented: $showAccountPicker) {
-                AccountPickerView(title: "Select Source", filterType: nil) { account in
+                AccountPickerView(accounts: accounts, title: "Select Source", filterType: nil) { account in
                     sourceAccount = account
                 }
             }
@@ -237,6 +238,7 @@ struct PSXWithdrawCashView: View {
     @Environment(\.dismiss) private var dismiss
     let account: Account
 
+    @Query private var accounts: [Account]
     @State private var destinationAccount: Account?
     @State private var amount = ""
     @State private var date = Date()
@@ -278,7 +280,7 @@ struct PSXWithdrawCashView: View {
             .navigationTitle("Withdraw Cash")
             .formToolbar(label: "Withdraw", isDisabled: destinationAccount == nil || amount.isEmpty) { save() }
             .sheet(isPresented: $showAccountPicker) {
-                AccountPickerView(title: "Select Destination", filterType: nil) { account in
+                AccountPickerView(accounts: accounts, title: "Select Destination", filterType: nil) { account in
                     destinationAccount = account
                 }
             }

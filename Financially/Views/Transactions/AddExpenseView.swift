@@ -7,6 +7,7 @@ struct AddExpenseView: View {
 
     let preselectedAccount: Account?
 
+    @Query private var accounts: [Account]
     @State private var sourceAccount: Account?
     @State private var amount = ""
     @State private var category: Category?
@@ -74,7 +75,7 @@ struct AddExpenseView: View {
             .navigationTitle("Add Expense")
             .formToolbar(label: "Save", isDisabled: sourceAccount == nil || amount.isEmpty || category == nil) { saveExpense() }
             .sheet(isPresented: $showAccountPicker) {
-                AccountPickerView(title: "Select Account", filterType: nil) { account in
+                AccountPickerView(accounts: accounts, title: "Select Account", filterType: nil) { account in
                     sourceAccount = account
                 }
             }

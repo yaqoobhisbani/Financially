@@ -6,6 +6,7 @@ struct ReceiveMoneyView: View {
     @Environment(\.dismiss) private var dismiss
     let creditor: Creditor
 
+    @Query private var accounts: [Account]
     @State private var vm: LoanTransactionViewModel?
     @State private var destinationAccount: Account?
     @State private var amount = ""
@@ -37,7 +38,7 @@ struct ReceiveMoneyView: View {
             .navigationBarTitleDisplayMode(.inline)
             .formToolbar(label: "Save", isDisabled: destinationAccount == nil || amount.isEmpty) { save() }
             .sheet(isPresented: $showAccountPicker) {
-                AccountPickerView(title: "Select Destination", filterType: nil) { account in
+                AccountPickerView(accounts: accounts, title: "Select Destination", filterType: nil) { account in
                     destinationAccount = account
                 }
             }

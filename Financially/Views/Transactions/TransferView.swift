@@ -5,6 +5,7 @@ struct TransferView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
 
+    @Query private var accounts: [Account]
     @State private var sourceAccount: Account?
     @State private var destinationAccount: Account?
     @State private var amount = ""
@@ -50,7 +51,7 @@ struct TransferView: View {
             .navigationTitle("Transfer")
             .formToolbar(label: "Transfer", isDisabled: sourceAccount == nil || destinationAccount == nil || amount.isEmpty) { saveTransfer() }
             .sheet(isPresented: $showSourcePicker) {
-                AccountPickerView(title: "Select Source", filterType: nil) { account in
+                AccountPickerView(accounts: accounts, title: "Select Source", filterType: nil) { account in
                     guard account.accountType == .bank || account.accountType == .cash else {
                         errorMessage = "Can only transfer from Bank or Cash accounts."
                         return
@@ -59,7 +60,7 @@ struct TransferView: View {
                 }
             }
             .sheet(isPresented: $showDestPicker) {
-                AccountPickerView(title: "Select Destination", filterType: nil) { account in
+                AccountPickerView(accounts: accounts, title: "Select Destination", filterType: nil) { account in
                     guard account.accountType == .bank || account.accountType == .cash else {
                         errorMessage = "Can only transfer to Bank or Cash accounts. Use Add Cash in PSX view instead."
                         return

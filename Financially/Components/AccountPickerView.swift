@@ -1,13 +1,18 @@
 import SwiftUI
-import SwiftData
 
 struct AccountPickerView: View {
     @Environment(\.dismiss) private var dismiss
-    @Query private var accounts: [Account]
-    @Query private var allHoldings: [StockHolding]
+    let accounts: [Account]
     let title: String
     let filterType: AccountType?
     let onSelect: (Account) -> Void
+
+    init(accounts: [Account], title: String, filterType: AccountType?, onSelect: @escaping (Account) -> Void) {
+        self.accounts = accounts
+        self.title = title
+        self.filterType = filterType
+        self.onSelect = onSelect
+    }
 
     private var filteredAccounts: [Account] {
         let active = accounts.filter { $0.isActive }
@@ -20,7 +25,7 @@ struct AccountPickerView: View {
     var body: some View {
         NavigationStack {
             List(filteredAccounts) { account in
-                AccountRowView(account: account, holdings: allHoldings)
+                AccountRowView(account: account, holdings: [])
                     .contentShape(Rectangle())
                     .onTapGesture {
                         onSelect(account)

@@ -7,6 +7,7 @@ struct AddIncomeView: View {
 
     let preselectedAccount: Account?
 
+    @Query private var accounts: [Account]
     @State private var destinationAccount: Account?
     @State private var amount = ""
     @State private var category: Category?
@@ -74,7 +75,7 @@ struct AddIncomeView: View {
             .navigationTitle("Add Income")
             .formToolbar(label: "Save", isDisabled: destinationAccount == nil || amount.isEmpty || category == nil) { saveIncome() }
             .sheet(isPresented: $showAccountPicker) {
-                AccountPickerView(title: "Select Destination", filterType: nil) { account in
+                AccountPickerView(accounts: accounts, title: "Select Destination", filterType: nil) { account in
                     destinationAccount = account
                 }
             }
