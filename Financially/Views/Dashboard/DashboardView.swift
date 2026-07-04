@@ -20,12 +20,12 @@ struct DashboardView: View {
             ScrollView {
                 VStack(spacing: 16) {
                     summaryCards
-                    accountsGridScroll
+                    if !accounts.isEmpty { accountsGridScroll }
                     commoditiesSection
-                    expenseChartWidget
-                    incomeVsExpenseWidget
-                    activeLoansWidget
-                    recentTransactionsSection
+                    if computeMonthlyExpense > 0 { expenseChartWidget }
+                    if computeMonthlyIncome > 0 || computeMonthlyExpense > 0 { incomeVsExpenseWidget }
+                    if activeLoanCount > 0 || activeLiabilityCount > 0 { activeLoansWidget }
+                    if !recentTransactions.isEmpty { recentTransactionsSection }
                 }
                 .padding()
             }

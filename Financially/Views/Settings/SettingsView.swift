@@ -13,11 +13,21 @@ struct SettingsView: View {
     var body: some View {
         NavigationStack {
             List {
-                Section("Appearance") {
-                    Picker("Theme", selection: $colorScheme) {
-                        ForEach(ColorSchemeOption.allCases, id: \.rawValue) { option in
-                            Text(option.rawValue).tag(option)
-                        }
+                Section("Reports") {
+                    NavigationLink(destination: ReportsListView()) {
+                        Label("View Reports", systemImage: "chart.bar.doc.horizontal")
+                    }
+                }
+
+                Section("Data") {
+                    NavigationLink(destination: CategoriesManagementView()) {
+                        Label("Categories", systemImage: "list.bullet")
+                    }
+                    NavigationLink(destination: StockInfoManagementView()) {
+                        Label("Stocks", systemImage: "chart.line.uptrend.xyaxis")
+                    }
+                    NavigationLink(destination: CommodityInfoManagementView()) {
+                        Label("Commodities", systemImage: "diamond.fill")
                     }
                 }
 
@@ -48,15 +58,11 @@ struct SettingsView: View {
                     }
                 }
 
-                Section("Data") {
-                    NavigationLink(destination: CategoriesManagementView()) {
-                        Label("Categories", systemImage: "list.bullet")
-                    }
-                    NavigationLink(destination: StockInfoManagementView()) {
-                        Label("Stocks", systemImage: "chart.line.uptrend.xyaxis")
-                    }
-                    NavigationLink(destination: CommodityInfoManagementView()) {
-                        Label("Commodities", systemImage: "diamond.fill")
+                Section("Appearance") {
+                    Picker("Theme", selection: $colorScheme) {
+                        ForEach(ColorSchemeOption.allCases, id: \.rawValue) { option in
+                            Text(option.rawValue).tag(option)
+                        }
                     }
                 }
 
