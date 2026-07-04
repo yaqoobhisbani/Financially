@@ -7,6 +7,7 @@ struct SellSharesView: View {
 
     let account: Account
 
+    @State private var vm: StockTradeViewModel?
     @State private var selectedHolding: StockHolding?
     @State private var shares = ""
     @State private var pricePerShare = ""
@@ -18,6 +19,7 @@ struct SellSharesView: View {
     @State private var showHoldingPicker = false
 
     @Query private var holdings: [StockHolding]
+    @Query(sort: \StockInfo.ticker) private var stockList: [StockInfo]
 
     private var accountHoldings: [StockHolding] {
         holdings.filter { $0.accountId == account.id && $0.totalShares > 0 }
@@ -100,9 +102,7 @@ struct SellSharesView: View {
             }
             .navigationTitle("Sell Shares")
             .formToolbar(label: "Sell", isDisabled: selectedHolding == nil || shares.isEmpty || pricePerShare.isEmpty) { save() }
-            .sheet(isPresented: $showHoldingPicker) {
-                holdingPicker
-            }
+            .sheet(isPresented: $showHoldingPicker) { holdingPicker }
         }
     }
 
@@ -150,71 +150,35 @@ struct SellSharesView: View {
 
     private func save() {
         guard let holding = selectedHolding else {
-            errorMessage = "Please select a holding"
-            return
+            errorMessage = "Please select a holding"; return
         }
         guard let shares = sharesValue, shares > 0 else {
-            errorMessage = "Please enter a valid number of shares"
-            return
+            errorMessage = "Please enter a valid number of shares"; return
         }
         guard shares <= holding.totalShares else {
-            errorMessage = "Cannot sell more shares than you hold"
-            return
+            errorMessage = "Cannot sell more shares than you hold"; return
         }
         guard let price = priceValue, price > 0 else {
-            errorMessage = "Please enter a valid price per share"
-            return
+            errorMessage = "Please enter a valid price per share"; return
         }
         guard let proceeds = netProceeds, proceeds > 0 else {
-            errorMessage = "Net proceeds must be positive"
-            return
+            errorMessage = "Net proceeds must be positive"; return
         }
 
-        let total = Decimal(shares) * price
-        let fees = brokerageValue + taxValue
+        let vm = vm ?? StockTradeViewModel(modelContext: modelContext, account: account, stockList: stockList, holdings: holdings)
+        self.vm = vm
 
-        let trade = StockTrade(
-            accountId: account.id,
-            holdingId: holding.id,
-            type: .sell,
-            ticker: holding.ticker,
-            companyName: holding.companyName,
+        vm.sell(
+            holding: holding,
             shares: shares,
             pricePerShare: price,
-            totalAmount: total,
             brokerageFee: brokerageValue,
             tax: taxValue,
-            netAmount: proceeds,
+            netProceeds: proceeds,
             date: date,
             notes: notes.isEmpty ? nil : notes
         )
-        modelContext.insert(trade)
-
-        let remainingShares = holding.totalShares - shares
-        if remainingShares == 0 {
-            holding.totalShares = 0
-            holding.totalCost = 0
-            holding.avgCostPerShare = 0
-        } else {
-            let avgCostPerShare = holding.totalCost / Decimal(holding.totalShares)
-            holding.totalCost -= Decimal(shares) * avgCostPerShare
-            holding.totalShares = remainingShares
-            holding.avgCostPerShare = holding.totalShares > 0
-                ? holding.totalCost / Decimal(holding.totalShares)
-                : 0
-        }
-        holding.totalFeesPaid += fees
-
-        account.currentBalance += proceeds
-        syncAccountFromHoldings()
-        account.updatedAt = Date()
 
         dismiss()
-    }
-
-    private func syncAccountFromHoldings() {
-        let fetch = FetchDescriptor<StockHolding>()
-        guard let all = try? modelContext.fetch(fetch) else { return }
-        account.syncFromHoldings(all.filter { $0.accountId == account.id })
     }
 }

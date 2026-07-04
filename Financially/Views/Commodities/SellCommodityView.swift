@@ -5,6 +5,7 @@ struct SellCommodityView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
 
+    @State private var vm: CommodityTradeViewModel?
     @State private var selectedHolding: CommodityHolding?
     @State private var grams = ""
     @State private var pricePerGram = ""
@@ -15,10 +16,11 @@ struct SellCommodityView: View {
     @State private var errorMessage: String?
     @State private var showHoldingPicker = false
 
-    @Query private var holdings: [CommodityHolding]
+    @Query(sort: \CommodityInfo.name) private var commodityList: [CommodityInfo]
+    @Query private var allHoldings: [CommodityHolding]
 
     private var activeHoldings: [CommodityHolding] {
-        holdings.filter { $0.totalGrams > 0 }
+        allHoldings.filter { $0.totalGrams > 0 }
     }
 
     private var availableGrams: Decimal { selectedHolding?.totalGrams ?? 0 }
@@ -32,15 +34,11 @@ struct SellCommodityView: View {
                             Text("Commodity")
                             Spacer()
                             if let h = selectedHolding {
-                                Text("\(h.commodityName) (\(h.totalGrams.formattedNumber()) g)")
-                                    .foregroundStyle(.primary)
+                                Text("\(h.commodityName) (\(h.totalGrams.formattedNumber()) g)").foregroundStyle(.primary)
                             } else {
-                                Text("Select holding")
-                                    .foregroundStyle(.secondary)
+                                Text("Select holding").foregroundStyle(.secondary)
                             }
-                            Image(systemName: "chevron.right")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
+                            Image(systemName: "chevron.right").font(.caption).foregroundStyle(.secondary)
                         }
                     }
                 }
@@ -49,59 +47,39 @@ struct SellCommodityView: View {
                     HStack {
                         Text("Grams to Sell")
                         Spacer()
-                        TextField("0", text: $grams)
-                            .keyboardType(.decimalPad)
-                            .multilineTextAlignment(.trailing)
+                        TextField("0", text: $grams).keyboardType(.decimalPad).multilineTextAlignment(.trailing)
                     }
                     if let h = selectedHolding, let g = Decimal(string: grams), g > availableGrams {
                         HStack {
-                            Image(systemName: "exclamationmark.triangle.fill")
-                                .foregroundStyle(.yellow)
-                            Text("Only \(availableGrams.formattedNumber()) grams available")
-                                .font(.caption)
-                                .foregroundStyle(.red)
+                            Image(systemName: "exclamationmark.triangle.fill").foregroundStyle(.yellow)
+                            Text("Only \(availableGrams.formattedNumber()) grams available").font(.caption).foregroundStyle(.red)
                         }
                     }
                     HStack {
                         Text("Price per Gram")
                         Spacer()
-                        TextField("0", text: $pricePerGram)
-                            .keyboardType(.decimalPad)
-                            .multilineTextAlignment(.trailing)
+                        TextField("0", text: $pricePerGram).keyboardType(.decimalPad).multilineTextAlignment(.trailing)
                     }
                     if let total = saleAmount {
                         HStack {
                             Text("Total Sale")
                             Spacer()
-                            Text(total.formattedCurrency())
-                                .foregroundStyle(.secondary)
+                            Text(total.formattedCurrency()).foregroundStyle(.secondary)
                         }
                     }
                 }
 
-                FeeSection(
-                    brokerageFee: $brokerageFee,
-                    tax: $tax,
-                    netLabel: "Net Proceeds",
-                    netValue: netProceeds?.formattedCurrency()
-                )
+                FeeSection(brokerageFee: $brokerageFee, tax: $tax, netLabel: "Net Proceeds", netValue: netProceeds?.formattedCurrency())
 
-                Section {
-                    DatePicker("Date", selection: $date, displayedComponents: .date)
-                }
-
-                Section("Notes") {
-                    TextField("Optional", text: $notes)
-                }
+                Section { DatePicker("Date", selection: $date, displayedComponents: .date) }
+                Section("Notes") { TextField("Optional", text: $notes) }
 
                 FormErrorSection(message: errorMessage)
             }
             .navigationTitle("Sell Commodity")
             .navigationBarTitleDisplayMode(.inline)
             .formToolbar(label: "Sell", isDisabled: selectedHolding == nil || grams.isEmpty || pricePerGram.isEmpty) { save() }
-            .sheet(isPresented: $showHoldingPicker) {
-                holdingPicker
-            }
+            .sheet(isPresented: $showHoldingPicker) { holdingPicker }
         }
     }
 
@@ -114,18 +92,13 @@ struct SellCommodityView: View {
                 } label: {
                     HStack {
                         VStack(alignment: .leading) {
-                            Text(holding.commodityName)
-                                .font(.headline)
-                            Text(holding.symbol)
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
+                            Text(holding.commodityName).font(.headline)
+                            Text(holding.symbol).font(.caption).foregroundStyle(.secondary)
                         }
                         Spacer()
                         VStack(alignment: .trailing) {
                             Text("\(holding.totalGrams.formattedNumber()) g")
-                            Text(holding.totalCost.formattedCurrency())
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
+                            Text(holding.totalCost.formattedCurrency()).font(.caption).foregroundStyle(.secondary)
                         }
                     }
                 }
@@ -148,60 +121,25 @@ struct SellCommodityView: View {
     }
 
     private func save() {
-        guard let holding = selectedHolding else {
-            errorMessage = "Please select a holding"
-            return
-        }
-        guard let gramsVal = gramsValue, gramsVal > 0 else {
-            errorMessage = "Please enter a valid number of grams"
-            return
-        }
-        guard gramsVal <= holding.totalGrams else {
-            errorMessage = "Cannot sell more grams than you hold"
-            return
-        }
-        guard let price = priceValue, price > 0 else {
-            errorMessage = "Please enter a valid price per gram"
-            return
-        }
-        guard let proceeds = netProceeds, proceeds > 0 else {
-            errorMessage = "Net proceeds must be positive"
-            return
-        }
+        guard let holding = selectedHolding else { errorMessage = "Please select a holding"; return }
+        guard let gramsVal = gramsValue, gramsVal > 0 else { errorMessage = "Please enter a valid number of grams"; return }
+        guard gramsVal <= holding.totalGrams else { errorMessage = "Cannot sell more grams than you hold"; return }
+        guard let price = priceValue, price > 0 else { errorMessage = "Please enter a valid price per gram"; return }
+        guard let proceeds = netProceeds, proceeds > 0 else { errorMessage = "Net proceeds must be positive"; return }
 
-        let total = gramsVal * price
-        let fees = brokerageValue + taxValue
+        let vm = vm ?? CommodityTradeViewModel(modelContext: modelContext, commodityList: commodityList, holdings: allHoldings)
+        self.vm = vm
 
-        let trade = CommodityTrade(
-            holdingId: holding.id,
-            type: .sell,
-            commodityName: holding.commodityName,
-            symbol: holding.symbol,
+        vm.sell(
+            holding: holding,
             grams: gramsVal,
             pricePerGram: price,
-            totalAmount: total,
             brokerageFee: brokerageValue,
             tax: taxValue,
-            netAmount: proceeds,
+            netProceeds: proceeds,
             date: date,
             notes: notes.isEmpty ? nil : notes
         )
-        modelContext.insert(trade)
-
-        let remainingGrams = holding.totalGrams - gramsVal
-        if remainingGrams == 0 {
-            holding.totalGrams = 0
-            holding.totalCost = 0
-            holding.avgCostPerGram = 0
-        } else {
-            let avgCostPerGram = holding.totalCost / holding.totalGrams
-            holding.totalCost -= gramsVal * avgCostPerGram
-            holding.totalGrams = remainingGrams
-            holding.avgCostPerGram = holding.totalGrams > 0
-                ? holding.totalCost / holding.totalGrams
-                : 0
-        }
-        holding.totalFeesPaid += fees
 
         try? modelContext.save()
         dismiss()

@@ -8,7 +8,9 @@ struct BuySharesView: View {
     let account: Account
 
     @Query(sort: \StockInfo.ticker) private var stockList: [StockInfo]
+    @Query private var allHoldings: [StockHolding]
 
+    @State private var vm: StockTradeViewModel?
     @State private var selectedStock: StockInfo?
     @State private var shares = ""
     @State private var pricePerShare = ""
@@ -86,7 +88,7 @@ struct BuySharesView: View {
                     TextField("Optional", text: $notes)
                 }
 
-                if cashAvailable < (netAmount ?? 0) {
+                if account.currentBalance < (netAmount ?? 0) {
                     Section {
                         HStack {
                             Image(systemName: "exclamationmark.triangle.fill")
@@ -102,9 +104,7 @@ struct BuySharesView: View {
             }
             .navigationTitle("Buy Shares")
             .formToolbar(label: "Buy", isDisabled: selectedStock == nil || shares.isEmpty || pricePerShare.isEmpty) { save() }
-            .sheet(isPresented: $showStockPicker) {
-                stockPicker
-            }
+            .sheet(isPresented: $showStockPicker) { stockPicker }
         }
     }
 
@@ -151,85 +151,37 @@ struct BuySharesView: View {
         guard let total = totalAmount else { return nil }
         return total + brokerageValue + taxValue
     }
-    private var cashAvailable: Decimal { account.currentBalance }
 
     private func save() {
         guard let stock = selectedStock else { errorMessage = "Please select a stock"; return }
         guard let shares = sharesValue, shares > 0 else {
-            errorMessage = "Please enter a valid number of shares"
-            return
+            errorMessage = "Please enter a valid number of shares"; return
         }
         guard let price = priceValue, price > 0 else {
-            errorMessage = "Please enter a valid price per share"
-            return
+            errorMessage = "Please enter a valid price per share"; return
         }
         guard let net = netAmount, net > 0 else {
-            errorMessage = "Please enter valid amounts"
-            return
+            errorMessage = "Please enter valid amounts"; return
         }
         guard net <= account.currentBalance else {
-            errorMessage = "Insufficient cash available"
-            return
+            errorMessage = "Insufficient cash available"; return
         }
 
-        let holdingId = findOrCreateHolding(stock: stock)
-        let total = Decimal(shares) * price
-        let fees = brokerageValue + taxValue
+        let vm = vm ?? StockTradeViewModel(modelContext: modelContext, account: account, stockList: stockList, holdings: allHoldings)
+        self.vm = vm
 
-        let trade = StockTrade(
-            accountId: account.id,
-            holdingId: holdingId,
-            type: .buy,
+        vm.buy(
             ticker: stock.ticker,
             companyName: stock.companyName,
             shares: shares,
             pricePerShare: price,
-            totalAmount: total,
             brokerageFee: brokerageValue,
             tax: taxValue,
             netAmount: net,
             date: date,
             notes: notes.isEmpty ? nil : notes
         )
-        modelContext.insert(trade)
-
-        updateHolding(holdingId: holdingId, shares: shares, totalCost: total, fees: fees)
-        account.currentBalance -= net
-        syncAccountFromHoldings()
-        account.updatedAt = Date()
 
         dismiss()
-    }
-
-    private func findOrCreateHolding(stock: StockInfo) -> UUID {
-        let fetch = FetchDescriptor<StockHolding>()
-        let all = (try? modelContext.fetch(fetch)) ?? []
-        if let existing = all.first(where: { $0.ticker == stock.ticker && $0.accountId == account.id }) {
-            return existing.id
-        }
-        let holding = StockHolding(
-            accountId: account.id,
-            companyName: stock.companyName,
-            ticker: stock.ticker
-        )
-        modelContext.insert(holding)
-        return holding.id
-    }
-
-    private func updateHolding(holdingId: UUID, shares: Int, totalCost: Decimal, fees: Decimal) {
-        let fetch = FetchDescriptor<StockHolding>()
-        guard let holding = (try? modelContext.fetch(fetch))?.first(where: { $0.id == holdingId }) else { return }
-        let newTotal = holding.totalShares + shares
-        let newCost = holding.totalCost + totalCost
-        holding.totalShares = newTotal
-        holding.totalCost = newCost
-        holding.totalFeesPaid += fees
-        holding.avgCostPerShare = newTotal > 0 ? newCost / Decimal(newTotal) : 0
-    }
-
-    private func syncAccountFromHoldings() {
-        let fetch = FetchDescriptor<StockHolding>()
-        guard let all = try? modelContext.fetch(fetch) else { return }
-        account.syncFromHoldings(all.filter { $0.accountId == account.id })
     }
 }

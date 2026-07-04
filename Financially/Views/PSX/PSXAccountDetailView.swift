@@ -5,9 +5,7 @@ struct PSXAccountDetailView: View {
     @Environment(\.modelContext) private var modelContext
     let account: Account
 
-    @Query(sort: \LedgerEntry.date, order: .reverse) private var allLedgerEntries: [LedgerEntry]
-    @Query private var allTransactions: [Transaction]
-    @Query private var allHoldings: [StockHolding]
+    @State private var vm: PSXPortfolioViewModel?
     @State private var showStatement = false
     @State private var showEdit = false
     @State private var selectedTransaction: Transaction?
@@ -16,37 +14,23 @@ struct PSXAccountDetailView: View {
     @State private var showAddCash = false
     @State private var showWithdraw = false
 
-    private var ledgerEntries: [LedgerEntry] {
-        allLedgerEntries.filter { $0.accountId == account.id }
-    }
-
-    private var accountHoldings: [StockHolding] {
-        allHoldings.filter { $0.accountId == account.id && $0.totalShares > 0 }
-    }
-
-    private var totalHoldingValue: Decimal {
-        accountHoldings.reduce(0) { $0 + $1.currentValue }
-    }
-
-    private var totalCostBasis: Decimal {
-        accountHoldings.reduce(0) { $0 + $1.totalCost }
-    }
-
-    private var totalUnrealizedPAndL: Decimal {
-        accountHoldings.reduce(0) { $0 + $1.unrealizedPAndL }
-    }
-
-    private var totalPAndLPercentage: Decimal {
-        guard totalCostBasis > 0 else { return 0 }
-        return (totalUnrealizedPAndL / totalCostBasis) * 100
-    }
-
     var body: some View {
+        Group {
+            if let vm {
+                content(vm: vm)
+            }
+        }
+        .onAppear {
+            vm = PSXPortfolioViewModel(modelContext: modelContext, account: account)
+        }
+    }
+
+    private func content(vm: PSXPortfolioViewModel) -> some View {
         List {
-            balanceSection
-            actionsSection
-            holdingsSection
-            recentTransactionsSection
+            balanceSection(vm: vm)
+            actionsSection(vm: vm)
+            holdingsSection(vm: vm)
+            recentTransactionsSection(vm: vm)
         }
         .navigationTitle(account.name)
         .navigationBarTitleDisplayMode(.inline)
@@ -56,20 +40,15 @@ struct PSXAccountDetailView: View {
                     Button("View Statement", systemImage: "doc.text") { showStatement = true }
                     Button("Edit Account", systemImage: "pencil") { showEdit = true }
                     Button(account.isActive ? "Deactivate" : "Activate", systemImage: account.isActive ? "eye.slash" : "eye") {
-                        account.isActive.toggle()
-                        account.updatedAt = Date()
+                        vm.toggleActive()
                     }
                 } label: {
                     Image(systemName: "ellipsis.circle")
                 }
             }
         }
-        .sheet(isPresented: $showStatement) {
-            AccountStatementView(account: account)
-        }
-        .sheet(isPresented: $showEdit) {
-            EditAccountView(account: account)
-        }
+        .sheet(isPresented: $showStatement) { AccountStatementView(account: account) }
+        .sheet(isPresented: $showEdit) { EditAccountView(account: account) }
         .sheet(isPresented: $showBuy) { BuySharesView(account: account) }
         .sheet(isPresented: $showSell) { SellSharesView(account: account) }
         .sheet(isPresented: $showAddCash) { PSXAddCashView(account: account) }
@@ -78,22 +57,22 @@ struct PSXAccountDetailView: View {
 
     // MARK: - Balance
 
-    private var balanceSection: some View {
+    private func balanceSection(vm: PSXPortfolioViewModel) -> some View {
         Section {
             SummaryBalanceView(
                 heroLeftLabel: "Total Portfolio",
-                heroLeftValue: (account.currentBalance + totalHoldingValue).formattedCurrency(currency: account.currency),
+                heroLeftValue: (account.currentBalance + vm.totalHoldingValue).formattedCurrency(currency: account.currency),
                 heroRightLabel: "P&L",
-                heroRightValue: totalUnrealizedPAndL.formattedCurrency(currency: account.currency),
-                heroRightColor: totalUnrealizedPAndL >= 0 ? .incomeGreen : .expenseRed,
+                heroRightValue: vm.totalUnrealizedPAndL.formattedCurrency(currency: account.currency),
+                heroRightColor: vm.totalUnrealizedPAndL >= 0 ? .incomeGreen : .expenseRed,
                 detailRows: [
                     [
                         AnyView(SummaryMetric(label: "Available Cash", value: account.currentBalance.formattedCurrency(currency: account.currency))),
-                        AnyView(SummaryMetric(label: "Holdings Value", value: totalHoldingValue.formattedCurrency(currency: account.currency), color: .incomeGreen))
+                        AnyView(SummaryMetric(label: "Holdings Value", value: vm.totalHoldingValue.formattedCurrency(currency: account.currency), color: .incomeGreen))
                     ],
                     [
-                        AnyView(SummaryMetric(label: "Total Cost", value: totalCostBasis.formattedCurrency(currency: account.currency))),
-                        AnyView(SummaryMetricView(label: "Return") { PercentageText(value: totalPAndLPercentage).foregroundStyle(totalUnrealizedPAndL >= 0 ? .incomeGreen : .expenseRed) })
+                        AnyView(SummaryMetric(label: "Total Cost", value: vm.totalCostBasis.formattedCurrency(currency: account.currency))),
+                        AnyView(SummaryMetricView(label: "Return") { PercentageText(value: vm.totalPAndLPercentage).foregroundStyle(vm.totalUnrealizedPAndL >= 0 ? .incomeGreen : .expenseRed) })
                     ]
                 ]
             )
@@ -102,7 +81,7 @@ struct PSXAccountDetailView: View {
 
     // MARK: - Actions
 
-    private var actionsSection: some View {
+    private func actionsSection(vm: PSXPortfolioViewModel) -> some View {
         Section {
             HStack(spacing: 10) {
                 ActionCard(label: "Buy", icon: "plus.circle.fill", color: .incomeGreen) { showBuy = true }
@@ -119,12 +98,12 @@ struct PSXAccountDetailView: View {
 
     // MARK: - Holdings
 
-    private var holdingsSection: some View {
+    private func holdingsSection(vm: PSXPortfolioViewModel) -> some View {
         Section("Holdings") {
-            if accountHoldings.isEmpty {
+            if vm.accountHoldings.isEmpty {
                 EmptyStateView(title: "No holdings yet", systemImage: "chart.bar.xaxis", description: "Buy shares to get started")
             }
-            ForEach(accountHoldings) { holding in
+            ForEach(vm.accountHoldings) { holding in
                 NavigationLink(destination: HoldingDetailView(account: account, holding: holding)) {
                     HStack(spacing: 12) {
                         VStack(alignment: .leading, spacing: 2) {
@@ -162,28 +141,24 @@ struct PSXAccountDetailView: View {
 
     // MARK: - Recent Transactions
 
-    private var recentTransactionsSection: some View {
+    private func recentTransactionsSection(vm: PSXPortfolioViewModel) -> some View {
         Section("Recent Transactions") {
-            ForEach(Array(ledgerEntries.prefix(20))) { entry in
+            ForEach(Array(vm.ledgerEntries.prefix(20))) { entry in
                 LedgerRowView(entry: entry, currency: account.currency)
                     .contentShape(Rectangle())
                     .onTapGesture {
-                        selectedTransaction = allTransactions.first { $0.id == entry.transactionId }
+                        selectedTransaction = vm.transaction(for: entry)
                     }
             }
 
-            if ledgerEntries.isEmpty {
+            if vm.ledgerEntries.isEmpty {
                 EmptyStateView(title: "No transactions yet", systemImage: "arrow.left.arrow.right")
             }
         }
         .sheet(item: $selectedTransaction) { tx in
-            NavigationStack {
-                TransactionDetailView(transaction: tx)
-            }
+            NavigationStack { TransactionDetailView(transaction: tx) }
         }
     }
-
-
 }
 
 // MARK: - PSX Cash Flow Views

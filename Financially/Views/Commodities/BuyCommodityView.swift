@@ -6,7 +6,9 @@ struct BuyCommodityView: View {
     @Environment(\.dismiss) private var dismiss
 
     @Query(sort: \CommodityInfo.name) private var commodityList: [CommodityInfo]
+    @Query private var allHoldings: [CommodityHolding]
 
+    @State private var vm: CommodityTradeViewModel?
     @State private var selectedCommodity: CommodityInfo?
     @State private var grams = ""
     @State private var pricePerGram = ""
@@ -76,22 +78,16 @@ struct BuyCommodityView: View {
                     netValue: netAmount?.formattedCurrency()
                 )
 
-                Section {
-                    DatePicker("Date", selection: $date, displayedComponents: .date)
-                }
+                Section { DatePicker("Date", selection: $date, displayedComponents: .date) }
 
-                Section("Notes") {
-                    TextField("Optional", text: $notes)
-                }
+                Section("Notes") { TextField("Optional", text: $notes) }
 
                 FormErrorSection(message: errorMessage)
             }
             .navigationTitle("Buy Commodity")
             .navigationBarTitleDisplayMode(.inline)
             .formToolbar(label: "Buy", isDisabled: selectedCommodity == nil || grams.isEmpty || pricePerGram.isEmpty) { save() }
-            .sheet(isPresented: $showCommodityPicker) {
-                commodityPicker
-            }
+            .sheet(isPresented: $showCommodityPicker) { commodityPicker }
         }
     }
 
@@ -141,67 +137,26 @@ struct BuyCommodityView: View {
 
     private func save() {
         guard let commodity = selectedCommodity else { errorMessage = "Please select a commodity"; return }
-        guard let gramsVal = gramsValue, gramsVal > 0 else {
-            errorMessage = "Please enter a valid number of grams"
-            return
-        }
-        guard let price = priceValue, price > 0 else {
-            errorMessage = "Please enter a valid price per gram"
-            return
-        }
-        guard let net = netAmount, net > 0 else {
-            errorMessage = "Please enter valid amounts"
-            return
-        }
+        guard let gramsVal = gramsValue, gramsVal > 0 else { errorMessage = "Please enter a valid number of grams"; return }
+        guard let price = priceValue, price > 0 else { errorMessage = "Please enter a valid price per gram"; return }
+        guard let net = netAmount, net > 0 else { errorMessage = "Please enter valid amounts"; return }
 
-        let holdingId = findOrCreateHolding(commodity: commodity)
-        let total = gramsVal * price
-        let fees = brokerageValue + taxValue
+        let vm = vm ?? CommodityTradeViewModel(modelContext: modelContext, commodityList: commodityList, holdings: allHoldings)
+        self.vm = vm
 
-        let trade = CommodityTrade(
-            holdingId: holdingId,
-            type: .buy,
-            commodityName: commodity.name,
+        vm.buy(
             symbol: commodity.symbol,
+            commodityName: commodity.name,
             grams: gramsVal,
             pricePerGram: price,
-            totalAmount: total,
             brokerageFee: brokerageValue,
             tax: taxValue,
             netAmount: net,
             date: date,
             notes: notes.isEmpty ? nil : notes
         )
-        modelContext.insert(trade)
 
-        updateHolding(holdingId: holdingId, grams: gramsVal, totalCost: total, fees: fees)
         try? modelContext.save()
         dismiss()
-    }
-
-    private func findOrCreateHolding(commodity: CommodityInfo) -> UUID {
-        let fetch = FetchDescriptor<CommodityHolding>()
-        let all = (try? modelContext.fetch(fetch)) ?? []
-        if let existing = all.first(where: { $0.symbol == commodity.symbol }) {
-            return existing.id
-        }
-        let holding = CommodityHolding(
-            commodityName: commodity.name,
-            symbol: commodity.symbol,
-            currentPricePerGram: commodity.currentRatePerGram
-        )
-        modelContext.insert(holding)
-        return holding.id
-    }
-
-    private func updateHolding(holdingId: UUID, grams: Decimal, totalCost: Decimal, fees: Decimal) {
-        let fetch = FetchDescriptor<CommodityHolding>()
-        guard let holding = (try? modelContext.fetch(fetch))?.first(where: { $0.id == holdingId }) else { return }
-        let newTotalGrams = holding.totalGrams + grams
-        let newCost = holding.totalCost + totalCost
-        holding.totalGrams = newTotalGrams
-        holding.totalCost = newCost
-        holding.totalFeesPaid += fees
-        holding.avgCostPerGram = newTotalGrams > 0 ? newCost / newTotalGrams : 0
     }
 }
