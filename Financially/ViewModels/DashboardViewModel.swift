@@ -152,6 +152,29 @@ final class DashboardViewModel {
         allCreditors.filter { !$0.isSettled }.reduce(0) { $0 + $1.outstandingBalance }
     }
 
+    // MARK: - Asset Allocation Pie Chart
+
+    struct AllocationSlice: Identifiable {
+        let id = UUID()
+        let label: String
+        let value: Decimal
+        let color: String
+    }
+
+    var assetAllocation: [AllocationSlice] {
+        let psxValue = accounts.filter { $0.accountType == .psx }.reduce(0) { $0 + $1.currentValue }
+        let commodityValue = allCommodityHoldings.filter { $0.totalGrams > 0 }.reduce(0) { $0 + $1.currentValue }
+
+        return [
+            AllocationSlice(label: "PSX", value: psxValue, color: "psx"),
+            AllocationSlice(label: "Commodities", value: commodityValue, color: "commodity"),
+            AllocationSlice(label: "Banks", value: totalBankBalances, color: "bank"),
+            AllocationSlice(label: "Cash", value: totalCashBalances, color: "cash"),
+            AllocationSlice(label: "Receivable", value: totalReceivables, color: "receivable"),
+            AllocationSlice(label: "Liabilities", value: totalLiabilities, color: "liability")
+        ].filter { $0.value > 0 }
+    }
+
     var activeCommodityHoldings: [CommodityHolding] {
         allCommodityHoldings.filter { $0.totalGrams > 0 }
     }

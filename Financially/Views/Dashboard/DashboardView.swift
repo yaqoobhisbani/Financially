@@ -27,6 +27,7 @@ struct DashboardView: View {
         ScrollView {
             VStack(spacing: 16) {
                 summaryCards(vm)
+                if !vm.assetAllocation.isEmpty { AllocationPieChart(slices: vm.assetAllocation) }
                 if !vm.accounts.isEmpty { accountsGridScroll(vm) }
                 commoditiesSection(vm)
                 if vm.monthlyExpense > 0 { expenseChartWidget(vm) }
