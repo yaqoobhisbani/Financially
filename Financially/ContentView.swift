@@ -14,11 +14,6 @@ struct ContentView: View {
                     Label("Accounts", systemImage: "creditcard.fill")
                 }
 
-            LoansListView()
-                .tabItem {
-                    Label("Loans", systemImage: "arrow.left.arrow.right")
-                }
-
             InvestmentsListView()
                 .tabItem {
                     Label("Investments", systemImage: "chart.line.uptrend.xyaxis")

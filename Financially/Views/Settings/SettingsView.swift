@@ -13,9 +13,15 @@ struct SettingsView: View {
     var body: some View {
         NavigationStack {
             List {
-                Section("Reports") {
+                Section("Financial") {
+                    NavigationLink(destination: LoansListView()) {
+                        Label("Loans & Liabilities", systemImage: "arrow.left.arrow.right")
+                    }
+                    NavigationLink(destination: CommitteesListView()) {
+                        Label("Committees", systemImage: "person.3.fill")
+                    }
                     NavigationLink(destination: ReportsListView()) {
-                        Label("View Reports", systemImage: "chart.bar.doc.horizontal")
+                        Label("Reports", systemImage: "chart.bar.doc.horizontal")
                     }
                 }
 
