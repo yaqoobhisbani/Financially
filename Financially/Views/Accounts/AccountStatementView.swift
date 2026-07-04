@@ -28,7 +28,7 @@ struct AccountStatementView: View {
     }
 
     var filteredEntries: [LedgerEntry] {
-        allEntries.filter { $0.date >= startDate && $0.date <= endDate }
+        allEntries.filter { $0.date >= startDate && $0.date <= endDate.endOfDay }
     }
 
     var body: some View {

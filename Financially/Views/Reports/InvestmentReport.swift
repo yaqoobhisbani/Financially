@@ -13,7 +13,7 @@ struct InvestmentReport: View {
     }
 
     private func entries(for account: Account) -> [InvestmentEntry] {
-        investmentEntries.filter { $0.investmentAccountId == account.id && $0.date >= startDate && $0.date <= endDate }
+        investmentEntries.filter { $0.investmentAccountId == account.id && $0.date >= startDate && $0.date <= endDate.endOfDay }
     }
 
     var body: some View {

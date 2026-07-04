@@ -15,7 +15,7 @@ struct TransactionHistoryReport: View {
 
     var filteredTransactions: [Transaction] {
         var result = allTransactions
-        result = result.filter { $0.date >= startDate && $0.date <= endDate }
+        result = result.filter { $0.date >= startDate && $0.date <= endDate.endOfDay }
         if let type = selectedType {
             result = result.filter { $0.type == type }
         }

@@ -8,7 +8,7 @@ struct ExpenseReport: View {
     @State private var selectedPreset = DateRangePickerView.DatePreset.thisMonth
 
     private var expenses: [Transaction] {
-        allTransactions.filter { $0.type == .expense && $0.date >= startDate && $0.date <= endDate }
+        allTransactions.filter { $0.type == .expense && $0.date >= startDate && $0.date <= endDate.endOfDay }
     }
 
     private var totalExpense: Decimal {

@@ -8,7 +8,7 @@ struct IncomeReport: View {
     @State private var selectedPreset = DateRangePickerView.DatePreset.thisMonth
 
     private var incomes: [Transaction] {
-        allTransactions.filter { $0.type == .income && $0.date >= startDate && $0.date <= endDate }
+        allTransactions.filter { $0.type == .income && $0.date >= startDate && $0.date <= endDate.endOfDay }
     }
 
     private var totalIncome: Decimal {
