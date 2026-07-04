@@ -37,7 +37,11 @@ final class DashboardViewModel {
 
     // MARK: - Helpers
 
-    private var accounts: [Account] {
+    private var allHoldings: [StockHolding] {
+        (try? modelContext.fetch(FetchDescriptor<StockHolding>())) ?? []
+    }
+
+    var accounts: [Account] {
         (try? modelContext.fetch(FetchDescriptor<Account>())) ?? []
     }
 
@@ -146,5 +150,22 @@ final class DashboardViewModel {
 
     var activeLiabilityTotal: Decimal {
         allCreditors.filter { !$0.isSettled }.reduce(0) { $0 + $1.outstandingBalance }
+    }
+
+    var activeCommodityHoldings: [CommodityHolding] {
+        allCommodityHoldings.filter { $0.totalGrams > 0 }
+    }
+
+    func psxPortfolioValue(_ account: Account) -> Decimal {
+        allHoldings.filter { $0.accountId == account.id }.reduce(0) { $0 + $1.currentValue }
+    }
+
+    func psxTotalCost(_ account: Account) -> Decimal {
+        allHoldings.filter { $0.accountId == account.id }.reduce(0) { $0 + $1.totalCost }
+    }
+
+    func psxProfitLoss(_ accountId: UUID) -> Decimal {
+        let holdings = allHoldings.filter { $0.accountId == accountId }
+        return holdings.reduce(0) { $0 + $1.currentValue } - holdings.reduce(0) { $0 + $1.totalCost }
     }
 }

@@ -4,99 +4,90 @@ import SwiftData
 struct DashboardView: View {
     @Environment(\.modelContext) private var modelContext
 
-    @Query private var accounts: [Account]
-    @Query private var transactions: [Transaction]
-    @Query private var debtors: [Debtor]
-    @Query private var creditors: [Creditor]
-    @Query private var allHoldings: [StockHolding]
-    @Query private var allCommodityHoldings: [CommodityHolding]
-
+    @State private var vm: DashboardViewModel?
     @State private var showExpense = false
     @State private var showIncome = false
     @State private var showTransfer = false
 
     var body: some View {
         NavigationStack {
-            ScrollView {
-                VStack(spacing: 16) {
-                    summaryCards
-                    if !accounts.isEmpty { accountsGridScroll }
-                    commoditiesSection
-                    if computeMonthlyExpense > 0 { expenseChartWidget }
-                    if computeMonthlyIncome > 0 || computeMonthlyExpense > 0 { incomeVsExpenseWidget }
-                    if activeLoanCount > 0 || activeLiabilityCount > 0 { activeLoansWidget }
-                    if !recentTransactions.isEmpty { recentTransactionsSection }
-                }
-                .padding()
+            if let vm {
+                content(vm)
             }
-            .navigationTitle("Dashboard")
-            .toolbar {
-                ToolbarItem(placement: .primaryAction) {
-                    Menu {
-                        Button("Expense", systemImage: "cart.fill") { showExpense = true }
-                        Button("Income", systemImage: "dollarsign.circle.fill") { showIncome = true }
-                        Button("Transfer", systemImage: "arrow.left.arrow.right") { showTransfer = true }
-                    } label: {
-                        Image(systemName: "plus")
-                            .font(.title3)
-                    }
-                }
-            }
+        }
+        .onAppear {
+            vm = DashboardViewModel(modelContext: modelContext)
         }
         .sheet(isPresented: $showExpense) { AddExpenseView() }
         .sheet(isPresented: $showIncome) { AddIncomeView() }
         .sheet(isPresented: $showTransfer) { TransferView() }
     }
 
-    private func psxPortfolioValue(_ account: Account) -> Decimal {
-        allHoldings.filter { $0.accountId == account.id }.reduce(0) { $0 + $1.currentValue }
-    }
-
-    private func psxTotalCost(_ account: Account) -> Decimal {
-        allHoldings.filter { $0.accountId == account.id }.reduce(0) { $0 + $1.totalCost }
-    }
-
-    private func psxProfitLoss(_ account: Account) -> Decimal {
-        psxPortfolioValue(account) - psxTotalCost(account)
+    private func content(_ vm: DashboardViewModel) -> some View {
+        ScrollView {
+            VStack(spacing: 16) {
+                summaryCards(vm)
+                if !vm.accounts.isEmpty { accountsGridScroll(vm) }
+                commoditiesSection(vm)
+                if vm.monthlyExpense > 0 { expenseChartWidget(vm) }
+                if vm.monthlyIncome > 0 || vm.monthlyExpense > 0 { incomeVsExpenseWidget(vm) }
+                if vm.activeLoanCount > 0 || vm.activeLiabilityCount > 0 { activeLoansWidget(vm) }
+                if !vm.recentTransactions.isEmpty { recentTransactionsSection(vm) }
+            }
+            .padding()
+        }
+        .navigationTitle("Dashboard")
+        .toolbar {
+            ToolbarItem(placement: .primaryAction) {
+                Menu {
+                    Button("Expense", systemImage: "cart.fill") { showExpense = true }
+                    Button("Income", systemImage: "dollarsign.circle.fill") { showIncome = true }
+                    Button("Transfer", systemImage: "arrow.left.arrow.right") { showTransfer = true }
+                } label: {
+                    Image(systemName: "plus")
+                        .font(.title3)
+                }
+            }
+        }
     }
 
     // MARK: - Summary Cards
 
-    private var summaryCards: some View {
+    private func summaryCards(_ vm: DashboardViewModel) -> some View {
         LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
             SummaryCard(
                 title: "Net Worth",
-                amount: computeNetWorth,
+                amount: vm.netWorth,
                 icon: "heart.fill",
                 color: .netWorthAccent
             )
             SummaryCard(
                 title: "Total Assets",
-                amount: computeTotalAssets,
+                amount: vm.totalOwnFunds + vm.totalReceivables,
                 icon: "building.columns.fill",
                 color: .assetsAccent
             )
             SummaryCard(
                 title: "Liabilities",
-                amount: computeTotalLiabilities,
+                amount: vm.totalLiabilities,
                 icon: "arrow.right.circle.fill",
                 color: .liabilitiesAccent
             )
             SummaryCard(
                 title: "Receivables",
-                amount: computeTotalReceivables,
+                amount: vm.totalReceivables,
                 icon: "arrow.left.circle.fill",
                 color: .receivablesAccent
             )
             SummaryCard(
                 title: "Monthly Income",
-                amount: computeMonthlyIncome,
+                amount: vm.monthlyIncome,
                 icon: "arrow.down.circle.fill",
                 color: .incomeGreen
             )
             SummaryCard(
                 title: "Monthly Expense",
-                amount: computeMonthlyExpense,
+                amount: vm.monthlyExpense,
                 icon: "arrow.up.circle.fill",
                 color: .expenseRed
             )
@@ -105,16 +96,16 @@ struct DashboardView: View {
 
     // MARK: - Accounts Overview
 
-    private var accountsGridScroll: some View {
+    private func accountsGridScroll(_ vm: DashboardViewModel) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             Text("Accounts")
                 .font(.headline)
 
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 12) {
-                    ForEach(accounts) { account in
+                    ForEach(vm.accounts) { account in
                         NavigationLink(destination: AccountDetailView(account: account)) {
-                            accountCard(account)
+                            accountCard(account, vm)
                         }
                         .buttonStyle(.plain)
                     }
@@ -123,7 +114,7 @@ struct DashboardView: View {
         }
     }
 
-    private func accountCard(_ account: Account) -> some View {
+    private func accountCard(_ account: Account, _ vm: DashboardViewModel) -> some View {
         VStack(alignment: .leading, spacing: 4) {
             if account.accountType == .bank, let bankName = account.bankName {
                 BankLogoView(bankName: bankName, size: 32)
@@ -134,19 +125,19 @@ struct DashboardView: View {
                     .frame(width: 32, height: 32)
                     .clipShape(RoundedRectangle(cornerRadius: 8))
             } else {
-                Image(systemName: accountIcon(account))
+                Image(systemName: account.icon ?? accountTypeIcon(account.accountType))
                     .font(.title3)
                     .frame(height: 32)
             }
             Text(account.name)
                 .font(.caption)
                 .lineLimit(1)
-            Text(account.accountType == .psx ? (account.currentBalance + psxPortfolioValue(account)).formattedCurrency(currency: account.currency) : account.currentBalance.formattedCurrency(currency: account.currency))
-                .font(.caption.bold())
+            Text(account.accountType == .psx ? (account.currentBalance + vm.psxPortfolioValue(account)).formattedCurrency(currency: account.currency) : account.currentBalance.formattedCurrency(currency: account.currency))
+                .font(.caption2)
             if account.accountType == .psx {
-                Text(psxProfitLoss(account).formattedCurrency(currency: account.currency))
+                Text(vm.psxProfitLoss(account.id).formattedCurrency(currency: account.currency))
                     .font(.caption2)
-                    .foregroundStyle(psxProfitLoss(account) >= 0 ? .incomeGreen : .expenseRed)
+                    .foregroundStyle(vm.psxProfitLoss(account.id) >= 0 ? .incomeGreen : .expenseRed)
             }
         }
         .frame(width: 100, height: 100)
@@ -154,24 +145,25 @@ struct DashboardView: View {
         .liquidGlassCard()
     }
 
-    private var activeCommodityHoldings: [CommodityHolding] {
-        allCommodityHoldings.filter { $0.totalGrams > 0 }
-    }
-
-    private var totalCommodityValue: Decimal {
-        activeCommodityHoldings.reduce(0) { $0 + $1.currentValue }
+    private func accountTypeIcon(_ type: AccountType) -> String {
+        switch type {
+        case .bank: return "building.columns.fill"
+        case .cash: return "wallet.pass.fill"
+        case .psx: return "chart.line.uptrend.xyaxis"
+        }
     }
 
     // MARK: - Commodities Section
 
-    private var commoditiesSection: some View {
+    private func commoditiesSection(_ vm: DashboardViewModel) -> some View {
         Group {
-            if !activeCommodityHoldings.isEmpty {
+            let holdings = vm.activeCommodityHoldings
+            if !holdings.isEmpty {
                 VStack(alignment: .leading, spacing: 8) {
                     Text("Commodities")
                         .font(.headline)
 
-                    ForEach(activeCommodityHoldings) { holding in
+                    ForEach(holdings) { holding in
                         NavigationLink(destination: CommodityHoldingDetailView(holding: holding)) {
                             commodityCard(holding)
                         }
@@ -211,18 +203,18 @@ struct DashboardView: View {
 
     // MARK: - Expense Chart
 
-    private var expenseChartWidget: some View {
-        ExpenseChartWidget(expenseByCategory: computeExpenseByCategory, totalExpense: computeMonthlyExpense)
+    private func expenseChartWidget(_ vm: DashboardViewModel) -> some View {
+        ExpenseChartWidget(expenseByCategory: vm.expenseByCategory, totalExpense: vm.monthlyExpense)
     }
 
     // MARK: - Income vs Expense
 
-    private var incomeVsExpenseWidget: some View {
+    private func incomeVsExpenseWidget(_ vm: DashboardViewModel) -> some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Income vs Expense")
                 .font(.headline)
 
-            BarChartView(data: computeMonthlyComparisons)
+            BarChartView(data: vm.lastSixMonths)
         }
         .padding()
         .background(.ultraThinMaterial)
@@ -231,19 +223,19 @@ struct DashboardView: View {
 
     // MARK: - Active Loans / Liabilities
 
-    private var activeLoansWidget: some View {
+    private func activeLoansWidget(_ vm: DashboardViewModel) -> some View {
         HStack(spacing: 12) {
             activeWidget(
                 title: "Active Loans",
-                count: activeLoanCount,
-                total: activeLoanTotal,
+                count: vm.activeLoanCount,
+                total: vm.activeLoanTotal,
                 icon: "arrow.left.arrow.right",
                 color: .blue
             )
             activeWidget(
                 title: "Liabilities Held",
-                count: activeLiabilityCount,
-                total: activeLiabilityTotal,
+                count: vm.activeLiabilityCount,
+                total: vm.activeLiabilityTotal,
                 icon: "arrow.right.circle",
                 color: .orange
             )
@@ -273,91 +265,7 @@ struct DashboardView: View {
 
     // MARK: - Recent Transactions
 
-    private var recentTransactionsSection: some View {
-        RecentTransactionsView(transactions: recentTransactions)
-    }
-
-    // MARK: - Computed Properties
-
-    private var computeNetWorth: Decimal {
-        computeTotalAssets - computeTotalLiabilities + computeTotalReceivables
-    }
-
-    private var computeTotalAssets: Decimal {
-        let accountAssets = accounts.filter { $0.isActive }.reduce(0 as Decimal) { sum, account in
-            if account.accountType == .psx {
-                return sum + account.currentBalance + psxPortfolioValue(account)
-            }
-            return sum + account.currentBalance
-        }
-        return accountAssets + totalCommodityValue
-    }
-
-    private var computeTotalLiabilities: Decimal {
-        creditors.reduce(0) { $0 + $1.outstandingBalance }
-    }
-
-    private var computeTotalReceivables: Decimal {
-        debtors.reduce(0) { $0 + $1.outstandingBalance }
-    }
-
-    private var computeMonthlyIncome: Decimal {
-        transactions.filter { $0.type == .income && $0.date.isInCurrentMonth }
-            .reduce(0) { $0 + $1.amount }
-    }
-
-    private var computeMonthlyExpense: Decimal {
-        transactions.filter { $0.type == .expense && $0.date.isInCurrentMonth }
-            .reduce(0) { $0 + $1.amount }
-    }
-
-    private var recentTransactions: [Transaction] {
-        transactions.sorted { $0.date > $1.date }.prefix(10).map { $0 }
-    }
-
-    private var computeExpenseByCategory: [DashboardViewModel.ExpenseBreakdown] {
-        let grouped = Dictionary(grouping: transactions.filter { $0.type == .expense && $0.date.isInCurrentMonth }) { $0.category ?? "Other" }
-        return grouped.map { DashboardViewModel.ExpenseBreakdown(category: $0.key, total: $0.value.reduce(0) { $0 + $1.amount }) }
-            .filter { $0.total > 0 }
-            .sorted { $0.total > $1.total }
-    }
-
-    private var computeMonthlyComparisons: [DashboardViewModel.MonthlyComparison] {
-        let calendar = Calendar.current
-        let now = Date()
-        return (0..<6).reversed().map { monthsAgo in
-            let monthStart = calendar.date(from: calendar.dateComponents([.year, .month], from: calendar.date(byAdding: .month, value: -monthsAgo, to: now)!))!
-            let monthEnd = calendar.date(byAdding: DateComponents(month: 1, day: -1), to: monthStart)!
-            let monthlyTxs = transactions.filter { $0.date >= monthStart && $0.date <= monthEnd }
-            let income = monthlyTxs.filter { $0.type == .income }.reduce(0) { $0 + $1.amount }
-            let expense = monthlyTxs.filter { $0.type == .expense }.reduce(0) { $0 + $1.amount }
-            return DashboardViewModel.MonthlyComparison(month: monthStart, income: income, expense: expense)
-        }
-    }
-
-    private var activeLoanCount: Int {
-        debtors.filter { !$0.isSettled }.count
-    }
-
-    private var activeLiabilityCount: Int {
-        creditors.filter { !$0.isSettled }.count
-    }
-
-    private var activeLoanTotal: Decimal {
-        debtors.filter { !$0.isSettled }.reduce(0) { $0 + $1.outstandingBalance }
-    }
-
-    private var activeLiabilityTotal: Decimal {
-        creditors.filter { !$0.isSettled }.reduce(0) { $0 + $1.outstandingBalance }
-    }
-
-    private func accountIcon(_ account: Account) -> String {
-        account.icon ?? {
-            switch account.accountType {
-            case .bank: return "building.columns.fill"
-            case .cash: return "wallet.pass.fill"
-            case .psx: return "chart.line.uptrend.xyaxis"
-            }
-        }()
+    private func recentTransactionsSection(_ vm: DashboardViewModel) -> some View {
+        RecentTransactionsView(transactions: vm.recentTransactions)
     }
 }

@@ -7,6 +7,8 @@ struct CreateAccountView: View {
 
     let allowedTypes: [AccountType]
 
+    @State private var vm: AccountViewModel?
+
     @State private var name = ""
     @State private var accountType: AccountType = .bank
     @State private var selectedBank: String?
@@ -116,21 +118,27 @@ struct CreateAccountView: View {
         let initialBalance = Decimal(string: initialBalanceString) ?? 0
         let investedAmount = Decimal(string: investedAmountString) ?? 0
 
-        let account = Account(
-            name: name,
-            accountType: accountType,
-            cashSubType: accountType == .cash ? cashSubType : nil,
-            bankName: accountType == .bank ? selectedBank : nil,
-            accountNumber: accountNumber.isEmpty ? nil : accountNumber,
-            brokerName: brokerName.isEmpty ? nil : brokerName,
-            fundHouse: fundHouse.isEmpty ? nil : fundHouse,
-            initialBalance: accountType == .psx ? investedAmount : initialBalance,
-            investedAmount: accountType == .psx ? 0 : investedAmount,
-            notes: notes.isEmpty ? nil : notes
-        )
+        let vm = vm ?? AccountViewModel(modelContext: modelContext)
+        self.vm = vm
 
-        modelContext.insert(account)
-        dismiss()
+        do {
+            try vm.createAccount(
+                name: name,
+                accountType: accountType,
+                bankSubType: nil,
+                cashSubType: accountType == .cash ? cashSubType : nil,
+                bankName: accountType == .bank ? selectedBank : nil,
+                accountNumber: accountNumber.isEmpty ? nil : accountNumber,
+                brokerName: brokerName.isEmpty ? nil : brokerName,
+                fundHouse: fundHouse.isEmpty ? nil : fundHouse,
+                initialBalance: accountType == .psx ? investedAmount : initialBalance,
+                investedAmount: accountType == .psx ? 0 : investedAmount,
+                notes: notes.isEmpty ? nil : notes
+            )
+            dismiss()
+        } catch {
+            errorMessage = "Failed to save account"
+        }
     }
 }
 

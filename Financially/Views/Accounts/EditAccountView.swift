@@ -2,8 +2,11 @@ import SwiftUI
 import SwiftData
 
 struct EditAccountView: View {
+    @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
     @Bindable var account: Account
+
+    @State private var vm: AccountViewModel?
 
     @State private var name: String
     @State private var accountType: AccountType
@@ -85,15 +88,17 @@ struct EditAccountView: View {
             return
         }
 
-        account.name = name
+        let vm = vm ?? AccountViewModel(modelContext: modelContext)
+        self.vm = vm
+
+        vm.updateAccount(account, name: name, notes: notes.isEmpty ? nil : notes)
+
         account.accountType = accountType
         account.cashSubType = accountType == .cash ? cashSubType : nil
         account.bankName = accountType == .bank ? selectedBank : nil
         account.accountNumber = accountNumber.isEmpty ? nil : accountNumber
         account.brokerName = brokerName.isEmpty ? nil : brokerName
         account.fundHouse = fundHouse.isEmpty ? nil : fundHouse
-        account.notes = notes.isEmpty ? nil : notes
-        account.updatedAt = Date()
 
         dismiss()
     }
