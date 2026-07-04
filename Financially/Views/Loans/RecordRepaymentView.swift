@@ -6,6 +6,7 @@ struct RecordRepaymentView: View {
     @Environment(\.dismiss) private var dismiss
     let debtor: Debtor
 
+    @State private var vm: LoanTransactionViewModel?
     @State private var destinationAccount: Account?
     @State private var amount = ""
     @State private var date = Date()
@@ -29,44 +30,27 @@ struct RecordRepaymentView: View {
                 Section("Amount") {
                     Toggle("Full Repayment", isOn: $isFullRepayment)
                         .onChange(of: isFullRepayment) { _, newValue in
-                            if newValue {
-                                amount = "\(debtor.outstandingBalance)"
-                            } else if amount == "\(debtor.outstandingBalance)" {
-                                amount = ""
-                            }
+                            if newValue { amount = "\(debtor.outstandingBalance)" }
+                            else if amount == "\(debtor.outstandingBalance)" { amount = "" }
                         }
-
                     AmountField(amount: $amount)
-                    .disabled(isFullRepayment)
-
-                    if let amountValue = Decimal(string: amount), amountValue > 0 {
-                        if amountValue > debtor.outstandingBalance {
-                            HStack {
-                                Image(systemName: "exclamationmark.triangle.fill")
-                                    .foregroundStyle(.yellow)
-                                Text("Amount exceeds outstanding balance")
-                                    .font(.caption)
-                                    .foregroundStyle(.red)
-                            }
+                        .disabled(isFullRepayment)
+                    if let amountValue = Decimal(string: amount), amountValue > debtor.outstandingBalance {
+                        HStack {
+                            Image(systemName: "exclamationmark.triangle.fill").foregroundStyle(.yellow)
+                            Text("Amount exceeds outstanding balance").font(.caption).foregroundStyle(.red)
                         }
                     }
                 }
 
-                Section {
-                    DatePicker("Date", selection: $date, displayedComponents: .date)
-                }
-
-                Section("Notes") {
-                    TextField("Description (optional)", text: $description)
-                }
+                Section { DatePicker("Date", selection: $date, displayedComponents: .date) }
+                Section("Notes") { TextField("Description (optional)", text: $description) }
 
                 FormErrorSection(message: errorMessage)
 
                 Section {
                     VStack(alignment: .leading, spacing: 4) {
-                        Text("After this transaction:")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
+                        Text("After this transaction:").font(.caption).foregroundStyle(.secondary)
                         HStack {
                             Text("Outstanding Balance")
                             Spacer()
@@ -92,41 +76,17 @@ struct RecordRepaymentView: View {
     }
 
     private func save() {
-        guard let dest = destinationAccount else {
-            errorMessage = "Please select a destination account"
-            return
-        }
-        guard let amountValue = Decimal(string: amount), amountValue > 0 else {
-            errorMessage = "Please enter a valid amount"
-            return
-        }
-        guard amountValue <= debtor.outstandingBalance else {
-            errorMessage = "Repayment exceeds outstanding balance"
-            return
-        }
+        guard let dest = destinationAccount else { errorMessage = "Please select a destination account"; return }
 
-        debtor.totalRepaid += amountValue
-        debtor.updatedAt = Date()
-
-        let service = LedgerService(modelContext: modelContext)
-        let request = TransactionRequest(
-            type: .loanRepayment,
-            amount: amountValue,
-            date: date,
-            description: description.isEmpty ? nil : description,
-            sourceAccountId: dest.id,
-            destinationAccountId: dest.id,
-            relatedEntityId: debtor.id
-        )
+        let vm = vm ?? LoanTransactionViewModel(modelContext: modelContext)
+        self.vm = vm
 
         do {
-            try service.execute(request)
+            try vm.recordRepayment(from: debtor, amount: amount, date: date, description: description.isEmpty ? nil : description, destinationAccountId: dest.id)
             dismiss()
-        } catch let error as ValidationError {
-            debtor.totalRepaid -= amountValue
+        } catch let error as LoanTransactionViewModel.LoanError {
             errorMessage = error.localizedDescription
         } catch {
-            debtor.totalRepaid -= amountValue
             errorMessage = error.localizedDescription
         }
     }

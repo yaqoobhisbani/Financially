@@ -6,6 +6,7 @@ struct GiveLoanView: View {
     @Environment(\.dismiss) private var dismiss
     let debtor: Debtor
 
+    @State private var vm: LoanTransactionViewModel?
     @State private var sourceAccount: Account?
     @State private var amount = ""
     @State private var date = Date()
@@ -25,17 +26,11 @@ struct GiveLoanView: View {
                     )
                 }
 
-                Section("Amount") {
-                    AmountField(amount: $amount)
-                }
+                Section("Amount") { AmountField(amount: $amount) }
 
-                Section {
-                    DatePicker("Date", selection: $date, displayedComponents: .date)
-                }
+                Section { DatePicker("Date", selection: $date, displayedComponents: .date) }
 
-                Section("Notes") {
-                    TextField("Description (optional)", text: $description)
-                }
+                Section("Notes") { TextField("Description (optional)", text: $description) }
 
                 FormErrorSection(message: errorMessage)
 
@@ -64,36 +59,16 @@ struct GiveLoanView: View {
     }
 
     private func save() {
-        guard let source = sourceAccount else {
-            errorMessage = "Please select a source account"
-            return
-        }
-        guard let amountValue = Decimal(string: amount), amountValue > 0 else {
-            errorMessage = "Please enter a valid amount"
-            return
-        }
+        guard let source = sourceAccount else { errorMessage = "Please select a source account"; return }
+        guard let amountValue = Decimal(string: amount), amountValue > 0 else { errorMessage = "Please enter a valid amount"; return }
 
-        debtor.totalLent += amountValue
-        debtor.updatedAt = Date()
-
-        let service = LedgerService(modelContext: modelContext)
-        let request = TransactionRequest(
-            type: .loanGiven,
-            amount: amountValue,
-            date: date,
-            description: description.isEmpty ? nil : description,
-            sourceAccountId: source.id,
-            relatedEntityId: debtor.id
-        )
+        let vm = vm ?? LoanTransactionViewModel(modelContext: modelContext)
+        self.vm = vm
 
         do {
-            try service.execute(request)
+            try vm.giveLoan(to: debtor, amount: amountValue, date: date, description: description.isEmpty ? nil : description, sourceAccountId: source.id)
             dismiss()
-        } catch let error as ValidationError {
-            debtor.totalLent -= amountValue
-            errorMessage = error.localizedDescription
         } catch {
-            debtor.totalLent -= amountValue
             errorMessage = error.localizedDescription
         }
     }

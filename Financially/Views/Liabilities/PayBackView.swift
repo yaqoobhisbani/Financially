@@ -6,6 +6,7 @@ struct PayBackView: View {
     @Environment(\.dismiss) private var dismiss
     let creditor: Creditor
 
+    @State private var vm: LoanTransactionViewModel?
     @State private var sourceAccount: Account?
     @State private var amount = ""
     @State private var date = Date()
@@ -29,44 +30,27 @@ struct PayBackView: View {
                 Section("Amount") {
                     Toggle("Full Payback", isOn: $isFullPayback)
                         .onChange(of: isFullPayback) { _, newValue in
-                            if newValue {
-                                amount = "\(creditor.outstandingBalance)"
-                            } else if amount == "\(creditor.outstandingBalance)" {
-                                amount = ""
-                            }
+                            if newValue { amount = "\(creditor.outstandingBalance)" }
+                            else if amount == "\(creditor.outstandingBalance)" { amount = "" }
                         }
-
                     AmountField(amount: $amount)
-                    .disabled(isFullPayback)
-
-                    if let amountValue = Decimal(string: amount), amountValue > 0 {
-                        if amountValue > creditor.outstandingBalance {
-                            HStack {
-                                Image(systemName: "exclamationmark.triangle.fill")
-                                    .foregroundStyle(.yellow)
-                                Text("Amount exceeds outstanding balance")
-                                    .font(.caption)
-                                    .foregroundStyle(.red)
-                            }
+                        .disabled(isFullPayback)
+                    if let amountValue = Decimal(string: amount), amountValue > creditor.outstandingBalance {
+                        HStack {
+                            Image(systemName: "exclamationmark.triangle.fill").foregroundStyle(.yellow)
+                            Text("Amount exceeds outstanding balance").font(.caption).foregroundStyle(.red)
                         }
                     }
                 }
 
-                Section {
-                    DatePicker("Date", selection: $date, displayedComponents: .date)
-                }
-
-                Section("Notes") {
-                    TextField("Description (optional)", text: $description)
-                }
+                Section { DatePicker("Date", selection: $date, displayedComponents: .date) }
+                Section("Notes") { TextField("Description (optional)", text: $description) }
 
                 FormErrorSection(message: errorMessage)
 
                 Section {
                     VStack(alignment: .leading, spacing: 4) {
-                        Text("After this transaction:")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
+                        Text("After this transaction:").font(.caption).foregroundStyle(.secondary)
                         HStack {
                             Text("Outstanding Liability")
                             Spacer()
@@ -92,40 +76,17 @@ struct PayBackView: View {
     }
 
     private func save() {
-        guard let source = sourceAccount else {
-            errorMessage = "Please select a source account"
-            return
-        }
-        guard let amountValue = Decimal(string: amount), amountValue > 0 else {
-            errorMessage = "Please enter a valid amount"
-            return
-        }
-        guard amountValue <= creditor.outstandingBalance else {
-            errorMessage = "Payback exceeds outstanding balance"
-            return
-        }
+        guard let source = sourceAccount else { errorMessage = "Please select a source account"; return }
 
-        creditor.totalReturned += amountValue
-        creditor.updatedAt = Date()
-
-        let service = LedgerService(modelContext: modelContext)
-        let request = TransactionRequest(
-            type: .liabilityPayback,
-            amount: amountValue,
-            date: date,
-            description: description.isEmpty ? nil : description,
-            sourceAccountId: source.id,
-            relatedEntityId: creditor.id
-        )
+        let vm = vm ?? LoanTransactionViewModel(modelContext: modelContext)
+        self.vm = vm
 
         do {
-            try service.execute(request)
+            try vm.payBack(to: creditor, amount: amount, date: date, description: description.isEmpty ? nil : description, sourceAccountId: source.id)
             dismiss()
-        } catch let error as ValidationError {
-            creditor.totalReturned -= amountValue
+        } catch let error as LoanTransactionViewModel.LoanError {
             errorMessage = error.localizedDescription
         } catch {
-            creditor.totalReturned -= amountValue
             errorMessage = error.localizedDescription
         }
     }

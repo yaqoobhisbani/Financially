@@ -6,6 +6,7 @@ struct ReceiveMoneyView: View {
     @Environment(\.dismiss) private var dismiss
     let creditor: Creditor
 
+    @State private var vm: LoanTransactionViewModel?
     @State private var destinationAccount: Account?
     @State private var amount = ""
     @State private var date = Date()
@@ -25,17 +26,10 @@ struct ReceiveMoneyView: View {
                     )
                 }
 
-                Section("Amount") {
-                    AmountField(amount: $amount)
-                }
+                Section("Amount") { AmountField(amount: $amount) }
 
-                Section {
-                    DatePicker("Date", selection: $date, displayedComponents: .date)
-                }
-
-                Section("Notes") {
-                    TextField("Description (optional)", text: $description)
-                }
+                Section { DatePicker("Date", selection: $date, displayedComponents: .date) }
+                Section("Notes") { TextField("Description (optional)", text: $description) }
 
                 FormErrorSection(message: errorMessage)
             }
@@ -51,37 +45,17 @@ struct ReceiveMoneyView: View {
     }
 
     private func save() {
-        guard let dest = destinationAccount else {
-            errorMessage = "Please select a destination account"
-            return
-        }
-        guard let amountValue = Decimal(string: amount), amountValue > 0 else {
-            errorMessage = "Please enter a valid amount"
-            return
-        }
+        guard let dest = destinationAccount else { errorMessage = "Please select a destination account"; return }
 
-        creditor.totalReceived += amountValue
-        creditor.updatedAt = Date()
-
-        let service = LedgerService(modelContext: modelContext)
-        let request = TransactionRequest(
-            type: .liabilityReceived,
-            amount: amountValue,
-            date: date,
-            description: description.isEmpty ? nil : description,
-            sourceAccountId: dest.id,
-            destinationAccountId: dest.id,
-            relatedEntityId: creditor.id
-        )
+        let vm = vm ?? LoanTransactionViewModel(modelContext: modelContext)
+        self.vm = vm
 
         do {
-            try service.execute(request)
+            try vm.receiveMoney(from: creditor, amount: amount, date: date, description: description.isEmpty ? nil : description, destinationAccountId: dest.id)
             dismiss()
-        } catch let error as ValidationError {
-            creditor.totalReceived -= amountValue
+        } catch let error as LoanTransactionViewModel.LoanError {
             errorMessage = error.localizedDescription
         } catch {
-            creditor.totalReceived -= amountValue
             errorMessage = error.localizedDescription
         }
     }
