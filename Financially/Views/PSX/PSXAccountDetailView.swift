@@ -15,13 +15,13 @@ struct PSXAccountDetailView: View {
     @State private var showWithdraw = false
 
     var body: some View {
-        Group {
-            if let vm {
-                content(vm: vm)
-            }
-        }
-        .onAppear {
-            vm = PSXPortfolioViewModel(modelContext: modelContext, account: account)
+        if let vm {
+            content(vm: vm)
+        } else {
+            ProgressView()
+                .onAppear {
+                    vm = PSXPortfolioViewModel(modelContext: modelContext, account: account)
+                }
         }
     }
 
