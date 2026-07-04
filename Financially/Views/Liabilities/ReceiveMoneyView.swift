@@ -36,12 +36,7 @@ struct ReceiveMoneyView: View {
                 }
 
                 Section("Amount") {
-                    HStack {
-                        Text("PKR")
-                        TextField("0", text: $amount)
-                            .keyboardType(.decimalPad)
-                            .multilineTextAlignment(.trailing)
-                    }
+                    AmountField(amount: $amount)
                 }
 
                 Section {

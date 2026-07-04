@@ -46,12 +46,7 @@ struct PayBackView: View {
                             }
                         }
 
-                    HStack {
-                        Text("PKR")
-                        TextField("0", text: $amount)
-                            .keyboardType(.decimalPad)
-                            .multilineTextAlignment(.trailing)
-                    }
+                    AmountField(amount: $amount)
                     .disabled(isFullPayback)
 
                     if let amountValue = Decimal(string: amount), amountValue > 0 {

@@ -72,7 +72,7 @@ struct MonthlySummaryReport: View {
                         ForEach(monthTransactions) { tx in
                             HStack {
                                 VStack(alignment: .leading) {
-                                    Text(txTypeLabel(tx.type))
+                                    Text(tx.type.displayLabel)
                                         .font(.headline)
                                     Text(tx.date.formattedDate())
                                         .font(.caption)
@@ -86,21 +86,6 @@ struct MonthlySummaryReport: View {
                 }
             }
             .navigationTitle("Monthly Summary")
-        }
-    }
-
-    private func txTypeLabel(_ type: TransactionType) -> String {
-        switch type {
-        case .income: return "Income"
-        case .expense: return "Expense"
-        case .transfer: return "Transfer"
-        case .loanGiven: return "Loan Given"
-        case .loanRepayment: return "Repayment"
-        case .liabilityReceived: return "Received"
-        case .liabilityPayback: return "Payback"
-        case .investmentWithdrawal: return "Withdrawal"
-        case .investmentAddCapital: return "Add Capital"
-        case .investmentProfitLoss: return "P&L"
         }
     }
 }

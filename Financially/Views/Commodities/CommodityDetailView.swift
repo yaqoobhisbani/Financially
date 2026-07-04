@@ -86,7 +86,7 @@ struct CommodityDetailView: View {
                     VStack(alignment: .leading) {
                         Text("Return")
                             .font(.caption).foregroundStyle(.secondary)
-                        Text(totalPAndLPercentage.formatted(.number.precision(.fractionLength(2))) + "%")
+                        PercentageText(value: totalPAndLPercentage)
                             .font(.body.bold())
                             .foregroundStyle(totalUnrealizedPAndL >= 0 ? .incomeGreen : .expenseRed)
                     }

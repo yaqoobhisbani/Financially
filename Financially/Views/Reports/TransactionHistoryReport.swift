@@ -44,7 +44,7 @@ struct TransactionHistoryReport: View {
                 ForEach(filteredTransactions) { tx in
                     HStack {
                         VStack(alignment: .leading) {
-                            Text(txTypeLabel(tx.type))
+                            Text(tx.type.displayLabel)
                                 .font(.headline)
                             Text(tx.date.formattedDate())
                                 .font(.caption)
@@ -78,7 +78,7 @@ struct TransactionHistoryReport: View {
                     .buttonStyle(.bordered)
                     .tint(selectedType == nil ? .accentColor : .gray)
                 ForEach(TransactionType.allCases, id: \.rawValue) { type in
-                    Button(txTypeLabel(type)) {
+                    Button(type.displayLabel) {
                         selectedType = selectedType == type ? nil : type
                     }
                     .buttonStyle(.bordered)
@@ -89,21 +89,6 @@ struct TransactionHistoryReport: View {
         }
         .padding(.top, 8)
         .padding(.bottom, 4)
-    }
-
-    private func txTypeLabel(_ type: TransactionType) -> String {
-        switch type {
-        case .income: return "Income"
-        case .expense: return "Expense"
-        case .transfer: return "Transfer"
-        case .investmentWithdrawal: return "Withdrawal"
-        case .investmentAddCapital: return "Add Capital"
-        case .loanGiven: return "Loan Given"
-        case .loanRepayment: return "Repayment"
-        case .liabilityReceived: return "Received"
-        case .liabilityPayback: return "Payback"
-        case .investmentProfitLoss: return "P&L"
-        }
     }
 }
 

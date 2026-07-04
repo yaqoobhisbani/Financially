@@ -31,7 +31,7 @@ struct HoldingDetailView: View {
                             Text("Return")
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
-                            Text(returnFormatted)
+                            PercentageText(value: holding.returnPercentage)
                                 .font(.title3.bold())
                                 .foregroundStyle(holding.unrealizedPAndL >= 0 ? .incomeGreen : .expenseRed)
                         }
@@ -123,10 +123,5 @@ struct HoldingDetailView: View {
         }
         .navigationTitle(holding.ticker)
         .navigationBarTitleDisplayMode(.inline)
-    }
-
-    private var returnFormatted: String {
-        let percentage = holding.returnPercentage
-        return percentage.formatted(.number.precision(.fractionLength(2))) + "%"
     }
 }

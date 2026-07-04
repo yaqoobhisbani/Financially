@@ -136,14 +136,7 @@ struct AddCommodityInfoView: View {
                 }
 
                 Section("Rate") {
-                    HStack {
-                        Text("PKR")
-                        TextField("0", text: $ratePerGram)
-                            .keyboardType(.decimalPad)
-                            .multilineTextAlignment(.trailing)
-                        Text("/ gram")
-                            .foregroundStyle(.secondary)
-                    }
+                    AmountField(amount: $ratePerGram, suffix: "/ gram")
                 }
 
                 if let errorMessage = errorMessage {

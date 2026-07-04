@@ -163,7 +163,7 @@ struct InvestmentsListView: View {
                     VStack(alignment: .leading, spacing: 2) {
                         Text("Return")
                             .font(.caption).foregroundStyle(.secondary)
-                        Text(totalPAndLPercentage.formatted(.number.precision(.fractionLength(2))) + "%")
+                        PercentageText(value: totalPAndLPercentage)
                             .font(.body.bold())
                             .foregroundStyle(totalUnrealizedPAndL >= 0 ? .incomeGreen : .expenseRed)
                     }

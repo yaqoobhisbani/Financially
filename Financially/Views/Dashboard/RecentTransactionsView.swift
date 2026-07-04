@@ -27,16 +27,16 @@ struct RecentTransactionsView: View {
                 ForEach(transactions) { tx in
                     HStack(spacing: 12) {
                         Circle()
-                            .fill(txColor(tx.type).opacity(0.2))
+                            .fill(tx.type.color.opacity(0.2))
                             .frame(width: 36, height: 36)
                             .overlay {
-                                Image(systemName: txIcon(tx.type))
+                                Image(systemName: tx.type.icon)
                                     .font(.caption)
-                                    .foregroundStyle(txColor(tx.type))
+                                    .foregroundStyle(tx.type.color)
                             }
 
                         VStack(alignment: .leading, spacing: 2) {
-                            Text(txTypeLabel(tx.type))
+                            Text(tx.type.displayLabel)
                                 .font(.subheadline.weight(.medium))
                             Text(accountName(for: tx.fromAccountId ?? tx.toAccountId))
                                 .font(.caption)
@@ -48,7 +48,7 @@ struct RecentTransactionsView: View {
                         VStack(alignment: .trailing, spacing: 2) {
                             Text(tx.amount.formattedCurrency())
                                 .font(.subheadline.bold())
-                                .foregroundStyle(tx.type == .income || tx.type == .loanRepayment || tx.type == .liabilityReceived ? .incomeGreen : .expenseRed)
+                                .foregroundStyle(tx.type.amountColor)
                             Text(tx.date.formattedDate())
                                 .font(.caption2)
                                 .foregroundStyle(.secondary)
@@ -73,46 +73,6 @@ struct RecentTransactionsView: View {
             NavigationStack {
                 TransactionDetailView(transaction: tx)
             }
-        }
-    }
-
-    private func txIcon(_ type: TransactionType) -> String {
-        switch type {
-        case .income: return "arrow.down.circle"
-        case .expense: return "arrow.up.circle"
-        case .transfer: return "arrow.left.arrow.right"
-        case .loanGiven: return "arrow.right.circle"
-        case .loanRepayment: return "arrow.left.circle"
-        case .liabilityReceived: return "arrow.down.circle"
-        case .liabilityPayback: return "arrow.up.circle"
-        case .investmentWithdrawal: return "arrow.up.right.circle"
-        case .investmentAddCapital: return "plus.circle"
-        case .investmentProfitLoss: return "chart.line.uptrend.xyaxis"
-        }
-    }
-
-    private func txColor(_ type: TransactionType) -> Color {
-        switch type {
-        case .income, .loanRepayment, .liabilityReceived: return .incomeGreen
-        case .expense, .loanGiven, .liabilityPayback: return .expenseRed
-        case .transfer, .investmentAddCapital: return .blue
-        case .investmentWithdrawal: return .orange
-        case .investmentProfitLoss: return .purple
-        }
-    }
-
-    private func txTypeLabel(_ type: TransactionType) -> String {
-        switch type {
-        case .income: return "Income"
-        case .expense: return "Expense"
-        case .transfer: return "Transfer"
-        case .loanGiven: return "Loan Given"
-        case .loanRepayment: return "Repayment"
-        case .liabilityReceived: return "Received (Liability)"
-        case .liabilityPayback: return "Payback"
-        case .investmentWithdrawal: return "Withdrawal"
-        case .investmentAddCapital: return "Add Capital"
-        case .investmentProfitLoss: return "P&L Entry"
         }
     }
 }

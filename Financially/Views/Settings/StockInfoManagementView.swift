@@ -185,12 +185,7 @@ struct AddStockInfoView: View {
                 }
 
                 Section("Current Rate") {
-                    HStack {
-                        Text("PKR")
-                        TextField("0", text: $currentRate)
-                            .keyboardType(.decimalPad)
-                            .multilineTextAlignment(.trailing)
-                    }
+                    AmountField(amount: $currentRate)
                 }
 
                 if let errorMessage = errorMessage {

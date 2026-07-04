@@ -26,7 +26,7 @@ struct TransactionDetailView: View {
     var body: some View {
         List {
             Section("Overview") {
-                LabeledContent("Type", value: transactionTypeLabel)
+                LabeledContent("Type", value: transaction.type.displayLabel)
                 LabeledContent("Amount", value: transaction.amount.formattedCurrency())
                 LabeledContent("Date", value: transaction.date.formattedDate())
                 if let category = transaction.category {
@@ -87,20 +87,5 @@ struct TransactionDetailView: View {
         let manager = LedgerManager(modelContext: modelContext)
         try? manager.deleteTransaction(transaction)
         dismiss()
-    }
-
-    private var transactionTypeLabel: String {
-        switch transaction.type {
-        case .income: return "Income"
-        case .expense: return "Expense"
-        case .transfer: return "Transfer"
-        case .investmentWithdrawal: return "Investment Withdrawal"
-        case .investmentAddCapital: return "Add Capital"
-        case .loanGiven: return "Loan Given"
-        case .loanRepayment: return "Loan Repayment"
-        case .liabilityReceived: return "Liability Received"
-        case .liabilityPayback: return "Liability Payback"
-        case .investmentProfitLoss: return "Investment P&L"
-        }
     }
 }

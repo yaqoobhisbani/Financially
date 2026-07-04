@@ -128,7 +128,7 @@ struct PSXAccountDetailView: View {
                     VStack(alignment: .trailing) {
                         Text("Return")
                             .font(.caption).foregroundStyle(.secondary)
-                        Text(totalPAndLPercentage.formatted(.number.precision(.fractionLength(2))) + "%")
+                        PercentageText(value: totalPAndLPercentage)
                             .font(.body.bold())
                             .foregroundStyle(totalUnrealizedPAndL >= 0 ? .incomeGreen : .expenseRed)
                     }
@@ -280,10 +280,7 @@ struct PSXAddCashView: View {
                 }
 
                 Section("Amount") {
-                    HStack {
-                        Text("PKR")
-                        TextField("0", text: $amount).keyboardType(.decimalPad).multilineTextAlignment(.trailing)
-                    }
+                    AmountField(amount: $amount)
                 }
 
                 Section { DatePicker("Date", selection: $date, displayedComponents: .date) }
@@ -359,10 +356,7 @@ struct PSXWithdrawCashView: View {
                 }
 
                 Section("Amount") {
-                    HStack {
-                        Text("PKR")
-                        TextField("0", text: $amount).keyboardType(.decimalPad).multilineTextAlignment(.trailing)
-                    }
+                    AmountField(amount: $amount)
                     if let amountValue = Decimal(string: amount), amountValue > account.currentBalance {
                         HStack {
                             Image(systemName: "exclamationmark.triangle.fill").foregroundStyle(.yellow)
