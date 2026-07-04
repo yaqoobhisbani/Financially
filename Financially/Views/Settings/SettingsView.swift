@@ -55,6 +55,9 @@ struct SettingsView: View {
                     NavigationLink(destination: StockInfoManagementView()) {
                         Label("Stocks", systemImage: "chart.line.uptrend.xyaxis")
                     }
+                    NavigationLink(destination: CommodityInfoManagementView()) {
+                        Label("Commodities", systemImage: "diamond.fill")
+                    }
                 }
 
                 Section("About") {

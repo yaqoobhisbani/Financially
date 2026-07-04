@@ -8,6 +8,7 @@ struct NetWorthChart: View {
     @Query private var accounts: [Account]
     @Query private var debtors: [Debtor]
     @Query private var creditors: [Creditor]
+    @Query private var commodityHoldings: [CommodityHolding]
     @State private var startDate = Date().startOfYear
     @State private var endDate = Date()
     @State private var selectedPreset = DateRangePickerView.DatePreset.thisYear
@@ -23,13 +24,15 @@ struct NetWorthChart: View {
     private var dataPoints: [NetWorthPoint] {
         let calendar = Calendar.current
         var points: [NetWorthPoint] = []
+        let currentCommodityValue = commodityHoldings.filter { $0.totalGrams > 0 }
+            .reduce(0) { $0 + $1.currentValue }
         var current = startDate
         while current <= endDate {
             let monthEnd = calendar.date(byAdding: DateComponents(month: 1, second: -1), to: current) ?? current
 
             let totalAssets = accounts.filter { $0.isActive }.reduce(0) { sum, acct in
                 sum + balanceForAccount(acct, at: monthEnd)
-            }
+            } + currentCommodityValue
 
             let totalReceivables = debtors.reduce(0) { sum, debtor in
                 sum + debtorOutstanding(debtor, at: monthEnd)

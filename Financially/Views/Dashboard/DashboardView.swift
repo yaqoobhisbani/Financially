@@ -9,6 +9,7 @@ struct DashboardView: View {
     @Query private var debtors: [Debtor]
     @Query private var creditors: [Creditor]
     @Query private var allHoldings: [StockHolding]
+    @Query private var allCommodityHoldings: [CommodityHolding]
 
     @State private var showExpense = false
     @State private var showIncome = false
@@ -20,6 +21,7 @@ struct DashboardView: View {
                 VStack(spacing: 16) {
                     summaryCards
                     accountsGridScroll
+                    commoditiesSection
                     expenseChartWidget
                     incomeVsExpenseWidget
                     activeLoansWidget
@@ -153,6 +155,61 @@ struct DashboardView: View {
         .clipShape(RoundedRectangle(cornerRadius: 12))
     }
 
+    private var activeCommodityHoldings: [CommodityHolding] {
+        allCommodityHoldings.filter { $0.totalGrams > 0 }
+    }
+
+    private var totalCommodityValue: Decimal {
+        activeCommodityHoldings.reduce(0) { $0 + $1.currentValue }
+    }
+
+    // MARK: - Commodities Section
+
+    private var commoditiesSection: some View {
+        Group {
+            if !activeCommodityHoldings.isEmpty {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Commodities")
+                        .font(.headline)
+
+                    ForEach(activeCommodityHoldings) { holding in
+                        NavigationLink(destination: CommodityHoldingDetailView(holding: holding)) {
+                            commodityCard(holding)
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+            }
+        }
+    }
+
+    private func commodityCard(_ holding: CommodityHolding) -> some View {
+        HStack(spacing: 12) {
+            Image(systemName: "diamond.fill")
+                .font(.title3)
+                .foregroundStyle(.orange)
+                .frame(width: 32, height: 32)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(holding.commodityName)
+                    .font(.caption)
+                Text("\(holding.totalGrams.formattedNumber()) g @ \(holding.avgCostPerGram.formattedCurrency())")
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+            }
+            Spacer()
+            VStack(alignment: .trailing, spacing: 2) {
+                Text(holding.currentValue.formattedCurrency())
+                    .font(.caption.bold())
+                Text(holding.unrealizedPAndL.formattedCurrency())
+                    .font(.caption2)
+                    .foregroundStyle(holding.unrealizedPAndL >= 0 ? .incomeGreen : .expenseRed)
+            }
+        }
+        .padding()
+        .background(.ultraThinMaterial)
+        .clipShape(RoundedRectangle(cornerRadius: 12))
+    }
+
     // MARK: - Expense Chart
 
     private var expenseChartWidget: some View {
@@ -229,12 +286,13 @@ struct DashboardView: View {
     }
 
     private var computeTotalAssets: Decimal {
-        accounts.filter { $0.isActive }.reduce(0) { sum, account in
+        let accountAssets = accounts.filter { $0.isActive }.reduce(0 as Decimal) { sum, account in
             if account.accountType == .psx {
                 return sum + account.currentBalance + psxPortfolioValue(account)
             }
             return sum + account.currentBalance
         }
+        return accountAssets + totalCommodityValue
     }
 
     private var computeTotalLiabilities: Decimal {

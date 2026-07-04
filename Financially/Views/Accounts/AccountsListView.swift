@@ -5,45 +5,22 @@ struct AccountsListView: View {
     @Environment(\.modelContext) private var modelContext
     @Query private var accounts: [Account]
     @Query private var allHoldings: [StockHolding]
-    @State private var selectedSegment: AccountSegment = .all
     @State private var showCreateSheet = false
 
-    private enum AccountSegment: String, CaseIterable {
-        case all = "All"
-        case bank = "Bank"
-        case cash = "Cash"
-        case psx = "PSX"
-    }
-
-    private var filteredAccounts: [Account] {
-        switch selectedSegment {
-        case .all: return accounts
-        case .bank: return accounts.filter { $0.accountType == .bank }
-        case .cash: return accounts.filter { $0.accountType == .cash }
-        case .psx: return accounts.filter { $0.accountType == .psx }
-        }
+    private var bankAndCashAccounts: [Account] {
+        accounts.filter { $0.accountType == .bank || $0.accountType == .cash }
     }
 
     var body: some View {
         NavigationStack {
-            VStack(spacing: 0) {
-                Picker("Account Type", selection: $selectedSegment) {
-                    ForEach(AccountSegment.allCases, id: \.self) { segment in
-                        Text(segment.rawValue).tag(segment)
+            List {
+                ForEach(bankAndCashAccounts) { account in
+                    NavigationLink(destination: AccountDetailView(account: account)) {
+                        AccountRowView(account: account, holdings: allHoldings)
                     }
                 }
-                .pickerStyle(.segmented)
-                .padding()
-
-                List {
-                    ForEach(filteredAccounts) { account in
-                        NavigationLink(destination: AccountDetailView(account: account)) {
-                            AccountRowView(account: account, holdings: allHoldings)
-                        }
-                    }
-                }
-                .listStyle(.insetGrouped)
             }
+            .listStyle(.insetGrouped)
             .navigationTitle("Accounts")
             .toolbar {
                 ToolbarItem {
@@ -53,7 +30,7 @@ struct AccountsListView: View {
                 }
             }
             .sheet(isPresented: $showCreateSheet) {
-                CreateAccountView()
+                CreateAccountView(allowedTypes: [.bank, .cash])
             }
         }
     }
@@ -63,40 +40,14 @@ struct AccountRowView: View {
     let account: Account
     let holdings: [StockHolding]
 
-    private var psxHoldings: [StockHolding] {
-        holdings.filter { $0.accountId == account.id }
-    }
-
-    private var psxPortfolioValue: Decimal {
-        psxHoldings.reduce(0) { $0 + $1.currentValue }
-    }
-
-    private var psxTotalCost: Decimal {
-        psxHoldings.reduce(0) { $0 + $1.totalCost }
-    }
-
-    private var psxProfitLoss: Decimal {
-        psxPortfolioValue - psxTotalCost
-    }
-
     private var displayBalance: Decimal {
-        account.accountType == .psx ? account.currentBalance + psxPortfolioValue : account.currentBalance
-    }
-
-    private var pnlValue: Decimal {
-        account.accountType == .psx ? psxProfitLoss : account.totalProfitLoss
+        account.accountType == .psx ? account.currentBalance + (holdings.filter { $0.accountId == account.id }.reduce(0) { $0 + $1.currentValue }) : account.currentBalance
     }
 
     var body: some View {
         HStack(spacing: 12) {
             if account.accountType == .bank, let bankName = account.bankName {
                 BankLogoView(bankName: bankName, size: 40)
-            } else if account.accountType == .psx {
-                Image("PSXLogo")
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 40, height: 40)
-                    .clipShape(RoundedRectangle(cornerRadius: 10))
             } else {
                 ZStack {
                     RoundedRectangle(cornerRadius: 10)
@@ -119,17 +70,9 @@ struct AccountRowView: View {
 
             Spacer()
 
-            VStack(alignment: .trailing, spacing: 2) {
-                Text(displayBalance.formattedCurrency(currency: account.currency))
-                    .font(.headline)
-                    .fixedSize(horizontal: true, vertical: false)
-                if account.accountType == .psx {
-                    Text(pnlValue.formattedCurrency(currency: account.currency))
-                        .font(.caption)
-                        .foregroundStyle(pnlValue >= 0 ? .incomeGreen : .expenseRed)
-                        .fixedSize(horizontal: true, vertical: false)
-                }
-            }
+            Text(displayBalance.formattedCurrency(currency: account.currency))
+                .font(.headline)
+                .fixedSize(horizontal: true, vertical: false)
         }
         .opacity(account.isActive ? 1 : 0.5)
     }

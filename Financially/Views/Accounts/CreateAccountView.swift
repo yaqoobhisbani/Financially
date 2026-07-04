@@ -5,6 +5,8 @@ struct CreateAccountView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
 
+    let allowedTypes: [AccountType]
+
     @State private var name = ""
     @State private var accountType: AccountType = .bank
     @State private var selectedBank: String?
@@ -16,6 +18,11 @@ struct CreateAccountView: View {
     @State private var investedAmountString = ""
     @State private var notes = ""
     @State private var errorMessage: String?
+
+    init(allowedTypes: [AccountType] = [.bank, .cash, .psx]) {
+        self.allowedTypes = allowedTypes
+        _accountType = State(initialValue: allowedTypes.first ?? .bank)
+    }
 
     private let popularBanks = [
         "Meezan Bank",
@@ -37,10 +44,11 @@ struct CreateAccountView: View {
             Form {
                 Section("Account Type") {
                     Picker("Type", selection: $accountType) {
-                        Text("Bank").tag(AccountType.bank)
-                        Text("Cash").tag(AccountType.cash)
-                        Text("PSX Stock").tag(AccountType.psx)
+                        ForEach(allowedTypes, id: \.self) { type in
+                            Text(type.displayName).tag(type)
+                        }
                     }
+                    .pickerStyle(.segmented)
                 }
 
                 Section("Details") {

@@ -53,6 +53,10 @@ final class DashboardViewModel {
         (try? modelContext.fetch(FetchDescriptor<Creditor>())) ?? []
     }
 
+    private var allCommodityHoldings: [CommodityHolding] {
+        (try? modelContext.fetch(FetchDescriptor<CommodityHolding>())) ?? []
+    }
+
     private var totalBankBalances: Decimal {
         accounts.filter { $0.accountType == .bank && $0.isActive }
             .reduce(0) { $0 + $1.currentBalance }
@@ -64,8 +68,11 @@ final class DashboardViewModel {
     }
 
     private var totalInvestmentValues: Decimal {
-        accounts.filter { $0.accountType == .psx }
+        let psxValue = accounts.filter { $0.accountType == .psx }
             .reduce(0) { $0 + $1.currentValue }
+        let commodityValue = allCommodityHoldings.filter { $0.totalGrams > 0 }
+            .reduce(0) { $0 + $1.currentValue }
+        return psxValue + commodityValue
     }
 
     private var totalDebtorOutstanding: Decimal {

@@ -19,6 +19,11 @@ struct ContentView: View {
                     Label("Loans", systemImage: "arrow.left.arrow.right")
                 }
 
+            InvestmentsListView()
+                .tabItem {
+                    Label("Investments", systemImage: "chart.line.uptrend.xyaxis")
+                }
+
             SettingsView()
                 .tabItem {
                     Label("More", systemImage: "ellipsis.circle.fill")

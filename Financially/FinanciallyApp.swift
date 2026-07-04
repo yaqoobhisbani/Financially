@@ -43,6 +43,9 @@ let schema = Schema([
             StockHolding.self,
             StockTrade.self,
             StockInfo.self,
+            CommodityInfo.self,
+            CommodityHolding.self,
+            CommodityTrade.self,
         ])
 
         let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
