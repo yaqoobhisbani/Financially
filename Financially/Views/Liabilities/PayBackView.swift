@@ -97,7 +97,10 @@ struct PayBackView: View {
                     }
                 }
             }
-            .navigationTitle("Pay Back \(creditor.name)")
+            .navigationTitle("Pay Back")
+            #if os(iOS)
+            .navigationBarTitleDisplayMode(.inline)
+            #endif
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") { dismiss() }

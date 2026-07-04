@@ -8,6 +8,7 @@ struct DebtorDetailView: View {
     @Query private var transactions: [Transaction]
     @State private var showGiveLoan = false
     @State private var showRepayment = false
+    @State private var selectedTransaction: Transaction?
 
     init(debtor: Debtor) {
         self.debtor = debtor
@@ -120,7 +121,12 @@ struct DebtorDetailView: View {
                         Text(tx.amount.formattedCurrency())
                             .foregroundStyle(tx.type == .loanGiven ? .expenseRed : .incomeGreen)
                     }
+                    Image(systemName: "chevron.right")
+                        .font(.caption)
+                        .foregroundStyle(.tertiary)
                 }
+                .contentShape(Rectangle())
+                .onTapGesture { selectedTransaction = tx }
             }
 
             if transactions.isEmpty {
@@ -128,6 +134,11 @@ struct DebtorDetailView: View {
                     .foregroundStyle(.secondary)
                     .frame(maxWidth: .infinity, alignment: .center)
                     .padding()
+            }
+        }
+        .sheet(item: $selectedTransaction) { tx in
+            NavigationStack {
+                TransactionDetailView(transaction: tx)
             }
         }
     }

@@ -74,7 +74,10 @@ struct GiveLoanView: View {
                     }
                 }
             }
-            .navigationTitle("Give Loan to \(debtor.name)")
+            .navigationTitle("Give Loan")
+            #if os(iOS)
+            .navigationBarTitleDisplayMode(.inline)
+            #endif
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") { dismiss() }

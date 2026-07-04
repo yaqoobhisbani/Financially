@@ -97,7 +97,10 @@ struct RecordRepaymentView: View {
                     }
                 }
             }
-            .navigationTitle("Repayment from \(debtor.name)")
+            .navigationTitle("Record Repayment")
+            #if os(iOS)
+            .navigationBarTitleDisplayMode(.inline)
+            #endif
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") { dismiss() }
@@ -143,7 +146,7 @@ struct RecordRepaymentView: View {
             amount: amountValue,
             date: date,
             description: description.isEmpty ? nil : description,
-            sourceAccountId: debtor.id,
+            sourceAccountId: dest.id,
             destinationAccountId: dest.id,
             relatedEntityId: debtor.id
         )

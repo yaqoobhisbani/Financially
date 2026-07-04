@@ -61,7 +61,10 @@ struct ReceiveMoneyView: View {
                     }
                 }
             }
-            .navigationTitle("Receive from \(creditor.name)")
+            .navigationTitle("Receive Money")
+            #if os(iOS)
+            .navigationBarTitleDisplayMode(.inline)
+            #endif
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") { dismiss() }
@@ -98,7 +101,7 @@ struct ReceiveMoneyView: View {
             amount: amountValue,
             date: date,
             description: description.isEmpty ? nil : description,
-            sourceAccountId: creditor.id,
+            sourceAccountId: dest.id,
             destinationAccountId: dest.id,
             relatedEntityId: creditor.id
         )

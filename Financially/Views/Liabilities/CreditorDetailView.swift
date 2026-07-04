@@ -8,6 +8,7 @@ struct CreditorDetailView: View {
     @Query private var transactions: [Transaction]
     @State private var showReceive = false
     @State private var showPayback = false
+    @State private var selectedTransaction: Transaction?
 
     init(creditor: Creditor) {
         self.creditor = creditor
@@ -128,7 +129,12 @@ struct CreditorDetailView: View {
                         Text(tx.amount.formattedCurrency())
                             .foregroundStyle(tx.type == .liabilityReceived ? .incomeGreen : .expenseRed)
                     }
+                    Image(systemName: "chevron.right")
+                        .font(.caption)
+                        .foregroundStyle(.tertiary)
                 }
+                .contentShape(Rectangle())
+                .onTapGesture { selectedTransaction = tx }
             }
 
             if transactions.isEmpty {
@@ -136,6 +142,11 @@ struct CreditorDetailView: View {
                     .foregroundStyle(.secondary)
                     .frame(maxWidth: .infinity, alignment: .center)
                     .padding()
+            }
+        }
+        .sheet(item: $selectedTransaction) { tx in
+            NavigationStack {
+                TransactionDetailView(transaction: tx)
             }
         }
     }
