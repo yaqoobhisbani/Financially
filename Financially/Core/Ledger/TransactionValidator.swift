@@ -113,6 +113,18 @@ struct TransactionValidator {
             guard sourceAccount.accountType == .psx else {
                 throw .accountTypeMismatch
             }
+
+        case .committeeContribution:
+            guard sourceAccount.accountType == .bank || sourceAccount.accountType == .cash else {
+                throw .accountTypeMismatch
+            }
+            try validateSufficientBalance(account: sourceAccount, amount: transaction.amount)
+
+        case .committeePayout:
+            guard let dest = destinationAccount else { throw .accountNotFound(UUID()) }
+            guard dest.accountType == .bank || dest.accountType == .cash else {
+                throw .accountTypeMismatch
+            }
         }
     }
 

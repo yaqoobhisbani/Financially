@@ -24,6 +24,11 @@ struct ContentView: View {
                     Label("Investments", systemImage: "chart.line.uptrend.xyaxis")
                 }
 
+            CommitteesListView()
+                .tabItem {
+                    Label("Committees", systemImage: "person.3.fill")
+                }
+
             SettingsView()
                 .tabItem {
                     Label("More", systemImage: "ellipsis.circle.fill")

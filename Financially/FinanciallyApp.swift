@@ -46,6 +46,9 @@ let schema = Schema([
             CommodityInfo.self,
             CommodityHolding.self,
             CommodityTrade.self,
+            Committee.self,
+            CommitteeContribution.self,
+            CommitteePayout.self,
         ])
 
         let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)

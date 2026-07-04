@@ -89,6 +89,13 @@ struct LedgerService {
 
         case .investmentProfitLoss:
             createProfitLossEntries(transaction: transaction, investment: sourceAccount)
+
+        case .committeeContribution:
+            createExpenseEntries(transaction: transaction, source: sourceAccount)
+
+        case .committeePayout:
+            guard let dest = destinationAccount else { throw ValidationError.accountNotFound(UUID()) }
+            createIncomeEntries(transaction: transaction, destination: dest)
         }
 
         sourceAccount.updatedAt = Date()

@@ -13,6 +13,8 @@ extension TransactionType {
         case .investmentWithdrawal: return "Withdrawal"
         case .investmentAddCapital: return "Add Capital"
         case .investmentProfitLoss: return "P&L"
+        case .committeeContribution: return "Committee"
+        case .committeePayout: return "Committee Payout"
         }
     }
 
@@ -28,6 +30,8 @@ extension TransactionType {
         case .investmentWithdrawal: return "arrow.up.right.circle"
         case .investmentAddCapital: return "plus.circle"
         case .investmentProfitLoss: return "chart.line.uptrend.xyaxis"
+        case .committeeContribution: return "person.2.fill"
+        case .committeePayout: return "person.2.wave.2.fill"
         }
     }
 
@@ -38,12 +42,14 @@ extension TransactionType {
         case .transfer, .investmentAddCapital: return .blue
         case .investmentWithdrawal: return .orange
         case .investmentProfitLoss: return .purple
+        case .committeeContribution: return .orange
+        case .committeePayout: return .green
         }
     }
 
     var amountColor: Color {
         switch self {
-        case .income, .loanRepayment, .liabilityReceived: return .incomeGreen
+        case .income, .loanRepayment, .liabilityReceived, .committeePayout: return .incomeGreen
         default: return .expenseRed
         }
     }
