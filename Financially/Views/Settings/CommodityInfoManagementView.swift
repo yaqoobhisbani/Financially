@@ -98,12 +98,13 @@ struct AddCommodityInfoView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
 
+    @State private var selectedPreset = 0
     @State private var name = ""
     @State private var symbol = ""
     @State private var ratePerGram = ""
     @State private var errorMessage: String?
 
-    private let presetCommodities = [
+    private let presets: [(name: String, symbol: String)] = [
         ("Gold", "XAU"),
         ("Silver", "XAG")
     ]
@@ -111,28 +112,34 @@ struct AddCommodityInfoView: View {
     var body: some View {
         NavigationStack {
             Form {
-                Section("Quick Add") {
-                    ForEach(presetCommodities, id: \.1) { preset in
-                        Button(action: {
-                            name = preset.0
-                            symbol = preset.1
-                        }) {
-                            HStack {
-                                Text(preset.0)
-                                    .foregroundStyle(.primary)
-                                Spacer()
-                                Text(preset.1)
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
-                            }
+                Section {
+                    Picker("Commodity", selection: $selectedPreset) {
+                        ForEach(Array(presets.enumerated()), id: \.offset) { _, preset in
+                            Text(preset.name).tag(presets.firstIndex(where: { $0.symbol == preset.symbol }) ?? 0)
                         }
+                    }
+                    .pickerStyle(.segmented)
+                    .onChange(of: selectedPreset) { _, newValue in
+                        guard presets.indices.contains(newValue) else { return }
+                        name = presets[newValue].name
+                        symbol = presets[newValue].symbol
                     }
                 }
 
-                Section("Commodity") {
-                    TextField("Name (e.g. Gold)", text: $name)
-                    TextField("Symbol (e.g. XAU)", text: $symbol)
-                        .textInputAutocapitalization(.characters)
+                Section("Commodity Details") {
+                    HStack {
+                        Text("Name")
+                        Spacer()
+                        TextField("Commodity name", text: $name)
+                            .multilineTextAlignment(.trailing)
+                    }
+                    HStack {
+                        Text("Symbol")
+                        Spacer()
+                        TextField("e.g. XAU", text: $symbol)
+                            .textInputAutocapitalization(.characters)
+                            .multilineTextAlignment(.trailing)
+                    }
                 }
 
                 Section("Rate") {
