@@ -131,6 +131,7 @@ struct SellSharesView: View {
                     }
                 }
             }
+            .buttonStyle(.plain)
             .navigationTitle("Select Holding")
         }
     }

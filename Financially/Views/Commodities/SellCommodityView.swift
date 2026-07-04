@@ -103,6 +103,7 @@ struct SellCommodityView: View {
                     }
                 }
             }
+            .buttonStyle(.plain)
             .navigationTitle("Select Holding")
         }
     }

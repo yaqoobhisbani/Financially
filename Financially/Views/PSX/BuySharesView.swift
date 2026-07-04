@@ -135,6 +135,7 @@ struct BuySharesView: View {
                     }
                 }
             }
+            .buttonStyle(.plain)
             .navigationTitle("Select Stock")
         }
     }

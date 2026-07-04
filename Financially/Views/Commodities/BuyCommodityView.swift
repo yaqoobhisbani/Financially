@@ -118,6 +118,7 @@ struct BuyCommodityView: View {
                     }
                 }
             }
+            .buttonStyle(.plain)
             .navigationTitle("Select Commodity")
         }
     }
