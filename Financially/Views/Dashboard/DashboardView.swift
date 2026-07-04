@@ -30,9 +30,9 @@ struct DashboardView: View {
                 if !vm.assetAllocation.isEmpty { AllocationPieChart(slices: vm.assetAllocation) }
                 if !vm.accounts.isEmpty { accountsGridScroll(vm) }
                 commoditiesSection(vm)
-                if vm.monthlyExpense > 0 { expenseChartWidget(vm) }
-                if vm.monthlyIncome > 0 || vm.monthlyExpense > 0 { incomeVsExpenseWidget(vm) }
                 if vm.activeLoanCount > 0 || vm.activeLiabilityCount > 0 { activeLoansWidget(vm) }
+                if vm.monthlyIncome > 0 || vm.monthlyExpense > 0 { incomeVsExpenseWidget(vm) }
+                if vm.monthlyExpense > 0 { expenseChartWidget(vm) }
                 if !vm.recentTransactions.isEmpty { recentTransactionsSection(vm) }
             }
             .padding()
