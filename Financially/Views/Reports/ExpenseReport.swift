@@ -2,24 +2,20 @@ import SwiftUI
 import SwiftData
 
 struct ExpenseReport: View {
-    @Query(sort: \Transaction.date, order: .reverse) private var allTransactions: [Transaction]
+    @Environment(\.modelContext) private var modelContext
+
+    @State private var vm: ExpenseIncomeReportViewModel?
     @State private var startDate = Date().startOfMonth
     @State private var endDate = Date()
     @State private var selectedPreset = DateRangePickerView.DatePreset.thisMonth
 
     private var expenses: [Transaction] {
-        allTransactions.filter { $0.type == .expense && $0.date >= startDate && $0.date <= endDate.endOfDay }
+        guard let vm else { return [] }
+        return vm.filtered(type: .expense, startDate: startDate, endDate: endDate)
     }
 
-    private var totalExpense: Decimal {
-        expenses.reduce(0) { $0 + $1.amount }
-    }
-
-    private var byCategory: [(category: String, total: Decimal)] {
-        let grouped = Dictionary(grouping: expenses) { $0.category ?? "Other" }
-        return grouped.map { ($0.key, $0.value.reduce(0) { $0 + $1.amount }) }
-            .sorted { $0.total > $1.total }
-    }
+    private var totalExpense: Decimal { vm?.total(expenses) ?? 0 }
+    private var byCategory: [(category: String, total: Decimal)] { vm?.byCategory(expenses) ?? [] }
 
     var body: some View {
         NavigationStack {
@@ -71,6 +67,9 @@ struct ExpenseReport: View {
                 }
             }
             .navigationTitle("Expense Report")
+        }
+        .onAppear {
+            vm = ExpenseIncomeReportViewModel(modelContext: modelContext)
         }
     }
 }

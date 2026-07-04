@@ -2,30 +2,18 @@ import SwiftUI
 import SwiftData
 
 struct TransactionHistoryReport: View {
-    @Query(sort: \Transaction.date, order: .reverse) private var allTransactions: [Transaction]
-    @Query private var allAccounts: [Account]
-    @Query(sort: \Debtor.name) private var allDebtors: [Debtor]
-    @Query(sort: \Creditor.name) private var allCreditors: [Creditor]
+    @Environment(\.modelContext) private var modelContext
 
+    @State private var vm: TransactionHistoryReportViewModel?
     @State private var searchText = ""
     @State private var startDate = Date().startOfMonth
     @State private var endDate = Date()
     @State private var selectedPreset = DateRangePickerView.DatePreset.thisMonth
     @State private var selectedType: TransactionType?
 
-    var filteredTransactions: [Transaction] {
-        var result = allTransactions
-        result = result.filter { $0.date >= startDate && $0.date <= endDate.endOfDay }
-        if let type = selectedType {
-            result = result.filter { $0.type == type }
-        }
-        if !searchText.isEmpty {
-            result = result.filter {
-                ($0.desc ?? "").localizedCaseInsensitiveContains(searchText) ||
-                ($0.category ?? "").localizedCaseInsensitiveContains(searchText)
-            }
-        }
-        return result
+    private var filteredTransactions: [Transaction] {
+        guard let vm else { return [] }
+        return vm.filteredTransactions(searchText: searchText, startDate: startDate, endDate: endDate, selectedType: selectedType)
     }
 
     var body: some View {
@@ -47,6 +35,9 @@ struct TransactionHistoryReport: View {
             }
         }
         .navigationTitle("Transaction History")
+        .onAppear {
+            vm = TransactionHistoryReportViewModel(modelContext: modelContext)
+        }
     }
 
     private var typeFilterPicker: some View {
@@ -67,11 +58,5 @@ struct TransactionHistoryReport: View {
         }
         .padding(.top, 8)
         .padding(.bottom, 4)
-    }
-}
-
-extension TransactionType: @retroactive CaseIterable {
-    public static var allCases: [TransactionType] {
-        [.income, .expense, .transfer, .loanGiven, .loanRepayment, .liabilityReceived, .liabilityPayback, .investmentWithdrawal, .investmentAddCapital, .investmentProfitLoss]
     }
 }

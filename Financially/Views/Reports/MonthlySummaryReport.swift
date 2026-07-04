@@ -3,22 +3,21 @@ import SwiftData
 import Charts
 
 struct MonthlySummaryReport: View {
-    @Query(sort: \Transaction.date, order: .reverse) private var allTransactions: [Transaction]
+    @Environment(\.modelContext) private var modelContext
+
+    @State private var vm: MonthlySummaryReportViewModel?
     @State private var selectedMonth = Date()
 
     private var monthTransactions: [Transaction] {
-        allTransactions.filter { tx in
-            Calendar.current.isDate(tx.date, equalTo: selectedMonth, toGranularity: .month)
-        }
+        guard let vm else { return [] }
+        return vm.transactions(for: selectedMonth)
     }
 
-    private var income: Decimal { monthTransactions.filter { $0.type == .income }.reduce(0) { $0 + $1.amount } }
-    private var expense: Decimal { monthTransactions.filter { $0.type == .expense }.reduce(0) { $0 + $1.amount } }
+    private var income: Decimal { vm?.income(monthTransactions) ?? 0 }
+    private var expense: Decimal { vm?.expense(monthTransactions) ?? 0 }
     private var netSavings: Decimal { income - expense }
-
     private var expenseByCategory: [(category: String, total: Decimal)] {
-        let grouped = Dictionary(grouping: monthTransactions.filter { $0.type == .expense }) { $0.category ?? "Other" }
-        return grouped.map { ($0.key, $0.value.reduce(0) { $0 + $1.amount }) }.sorted { $0.total > $1.total }
+        vm?.expenseByCategory(monthTransactions) ?? []
     }
 
     var body: some View {
@@ -76,6 +75,9 @@ struct MonthlySummaryReport: View {
                 }
             }
             .navigationTitle("Monthly Summary")
+        }
+        .onAppear {
+            vm = MonthlySummaryReportViewModel(modelContext: modelContext)
         }
     }
 }

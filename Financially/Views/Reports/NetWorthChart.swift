@@ -4,75 +4,15 @@ import Charts
 
 struct NetWorthChart: View {
     @Environment(\.modelContext) private var modelContext
-    @Query private var allTransactions: [Transaction]
-    @Query private var accounts: [Account]
-    @Query private var debtors: [Debtor]
-    @Query private var creditors: [Creditor]
-    @Query private var commodityHoldings: [CommodityHolding]
+
+    @State private var vm: NetWorthViewModel?
     @State private var startDate = Date().startOfYear
     @State private var endDate = Date()
     @State private var selectedPreset = DateRangePickerView.DatePreset.thisYear
 
-    struct NetWorthPoint: Identifiable {
-        let id = UUID()
-        let date: Date
-        let netWorth: Decimal
-        let assets: Decimal
-        let liabilities: Decimal
-    }
-
-    private var dataPoints: [NetWorthPoint] {
-        let calendar = Calendar.current
-        var points: [NetWorthPoint] = []
-        let currentCommodityValue = commodityHoldings.filter { $0.totalGrams > 0 }
-            .reduce(0) { $0 + $1.currentValue }
-        var current = startDate
-        while current <= endDate {
-            let monthEnd = calendar.date(byAdding: DateComponents(month: 1, second: -1), to: current) ?? current
-
-            let totalAssets = accounts.filter { $0.isActive }.reduce(0) { sum, acct in
-                sum + balanceForAccount(acct, at: monthEnd)
-            } + currentCommodityValue
-
-            let totalReceivables = debtors.reduce(0) { sum, debtor in
-                sum + debtorOutstanding(debtor, at: monthEnd)
-            }
-
-            let totalLiabilities = creditors.reduce(0) { sum, creditor in
-                sum + creditorOutstanding(creditor, at: monthEnd)
-            }
-
-            let netWorth = totalAssets - totalLiabilities + totalReceivables
-            points.append(NetWorthPoint(date: current, netWorth: netWorth, assets: totalAssets, liabilities: totalLiabilities))
-            current = calendar.date(byAdding: .month, value: 1, to: current) ?? current
-        }
-        return points
-    }
-
-    private func balanceForAccount(_ account: Account, at date: Date) -> Decimal {
-        let allEntries = (try? modelContext.fetch(FetchDescriptor<LedgerEntry>())) ?? []
-        let entries = allEntries.filter { $0.accountId == account.id && $0.date <= date }
-            .sorted { $0.date > $1.date }
-        if let lastEntry = entries.first {
-            return lastEntry.runningBalance
-        }
-        return account.initialBalance
-    }
-
-    private func debtorOutstanding(_ debtor: Debtor, at date: Date) -> Decimal {
-        let allTxs = (try? modelContext.fetch(FetchDescriptor<Transaction>())) ?? []
-        let txs = allTxs.filter { $0.relatedEntityId == debtor.id && $0.date <= date }
-        let lent = txs.filter { $0.type == .loanGiven }.reduce(0) { $0 + $1.amount }
-        let repaid = txs.filter { $0.type == .loanRepayment }.reduce(0) { $0 + $1.amount }
-        return lent - repaid
-    }
-
-    private func creditorOutstanding(_ creditor: Creditor, at date: Date) -> Decimal {
-        let allTxs = (try? modelContext.fetch(FetchDescriptor<Transaction>())) ?? []
-        let txs = allTxs.filter { $0.relatedEntityId == creditor.id && $0.date <= date }
-        let received = txs.filter { $0.type == .liabilityReceived }.reduce(0) { $0 + $1.amount }
-        let returned = txs.filter { $0.type == .liabilityPayback }.reduce(0) { $0 + $1.amount }
-        return received - returned
+    private var dataPoints: [NetWorthViewModel.NetWorthPoint] {
+        guard let vm else { return [] }
+        return vm.dataPoints(from: startDate, to: endDate)
     }
 
     var body: some View {
@@ -116,6 +56,9 @@ struct NetWorthChart: View {
                 }
             }
             .navigationTitle("Net Worth Trend")
+        }
+        .onAppear {
+            vm = NetWorthViewModel(modelContext: modelContext)
         }
     }
 }
