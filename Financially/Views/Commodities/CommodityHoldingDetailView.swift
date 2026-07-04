@@ -84,31 +84,13 @@ struct CommodityHoldingDetailView: View {
 
             Section("Trade History") {
                 ForEach(trades) { trade in
-                    HStack {
-                        VStack(alignment: .leading) {
-                            HStack {
-                                Text(trade.type == .buy ? "Buy" : "Sell")
-                                    .font(.headline)
-                                    .foregroundStyle(trade.type == .buy ? .incomeGreen : .expenseRed)
-                                Text("\(trade.grams.formattedNumber()) g @ \(trade.pricePerGram.formattedCurrency())")
-                                    .font(.subheadline)
-                                    .foregroundStyle(.secondary)
-                            }
-                            Text(trade.date.formattedDate())
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                        }
-                        Spacer()
-                        VStack(alignment: .trailing) {
-                            Text(trade.netAmount.formattedCurrency())
-                                .font(.subheadline.bold())
-                            if trade.brokerageFee > 0 || trade.tax > 0 {
-                                Text("Fee: \((trade.brokerageFee + trade.tax).formattedCurrency())")
-                                    .font(.caption2)
-                                    .foregroundStyle(.secondary)
-                            }
-                        }
-                    }
+                    TradeRowView(
+                        type: trade.type,
+                        detail: "\(trade.grams.formattedNumber()) g @ \(trade.pricePerGram.formattedCurrency())",
+                        date: trade.date,
+                        netAmount: trade.netAmount.formattedCurrency(),
+                        fee: trade.brokerageFee + trade.tax
+                    )
                 }
 
                 if trades.isEmpty {

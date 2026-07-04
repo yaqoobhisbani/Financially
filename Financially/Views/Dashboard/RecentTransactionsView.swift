@@ -25,35 +25,11 @@ struct RecentTransactionsView: View {
                     .padding()
             } else {
                 ForEach(transactions) { tx in
-                    HStack(spacing: 12) {
-                        Circle()
-                            .fill(tx.type.color.opacity(0.2))
-                            .frame(width: 36, height: 36)
-                            .overlay {
-                                Image(systemName: tx.type.icon)
-                                    .font(.caption)
-                                    .foregroundStyle(tx.type.color)
-                            }
-
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text(tx.type.displayLabel)
-                                .font(.subheadline.weight(.medium))
-                            Text(accountName(for: tx.fromAccountId ?? tx.toAccountId))
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                        }
-
-                        Spacer()
-
-                        VStack(alignment: .trailing, spacing: 2) {
-                            Text(tx.amount.formattedCurrency())
-                                .font(.subheadline.bold())
-                                .foregroundStyle(tx.type.amountColor)
-                            Text(tx.date.formattedDate())
-                                .font(.caption2)
-                                .foregroundStyle(.secondary)
-                        }
-                    }
+                    TransactionRowView(
+                        transaction: tx,
+                        accountName: accountName(for: tx.fromAccountId ?? tx.toAccountId),
+                        showIcon: true
+                    )
                     .padding(.horizontal)
                     .padding(.vertical, 6)
                     .contentShape(Rectangle())

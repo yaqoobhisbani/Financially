@@ -86,31 +86,14 @@ struct HoldingDetailView: View {
 
             Section("Trade History") {
                 ForEach(trades) { trade in
-                    HStack {
-                        VStack(alignment: .leading) {
-                            HStack {
-                                Text(trade.type == .buy ? "Buy" : "Sell")
-                                    .font(.headline)
-                                    .foregroundStyle(trade.type == .buy ? .incomeGreen : .expenseRed)
-                                Text("\(trade.shares) shares @ \(trade.pricePerShare.formattedCurrency(currency: account.currency))")
-                                    .font(.subheadline)
-                                    .foregroundStyle(.secondary)
-                            }
-                            Text(trade.date.formattedDate())
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                        }
-                        Spacer()
-                        VStack(alignment: .trailing) {
-                            Text(trade.netAmount.formattedCurrency(currency: account.currency))
-                                .font(.subheadline.bold())
-                            if trade.brokerageFee > 0 || trade.tax > 0 {
-                                Text("Fee: \((trade.brokerageFee + trade.tax).formattedCurrency(currency: account.currency))")
-                                    .font(.caption2)
-                                    .foregroundStyle(.secondary)
-                            }
-                        }
-                    }
+                    TradeRowView(
+                        type: trade.type,
+                        detail: "\(trade.shares) shares @ \(trade.pricePerShare.formattedCurrency(currency: account.currency))",
+                        date: trade.date,
+                        netAmount: trade.netAmount.formattedCurrency(currency: account.currency),
+                        fee: trade.brokerageFee + trade.tax,
+                        currency: account.currency
+                    )
                 }
 
                 if trades.isEmpty {

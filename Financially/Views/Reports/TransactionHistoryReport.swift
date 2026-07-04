@@ -42,29 +42,7 @@ struct TransactionHistoryReport: View {
 
             List {
                 ForEach(filteredTransactions) { tx in
-                    HStack {
-                        VStack(alignment: .leading) {
-                            Text(tx.type.displayLabel)
-                                .font(.headline)
-                            Text(tx.date.formattedDate())
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                            if let desc = tx.desc, !desc.isEmpty {
-                                Text(desc)
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
-                            }
-                        }
-                        Spacer()
-                        VStack(alignment: .trailing) {
-                            Text(tx.amount.formattedCurrency())
-                            if let category = tx.category {
-                                Text(category)
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
-                            }
-                        }
-                    }
+                    TransactionRowView(transaction: tx, showIcon: false)
                 }
             }
         }

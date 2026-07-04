@@ -70,17 +70,7 @@ struct MonthlySummaryReport: View {
 
                     Section("Transactions (\(monthTransactions.count))") {
                         ForEach(monthTransactions) { tx in
-                            HStack {
-                                VStack(alignment: .leading) {
-                                    Text(tx.type.displayLabel)
-                                        .font(.headline)
-                                    Text(tx.date.formattedDate())
-                                        .font(.caption)
-                                }
-                                Spacer()
-                                Text(tx.amount.formattedCurrency())
-                                    .foregroundStyle(tx.type == .income ? .incomeGreen : .expenseRed)
-                            }
+                            TransactionRowView(transaction: tx, showIcon: false)
                         }
                     }
                 }

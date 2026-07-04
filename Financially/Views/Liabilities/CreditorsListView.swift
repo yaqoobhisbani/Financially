@@ -60,33 +60,13 @@ struct CreditorRowView: View {
     let creditor: Creditor
 
     var body: some View {
-        HStack {
-            VStack(alignment: .leading) {
-                Text(creditor.name)
-                    .font(.headline)
-                if let phone = creditor.phone {
-                    Text(phone)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
-                if let email = creditor.email {
-                    Text(email)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
-            }
-            Spacer()
-            VStack(alignment: .trailing) {
-                Text(creditor.outstandingBalance.formattedCurrency())
-                    .font(.headline)
-                    .foregroundStyle(creditor.outstandingBalance > 0 ? .orange : .secondary)
-                if creditor.isSettled {
-                    Text("Settled")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
-            }
-        }
-        .opacity(creditor.isSettled ? 0.6 : 1)
+        DebtorCreditorRowView(
+            name: creditor.name,
+            phone: creditor.phone,
+            email: creditor.email,
+            outstandingBalance: creditor.outstandingBalance,
+            balanceColor: .orange,
+            isSettled: creditor.isSettled
+        )
     }
 }
