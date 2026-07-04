@@ -19,10 +19,7 @@ struct RecentTransactionsView: View {
                 .padding(.bottom, 8)
 
             if transactions.isEmpty {
-                Text("No transactions yet")
-                    .foregroundStyle(.secondary)
-                    .frame(maxWidth: .infinity, alignment: .center)
-                    .padding()
+                EmptyStateView(title: "No transactions yet", systemImage: "arrow.left.arrow.right")
             } else {
                 ForEach(transactions) { tx in
                     TransactionRowView(

@@ -80,61 +80,23 @@ struct PSXAccountDetailView: View {
 
     private var balanceSection: some View {
         Section {
-            VStack(spacing: 12) {
-                HStack {
-                    VStack(alignment: .leading) {
-                        Text("Total Portfolio")
-                            .font(.caption).foregroundStyle(.secondary)
-                        Text((account.currentBalance + totalHoldingValue).formattedCurrency(currency: account.currency))
-                            .font(.title.bold())
-                    }
-                    Spacer()
-                    VStack(alignment: .trailing) {
-                        Text("P&L")
-                            .font(.caption).foregroundStyle(.secondary)
-                        Text(totalUnrealizedPAndL.formattedCurrency(currency: account.currency))
-                            .font(.title3.bold())
-                            .foregroundStyle(totalUnrealizedPAndL >= 0 ? .incomeGreen : .expenseRed)
-                    }
-                }
-
-                Divider()
-
-                HStack {
-                    VStack(alignment: .leading) {
-                        Text("Available Cash")
-                            .font(.caption).foregroundStyle(.secondary)
-                        Text(account.currentBalance.formattedCurrency(currency: account.currency))
-                            .font(.body.bold())
-                    }
-                    Spacer()
-                    VStack(alignment: .trailing) {
-                        Text("Holdings Value")
-                            .font(.caption).foregroundStyle(.secondary)
-                        Text(totalHoldingValue.formattedCurrency(currency: account.currency))
-                            .font(.body.bold())
-                            .foregroundStyle(.incomeGreen)
-                    }
-                }
-
-                HStack {
-                    VStack(alignment: .leading) {
-                        Text("Total Cost")
-                            .font(.caption).foregroundStyle(.secondary)
-                        Text(totalCostBasis.formattedCurrency(currency: account.currency))
-                            .font(.body.bold())
-                    }
-                    Spacer()
-                    VStack(alignment: .trailing) {
-                        Text("Return")
-                            .font(.caption).foregroundStyle(.secondary)
-                        PercentageText(value: totalPAndLPercentage)
-                            .font(.body.bold())
-                            .foregroundStyle(totalUnrealizedPAndL >= 0 ? .incomeGreen : .expenseRed)
-                    }
-                }
-            }
-            .padding(.vertical, 8)
+            SummaryBalanceView(
+                heroLeftLabel: "Total Portfolio",
+                heroLeftValue: (account.currentBalance + totalHoldingValue).formattedCurrency(currency: account.currency),
+                heroRightLabel: "P&L",
+                heroRightValue: totalUnrealizedPAndL.formattedCurrency(currency: account.currency),
+                heroRightColor: totalUnrealizedPAndL >= 0 ? .incomeGreen : .expenseRed,
+                detailRows: [
+                    [
+                        SummaryMetric(label: "Available Cash", value: account.currentBalance.formattedCurrency(currency: account.currency)),
+                        SummaryMetric(label: "Holdings Value", value: totalHoldingValue.formattedCurrency(currency: account.currency), color: .incomeGreen)
+                    ],
+                    [
+                        SummaryMetric(label: "Total Cost", value: totalCostBasis.formattedCurrency(currency: account.currency)),
+                        SummaryMetric(label: "Return", value: totalPAndLPercentage.formatted(.number.precision(.fractionLength(2))) + "%", color: totalUnrealizedPAndL >= 0 ? .incomeGreen : .expenseRed)
+                    ]
+                ]
+            )
         }
     }
 
@@ -160,10 +122,7 @@ struct PSXAccountDetailView: View {
     private var holdingsSection: some View {
         Section("Holdings") {
             if accountHoldings.isEmpty {
-                Text("No holdings yet. Buy shares to get started.")
-                    .foregroundStyle(.secondary)
-                    .frame(maxWidth: .infinity, alignment: .center)
-                    .padding()
+                EmptyStateView(title: "No holdings yet", systemImage: "chart.bar.xaxis", description: "Buy shares to get started")
             }
             ForEach(accountHoldings) { holding in
                 NavigationLink(destination: HoldingDetailView(account: account, holding: holding)) {
@@ -214,10 +173,7 @@ struct PSXAccountDetailView: View {
             }
 
             if ledgerEntries.isEmpty {
-                Text("No transactions yet")
-                    .foregroundStyle(.secondary)
-                    .frame(maxWidth: .infinity, alignment: .center)
-                    .padding()
+                EmptyStateView(title: "No transactions yet", systemImage: "arrow.left.arrow.right")
             }
         }
         .sheet(item: $selectedTransaction) { tx in

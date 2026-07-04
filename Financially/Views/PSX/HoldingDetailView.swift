@@ -17,71 +17,24 @@ struct HoldingDetailView: View {
     var body: some View {
         List {
             Section("Summary") {
-                VStack(spacing: 12) {
-                    HStack {
-                        VStack(alignment: .leading) {
-                            Text("Current Value")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                            Text(holding.currentValue.formattedCurrency(currency: account.currency))
-                                .font(.title.bold())
-                        }
-                        Spacer()
-                        VStack(alignment: .trailing) {
-                            Text("Return")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                            PercentageText(value: holding.returnPercentage)
-                                .font(.title3.bold())
-                                .foregroundStyle(holding.unrealizedPAndL >= 0 ? .incomeGreen : .expenseRed)
-                        }
-                    }
-
-                    Divider()
-
-                    HStack {
-                        VStack(alignment: .leading) {
-                            Text("Shares")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                            Text("\(holding.totalShares)")
-                                .font(.body.bold())
-                        }
-                        Spacer()
-                        VStack(alignment: .trailing) {
-                            Text("Avg Cost")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                            Text(holding.avgCostPerShare.formattedCurrency(currency: account.currency))
-                        }
-                        Spacer()
-                        VStack(alignment: .trailing) {
-                            Text("Total Cost")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                            Text(holding.totalCost.formattedCurrency(currency: account.currency))
-                        }
-                    }
-
-                    HStack {
-                        VStack(alignment: .leading) {
-                            Text("Unrealized P&L")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                            Text(holding.unrealizedPAndL.formattedCurrency(currency: account.currency))
-                                .foregroundStyle(holding.unrealizedPAndL >= 0 ? .incomeGreen : .expenseRed)
-                        }
-                        Spacer()
-                        VStack(alignment: .trailing) {
-                            Text("Fees Paid")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                            Text(holding.totalFeesPaid.formattedCurrency(currency: account.currency))
-                                .foregroundStyle(.secondary)
-                        }
-                    }
-                }
-                .padding(.vertical, 8)
+                SummaryBalanceView(
+                    heroLeftLabel: "Current Value",
+                    heroLeftValue: holding.currentValue.formattedCurrency(currency: account.currency),
+                    heroRightLabel: "Return",
+                    heroRightValue: holding.returnPercentage.formatted(.number.precision(.fractionLength(2))) + "%",
+                    heroRightColor: holding.unrealizedPAndL >= 0 ? .incomeGreen : .expenseRed,
+                    detailRows: [
+                        [
+                            SummaryMetric(label: "Shares", value: "\(holding.totalShares)"),
+                            SummaryMetric(label: "Avg Cost", value: holding.avgCostPerShare.formattedCurrency(currency: account.currency)),
+                            SummaryMetric(label: "Total Cost", value: holding.totalCost.formattedCurrency(currency: account.currency))
+                        ],
+                        [
+                            SummaryMetric(label: "Unrealized P&L", value: holding.unrealizedPAndL.formattedCurrency(currency: account.currency), color: holding.unrealizedPAndL >= 0 ? .incomeGreen : .expenseRed),
+                            SummaryMetric(label: "Fees Paid", value: holding.totalFeesPaid.formattedCurrency(currency: account.currency), color: .secondary)
+                        ]
+                    ]
+                )
             }
 
             Section("Trade History") {
@@ -97,10 +50,7 @@ struct HoldingDetailView: View {
                 }
 
                 if trades.isEmpty {
-                    Text("No trades yet")
-                        .foregroundStyle(.secondary)
-                        .frame(maxWidth: .infinity, alignment: .center)
-                        .padding()
+                    EmptyStateView(title: "No trades yet", systemImage: "arrow.left.arrow.right")
                 }
             }
         }

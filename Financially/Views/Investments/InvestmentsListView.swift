@@ -127,57 +127,20 @@ struct InvestmentsListView: View {
 
     private var commoditiesBalanceSection: some View {
         Section {
-            VStack(spacing: 12) {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("Total Portfolio")
-                        .font(.caption).foregroundStyle(.secondary)
-                    Text(totalHoldingValue.formattedCurrency())
-                        .font(.title.bold())
-                        .lineLimit(1)
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
-
-                Divider()
-
-                HStack(alignment: .top, spacing: 16) {
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("Holdings Value")
-                            .font(.caption).foregroundStyle(.secondary)
-                        Text(totalHoldingValue.formattedCurrency())
-                            .font(.body.bold())
-                            .foregroundStyle(.incomeGreen)
-                            .lineLimit(1)
-                    }
-                    Spacer(minLength: 8)
-                    VStack(alignment: .trailing, spacing: 2) {
-                        Text("P&L")
-                            .font(.caption).foregroundStyle(.secondary)
-                        Text(totalUnrealizedPAndL.formattedCurrency())
-                            .font(.body.bold())
-                            .foregroundStyle(totalUnrealizedPAndL >= 0 ? .incomeGreen : .expenseRed)
-                            .lineLimit(1)
-                    }
-                }
-
-                HStack(alignment: .top, spacing: 16) {
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("Return")
-                            .font(.caption).foregroundStyle(.secondary)
-                        PercentageText(value: totalPAndLPercentage)
-                            .font(.body.bold())
-                            .foregroundStyle(totalUnrealizedPAndL >= 0 ? .incomeGreen : .expenseRed)
-                    }
-                    Spacer(minLength: 8)
-                    VStack(alignment: .trailing, spacing: 2) {
-                        Text("Total Cost")
-                            .font(.caption).foregroundStyle(.secondary)
-                        Text(totalCostBasis.formattedCurrency())
-                            .font(.body.bold())
-                            .lineLimit(1)
-                    }
-                }
-            }
-            .padding(.vertical, 8)
+            SummaryBalanceView(
+                heroLeftLabel: "Total Portfolio",
+                heroLeftValue: totalHoldingValue.formattedCurrency(),
+                detailRows: [
+                    [
+                        SummaryMetric(label: "Holdings Value", value: totalHoldingValue.formattedCurrency(), color: .incomeGreen),
+                        SummaryMetric(label: "P&L", value: totalUnrealizedPAndL.formattedCurrency(), color: totalUnrealizedPAndL >= 0 ? .incomeGreen : .expenseRed)
+                    ],
+                    [
+                        SummaryMetric(label: "Return", value: totalPAndLPercentage.formatted(.number.precision(.fractionLength(2))) + "%", color: totalUnrealizedPAndL >= 0 ? .incomeGreen : .expenseRed),
+                        SummaryMetric(label: "Total Cost", value: totalCostBasis.formattedCurrency())
+                    ]
+                ]
+            )
         }
     }
 

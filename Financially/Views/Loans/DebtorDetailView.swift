@@ -130,10 +130,7 @@ struct DebtorDetailView: View {
             }
 
             if transactions.isEmpty {
-                Text("No transactions yet")
-                    .foregroundStyle(.secondary)
-                    .frame(maxWidth: .infinity, alignment: .center)
-                    .padding()
+                EmptyStateView(title: "No transactions yet", systemImage: "arrow.left.arrow.right")
             }
         }
         .sheet(item: $selectedTransaction) { tx in

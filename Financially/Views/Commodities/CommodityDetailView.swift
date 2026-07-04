@@ -45,55 +45,22 @@ struct CommodityDetailView: View {
 
     private var balanceSection: some View {
         Section {
-            VStack(spacing: 12) {
-                HStack {
-                    VStack(alignment: .leading) {
-                        Text("Total Portfolio")
-                            .font(.caption).foregroundStyle(.secondary)
-                        Text(totalHoldingValue.formattedCurrency())
-                            .font(.title.bold())
-                    }
-                    Spacer()
-                    VStack(alignment: .trailing) {
-                        Text("P&L")
-                            .font(.caption).foregroundStyle(.secondary)
-                        Text(totalUnrealizedPAndL.formattedCurrency())
-                            .font(.title3.bold())
-                            .foregroundStyle(totalUnrealizedPAndL >= 0 ? .incomeGreen : .expenseRed)
-                    }
-                }
-
-                Divider()
-
-                HStack {
-                    VStack(alignment: .leading) {
-                        Text("Holdings Value")
-                            .font(.caption).foregroundStyle(.secondary)
-                        Text(totalHoldingValue.formattedCurrency())
-                            .font(.body.bold())
-                            .foregroundStyle(.incomeGreen)
-                    }
-                    Spacer()
-                    VStack(alignment: .trailing) {
-                        Text("Total Cost")
-                            .font(.caption).foregroundStyle(.secondary)
-                        Text(totalCostBasis.formattedCurrency())
-                            .font(.body.bold())
-                    }
-                }
-
-                HStack {
-                    VStack(alignment: .leading) {
-                        Text("Return")
-                            .font(.caption).foregroundStyle(.secondary)
-                        PercentageText(value: totalPAndLPercentage)
-                            .font(.body.bold())
-                            .foregroundStyle(totalUnrealizedPAndL >= 0 ? .incomeGreen : .expenseRed)
-                    }
-                    Spacer()
-                }
-            }
-            .padding(.vertical, 8)
+            SummaryBalanceView(
+                heroLeftLabel: "Total Portfolio",
+                heroLeftValue: totalHoldingValue.formattedCurrency(),
+                heroRightLabel: "P&L",
+                heroRightValue: totalUnrealizedPAndL.formattedCurrency(),
+                heroRightColor: totalUnrealizedPAndL >= 0 ? .incomeGreen : .expenseRed,
+                detailRows: [
+                    [
+                        SummaryMetric(label: "Holdings Value", value: totalHoldingValue.formattedCurrency(), color: .incomeGreen),
+                        SummaryMetric(label: "Total Cost", value: totalCostBasis.formattedCurrency())
+                    ],
+                    [
+                        SummaryMetric(label: "Return", value: totalPAndLPercentage.formatted(.number.precision(.fractionLength(2))) + "%", color: totalUnrealizedPAndL >= 0 ? .incomeGreen : .expenseRed)
+                    ]
+                ]
+            )
         }
     }
 
@@ -117,10 +84,7 @@ struct CommodityDetailView: View {
     private var holdingsSection: some View {
         Section("Holdings") {
             if holdings.isEmpty {
-                Text("No holdings yet. Buy commodities to get started.")
-                    .foregroundStyle(.secondary)
-                    .frame(maxWidth: .infinity, alignment: .center)
-                    .padding()
+                EmptyStateView(title: "No holdings yet", systemImage: "diamond.fill", description: "Buy commodities to get started")
             }
             ForEach(holdings) { holding in
                 NavigationLink(destination: CommodityHoldingDetailView(holding: holding)) {
