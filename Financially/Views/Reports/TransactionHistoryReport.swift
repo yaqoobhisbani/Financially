@@ -31,10 +31,12 @@ struct TransactionHistoryReport: View {
     var body: some View {
         VStack(spacing: 0) {
             DateRangePickerView(startDate: $startDate, endDate: $endDate, selectedPreset: $selectedPreset)
-                .padding()
+                .padding(.horizontal)
+                .padding(.top, 8)
 
             SearchBarView(text: $searchText, placeholder: "Search transactions")
                 .padding(.horizontal)
+                .padding(.top, 8)
 
             typeFilterPicker
 
@@ -85,7 +87,8 @@ struct TransactionHistoryReport: View {
             }
             .padding(.horizontal)
         }
-        .padding(.vertical, 4)
+        .padding(.top, 8)
+        .padding(.bottom, 4)
     }
 
     private func txTypeLabel(_ type: TransactionType) -> String {

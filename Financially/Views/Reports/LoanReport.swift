@@ -29,6 +29,7 @@ struct LoanReport: View {
                 }
                 .pickerStyle(.segmented)
                 .padding(.horizontal)
+                .padding(.top, 8)
 
                 List {
                     Section("Summary") {

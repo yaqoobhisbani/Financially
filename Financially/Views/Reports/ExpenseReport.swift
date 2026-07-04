@@ -25,6 +25,8 @@ struct ExpenseReport: View {
         NavigationStack {
             VStack(spacing: 0) {
                 DateRangePickerView(startDate: $startDate, endDate: $endDate, selectedPreset: $selectedPreset)
+                    .padding(.horizontal)
+                    .padding(.top, 8)
 
                 List {
                     Section {

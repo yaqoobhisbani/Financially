@@ -35,7 +35,8 @@ struct MonthlySummaryReport: View {
                         Image(systemName: "chevron.right")
                     }
                 }
-                .padding()
+                .padding(.horizontal)
+                .padding(.top, 8)
 
                 List {
                     Section("Summary") {
