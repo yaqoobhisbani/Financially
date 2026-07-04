@@ -36,9 +36,7 @@ struct BankCashAccountDetailView: View {
             recentTransactionsSection
         }
         .navigationTitle(account.name)
-        #if os(iOS)
         .navigationBarTitleDisplayMode(.inline)
-        #endif
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
                 Menu {

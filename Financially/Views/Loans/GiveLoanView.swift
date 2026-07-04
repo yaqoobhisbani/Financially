@@ -39,9 +39,7 @@ struct GiveLoanView: View {
                     HStack {
                         Text("PKR")
                         TextField("0", text: $amount)
-                            #if os(iOS)
                             .keyboardType(.decimalPad)
-                            #endif
                             .multilineTextAlignment(.trailing)
                     }
                 }
@@ -75,9 +73,7 @@ struct GiveLoanView: View {
                 }
             }
             .navigationTitle("Give Loan")
-            #if os(iOS)
             .navigationBarTitleDisplayMode(.inline)
-            #endif
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") { dismiss() }

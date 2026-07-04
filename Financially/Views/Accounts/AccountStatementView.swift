@@ -51,14 +51,10 @@ struct AccountStatementView: View {
                         ContentUnavailableView("No Entries", systemImage: "tray", description: Text("No transactions in this period"))
                     }
                 }
-                #if os(iOS)
                 .listStyle(.insetGrouped)
-                #endif
             }
             .navigationTitle("Statement")
-            #if os(iOS)
             .navigationBarTitleDisplayMode(.inline)
-            #endif
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Done") { dismiss() }

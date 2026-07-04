@@ -64,9 +64,7 @@ struct TransactionDetailView: View {
             }
         }
         .navigationTitle("Transaction")
-        #if os(iOS)
         .navigationBarTitleDisplayMode(.inline)
-        #endif
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
                 Button(role: .destructive) {

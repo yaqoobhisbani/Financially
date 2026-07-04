@@ -49,9 +49,7 @@ struct RecordRepaymentView: View {
                     HStack {
                         Text("PKR")
                         TextField("0", text: $amount)
-                            #if os(iOS)
                             .keyboardType(.decimalPad)
-                            #endif
                             .multilineTextAlignment(.trailing)
                     }
                     .disabled(isFullRepayment)
@@ -98,9 +96,7 @@ struct RecordRepaymentView: View {
                 }
             }
             .navigationTitle("Record Repayment")
-            #if os(iOS)
             .navigationBarTitleDisplayMode(.inline)
-            #endif
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") { dismiss() }

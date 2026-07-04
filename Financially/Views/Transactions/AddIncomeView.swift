@@ -54,9 +54,7 @@ struct AddIncomeView: View {
                     HStack {
                         Text("PKR")
                         TextField("0", text: $amount)
-                            #if os(iOS)
                             .keyboardType(.decimalPad)
-                            #endif
                             .multilineTextAlignment(.trailing)
                     }
                 }
@@ -126,9 +124,7 @@ struct AddIncomeView: View {
                     }
             }
             .navigationTitle("Category")
-            #if os(iOS)
             .navigationBarTitleDisplayMode(.inline)
-            #endif
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") { showCategoryPicker = false }

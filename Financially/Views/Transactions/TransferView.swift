@@ -57,9 +57,7 @@ struct TransferView: View {
                     HStack {
                         Text("PKR")
                         TextField("0", text: $amount)
-                            #if os(iOS)
                             .keyboardType(.decimalPad)
-                            #endif
                             .multilineTextAlignment(.trailing)
                     }
                 }

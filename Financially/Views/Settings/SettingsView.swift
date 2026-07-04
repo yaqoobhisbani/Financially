@@ -95,7 +95,7 @@ struct AboutView: View {
             }
 
             Section {
-                LabeledContent("Platforms", value: "iOS, macOS")
+                LabeledContent("Platform", value: "iOS")
                 LabeledContent("Architecture", value: "SwiftUI + SwiftData")
             }
 

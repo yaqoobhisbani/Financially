@@ -39,9 +39,7 @@ struct ReceiveMoneyView: View {
                     HStack {
                         Text("PKR")
                         TextField("0", text: $amount)
-                            #if os(iOS)
                             .keyboardType(.decimalPad)
-                            #endif
                             .multilineTextAlignment(.trailing)
                     }
                 }
@@ -62,9 +60,7 @@ struct ReceiveMoneyView: View {
                 }
             }
             .navigationTitle("Receive Money")
-            #if os(iOS)
             .navigationBarTitleDisplayMode(.inline)
-            #endif
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") { dismiss() }

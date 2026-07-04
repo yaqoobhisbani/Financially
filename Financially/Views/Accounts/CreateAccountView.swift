@@ -73,9 +73,7 @@ struct CreateAccountView: View {
                             Text("Invested Amount")
                             Spacer()
                             TextField("0", text: $investedAmountString)
-                                #if os(iOS)
                                 .keyboardType(.decimalPad)
-                                #endif
                                 .multilineTextAlignment(.trailing)
                         }
                     } else {
@@ -83,9 +81,7 @@ struct CreateAccountView: View {
                             Text("Initial Balance")
                             Spacer()
                             TextField("0", text: $initialBalanceString)
-                                #if os(iOS)
                                 .keyboardType(.decimalPad)
-                                #endif
                                 .multilineTextAlignment(.trailing)
                         }
                     }
@@ -103,9 +99,7 @@ struct CreateAccountView: View {
                 }
             }
             .navigationTitle("New Account")
-            #if os(iOS)
             .navigationBarTitleDisplayMode(.inline)
-            #endif
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") { dismiss() }

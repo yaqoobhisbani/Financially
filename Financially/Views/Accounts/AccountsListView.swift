@@ -42,11 +42,7 @@ struct AccountsListView: View {
                         }
                     }
                 }
-                #if os(iOS)
                 .listStyle(.insetGrouped)
-                #else
-                .listStyle(.plain)
-                #endif
             }
             .navigationTitle("Accounts")
             .toolbar {
