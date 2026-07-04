@@ -26,7 +26,7 @@ final class Account {
 
     var currentValue: Decimal {
         if accountType == .psx {
-            return investedAmount + totalProfitLoss
+            return currentBalance + investedAmount + totalProfitLoss
         }
         return currentBalance
     }

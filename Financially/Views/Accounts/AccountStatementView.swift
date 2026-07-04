@@ -147,7 +147,10 @@ struct AccountStatementView: View {
     }
 
     private var openingBalance: Decimal {
-        filteredEntries.last?.runningBalance ?? account.currentBalance
+        if let entryBeforeStart = allEntries.first(where: { $0.date < startDate }) {
+            return entryBeforeStart.runningBalance
+        }
+        return account.initialBalance
     }
 
     private var closingBalance: Decimal {

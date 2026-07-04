@@ -3,10 +3,6 @@ import SwiftData
 
 struct LoanReport: View {
     @Query(sort: \Debtor.name) private var debtors: [Debtor]
-    @Query(sort: \Transaction.date, order: .reverse) private var allTransactions: [Transaction]
-    @State private var startDate = Date().startOfMonth
-    @State private var endDate = Date()
-    @State private var selectedPreset = DateRangePickerView.DatePreset.thisMonth
     @State private var filterStatus: FilterStatus = .all
 
     enum FilterStatus: String, CaseIterable {
@@ -26,8 +22,6 @@ struct LoanReport: View {
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
-                DateRangePickerView(startDate: $startDate, endDate: $endDate, selectedPreset: $selectedPreset)
-
                 Picker("Status", selection: $filterStatus) {
                     ForEach(FilterStatus.allCases, id: \.rawValue) { s in
                         Text(s.rawValue).tag(s)

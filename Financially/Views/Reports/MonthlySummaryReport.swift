@@ -5,12 +5,10 @@ import Charts
 struct MonthlySummaryReport: View {
     @Query(sort: \Transaction.date, order: .reverse) private var allTransactions: [Transaction]
     @State private var selectedMonth = Date()
-    @State private var selectedYear = Calendar.current.component(.year, from: Date())
 
     private var monthTransactions: [Transaction] {
         allTransactions.filter { tx in
-            Calendar.current.isDate(tx.date, equalTo: selectedMonth, toGranularity: .month) &&
-            Calendar.current.component(.year, from: tx.date) == selectedYear
+            Calendar.current.isDate(tx.date, equalTo: selectedMonth, toGranularity: .month)
         }
     }
 
