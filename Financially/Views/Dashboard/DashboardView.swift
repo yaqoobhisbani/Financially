@@ -37,6 +37,7 @@ struct DashboardView: View {
             }
             .padding()
         }
+        .scrollClipDisabled(true)
         .background(Color(.systemGroupedBackground))
         .navigationTitle("Dashboard")
         .toolbar {
@@ -113,6 +114,7 @@ struct DashboardView: View {
                     }
                 }
             }
+            .scrollClipDisabled(true)
         }
     }
 
@@ -199,8 +201,7 @@ struct DashboardView: View {
             }
         }
         .padding()
-        .background(Color(.secondarySystemGroupedBackground))
-        .clipShape(RoundedRectangle(cornerRadius: 12))
+        .liquidGlassCard()
     }
 
     // MARK: - Expense Chart
@@ -219,8 +220,7 @@ struct DashboardView: View {
             BarChartView(data: vm.lastSixMonths)
         }
         .padding()
-        .background(Color(.secondarySystemGroupedBackground))
-        .clipShape(RoundedRectangle(cornerRadius: 14))
+        .liquidGlassCard()
     }
 
     // MARK: - Active Loans / Liabilities

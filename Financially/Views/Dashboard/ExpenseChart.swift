@@ -31,7 +31,6 @@ struct ExpenseChartWidget: View {
             }
         }
         .padding()
-        .background(Color(.secondarySystemGroupedBackground))
-        .clipShape(RoundedRectangle(cornerRadius: 14))
+        .liquidGlassCard()
     }
 }

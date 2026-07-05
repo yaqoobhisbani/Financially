@@ -39,8 +39,7 @@ struct AllocationPieChart: View {
             }
         }
         .padding()
-        .background(Color(.secondarySystemGroupedBackground))
-        .clipShape(RoundedRectangle(cornerRadius: 14))
+        .liquidGlassCard()
     }
 
     private var legend: some View {
