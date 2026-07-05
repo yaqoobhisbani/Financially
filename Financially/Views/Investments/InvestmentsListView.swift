@@ -85,25 +85,13 @@ struct InvestmentsListView: View {
         List {
             if psxAccounts.isEmpty {
                 Section {
-                    VStack(spacing: 12) {
-                        Image("PSXLogo")
-                            .resizable()
-                            .scaledToFit()
-                            .frame(width: 40, height: 40)
-                            .clipShape(RoundedRectangle(cornerRadius: 8))
-                        Text("No PSX Accounts")
-                            .font(.headline)
-                        Text("Create a PSX account to track your stock investments and portfolio")
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
-                            .multilineTextAlignment(.center)
-                        Button("Add PSX Account") {
-                            showCreatePSX = true
-                        }
-                        .buttonStyle(.bordered)
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 40)
+                    EmptyStateView(
+                        title: "No PSX Accounts",
+                        systemImage: "chart.line.uptrend.xyaxis",
+                        description: "Create a PSX account to track your stock investments and portfolio",
+                        buttonLabel: "Add PSX Account",
+                        action: { showCreatePSX = true }
+                    )
                 }
             } else {
                 ForEach(psxAccounts) { account in
@@ -125,19 +113,11 @@ struct InvestmentsListView: View {
 
             if activeCommodityHoldings.isEmpty {
                 Section {
-                    VStack(spacing: 12) {
-                        Image(systemName: "diamond.fill")
-                            .font(.system(size: 40))
-                            .foregroundStyle(.secondary)
-                        Text("No Commodities")
-                            .font(.headline)
-                        Text("Buy gold or silver to start tracking your physical commodity holdings")
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
-                            .multilineTextAlignment(.center)
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 40)
+                    EmptyStateView(
+                        title: "No Commodities",
+                        systemImage: "diamond.fill",
+                        description: "Buy gold or silver to start tracking your physical commodity holdings"
+                    )
                 }
             } else {
                 Section("Holdings") {

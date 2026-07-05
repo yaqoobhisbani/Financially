@@ -32,11 +32,13 @@ struct CreditorsListView: View {
             }
 
             if creditors.isEmpty {
-                ContentUnavailableView(
-                    "No Creditors",
-                    systemImage: "person.fill.questionmark",
-                    description: Text("Add someone whose money you're holding")
-                )
+                Section {
+                    EmptyStateView(
+                        title: "No Creditors",
+                        systemImage: "person.fill.questionmark",
+                        description: "Add someone whose money you're holding"
+                    )
+                }
             }
         }
         .navigationTitle("Creditors")

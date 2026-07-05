@@ -81,23 +81,13 @@ struct CommitteesListView: View {
 
     private var emptyState: some View {
         Section {
-            VStack(spacing: 12) {
-                Image(systemName: "person.3.fill")
-                    .font(.system(size: 40))
-                    .foregroundStyle(.secondary)
-                Text("No Committees")
-                    .font(.headline)
-                Text("Create a committee to start saving with your group")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-                    .multilineTextAlignment(.center)
-                Button("Create Committee") {
-                    showCreate = true
-                }
-                .buttonStyle(.bordered)
-            }
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 40)
+            EmptyStateView(
+                title: "No Committees",
+                systemImage: "person.3.fill",
+                description: "Create a committee to start saving with your group",
+                buttonLabel: "Create Committee",
+                action: { showCreate = true }
+            )
         }
     }
 }

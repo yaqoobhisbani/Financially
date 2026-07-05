@@ -32,11 +32,13 @@ struct DebtorsListView: View {
             }
 
             if debtors.isEmpty {
-                ContentUnavailableView(
-                    "No Debtors",
-                    systemImage: "person.fill.questionmark",
-                    description: Text("Add someone you've lent money to")
-                )
+                Section {
+                    EmptyStateView(
+                        title: "No Debtors",
+                        systemImage: "person.fill.questionmark",
+                        description: "Add someone you've lent money to"
+                    )
+                }
             }
         }
         .navigationTitle("Debtors")

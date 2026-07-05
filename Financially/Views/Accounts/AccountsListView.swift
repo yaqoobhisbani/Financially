@@ -65,23 +65,13 @@ struct AccountsListView: View {
 
     private var emptyState: some View {
         Section {
-            VStack(spacing: 12) {
-                Image(systemName: selectedSegment == .banks ? "building.columns.fill" : "wallet.pass.fill")
-                    .font(.system(size: 40))
-                    .foregroundStyle(.secondary)
-                Text(selectedSegment == .banks ? "No Bank Accounts" : "No Cash Accounts")
-                    .font(.headline)
-                Text(selectedSegment == .banks ? "Add a bank account to track your bank balances" : "Add a cash account to track your cash on hand")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-                    .multilineTextAlignment(.center)
-                Button(selectedSegment == .banks ? "Add Bank Account" : "Add Cash Account") {
-                    showCreateSheet = true
-                }
-                .buttonStyle(.bordered)
-            }
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 40)
+            EmptyStateView(
+                title: selectedSegment == .banks ? "No Bank Accounts" : "No Cash Accounts",
+                systemImage: selectedSegment == .banks ? "building.columns.fill" : "wallet.pass.fill",
+                description: selectedSegment == .banks ? "Add a bank account to track your bank balances" : "Add a cash account to track your cash on hand",
+                buttonLabel: selectedSegment == .banks ? "Add Bank Account" : "Add Cash Account",
+                action: { showCreateSheet = true }
+            )
         }
     }
 }
