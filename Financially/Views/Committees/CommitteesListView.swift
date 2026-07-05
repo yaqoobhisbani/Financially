@@ -4,41 +4,46 @@ import SwiftData
 struct CommitteesListView: View {
     @Environment(\.modelContext) private var modelContext
     @Query(sort: \Committee.createdAt, order: .reverse) private var allCommittees: [Committee]
+    @State private var selectedSegment: CommitteeSegment = .active
     @State private var showCreate = false
 
-    private var activeCommittees: [Committee] {
-        allCommittees.filter { $0.isActive && !$0.isComplete }
+    private enum CommitteeSegment: String, CaseIterable {
+        case active = "Active"
+        case inactive = "Inactive"
     }
 
-    private var completedCommittees: [Committee] {
-        allCommittees.filter { $0.isComplete || !$0.isActive }
+    private var filteredCommittees: [Committee] {
+        switch selectedSegment {
+        case .active:
+            return allCommittees.filter { $0.isActive && !$0.isComplete }
+        case .inactive:
+            return allCommittees.filter { $0.isComplete || !$0.isActive }
+        }
     }
 
     var body: some View {
         NavigationStack {
-            List {
-                if activeCommittees.isEmpty && completedCommittees.isEmpty {
-                    emptyState
-                } else {
-                    if !activeCommittees.isEmpty {
-                        Section("Active") {
-                            ForEach(activeCommittees) { committee in
-                                NavigationLink(destination: CommitteeDetailView(committee: committee)) {
-                                    committeeRow(committee)
-                                }
-                            }
-                        }
+            VStack(spacing: 0) {
+                Picker("Segment", selection: $selectedSegment) {
+                    ForEach(CommitteeSegment.allCases, id: \.self) { segment in
+                        Text(segment.rawValue).tag(segment)
                     }
-                    if !completedCommittees.isEmpty {
-                        Section("Completed") {
-                            ForEach(completedCommittees) { committee in
-                                NavigationLink(destination: CommitteeDetailView(committee: committee)) {
-                                    committeeRow(committee)
-                                }
+                }
+                .pickerStyle(.segmented)
+                .padding()
+
+                List {
+                    if filteredCommittees.isEmpty {
+                        emptyState
+                    } else {
+                        ForEach(filteredCommittees) { committee in
+                            NavigationLink(destination: CommitteeDetailView(committee: committee)) {
+                                committeeRow(committee)
                             }
                         }
                     }
                 }
+                .listStyle(.insetGrouped)
             }
             .navigationTitle("Committees")
             .toolbar {
@@ -82,11 +87,11 @@ struct CommitteesListView: View {
     private var emptyState: some View {
         Section {
             EmptyStateView(
-                title: "No Committees",
+                title: selectedSegment == .active ? "No Active Committees" : "No Inactive Committees",
                 systemImage: "person.3.fill",
-                description: "Create a committee to start saving with your group",
-                buttonLabel: "Create Committee",
-                action: { showCreate = true }
+                description: selectedSegment == .active ? "Create a committee to start saving with your group" : "Completed or deactivated committees will appear here",
+                buttonLabel: selectedSegment == .active ? "Create Committee" : nil,
+                action: selectedSegment == .active ? { showCreate = true } : nil
             )
         }
     }

@@ -30,7 +30,7 @@ struct DashboardView: View {
                 if !vm.assetAllocation.isEmpty { AllocationPieChart(slices: vm.assetAllocation) }
                 if !vm.accounts.isEmpty { accountsGridScroll(vm) }
                 commoditiesSection(vm)
-                if vm.activeLoanCount > 0 || vm.activeLiabilityCount > 0 { activeLoansWidget(vm) }
+                if vm.activeLoanCount > 0 || vm.activeLiabilityCount > 0 || vm.activeCommitteeCount > 0 { activeLoansWidget(vm) }
                 if vm.monthlyIncome > 0 || vm.monthlyExpense > 0 { incomeVsExpenseWidget(vm) }
                 if vm.monthlyExpense > 0 { expenseChartWidget(vm) }
                 if !vm.recentTransactions.isEmpty { recentTransactionsSection(vm) }
@@ -241,27 +241,40 @@ struct DashboardView: View {
                 icon: "arrow.right.circle",
                 color: .orange
             )
+            activeWidget(
+                title: "Active Committees",
+                count: vm.activeCommitteeCount,
+                total: vm.totalCommitteeReceivable,
+                icon: "person.3.fill",
+                color: .teal
+            )
         }
     }
 
     private func activeWidget(title: String, count: Int, total: Decimal, icon: String, color: Color) -> some View {
-        VStack(alignment: .leading, spacing: 4) {
-            HStack {
+        VStack(alignment: .leading, spacing: 6) {
+            HStack(spacing: 4) {
                 Image(systemName: icon)
                     .font(.caption)
                     .foregroundStyle(color)
+                    .fixedSize()
                 Text(title)
                     .font(.caption2)
                     .foregroundStyle(.secondary)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.7)
             }
             Text("\(count)")
                 .font(.title2.bold())
+                .lineLimit(1)
             Text(total.formattedCurrency())
                 .font(.caption)
                 .foregroundStyle(.secondary)
+                .lineLimit(1)
+                .minimumScaleFactor(0.6)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .padding()
+        .padding(12)
         .liquidGlassCard()
     }
 

@@ -75,6 +75,7 @@ struct AllocationPieChart: View {
         case "Banks": return .green
         case "Cash": return .mint
         case "Receivable": return .purple
+        case "Committee": return .teal
         case "Liabilities": return .red
         default: return .gray
         }

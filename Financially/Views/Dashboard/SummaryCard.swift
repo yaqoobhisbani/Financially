@@ -21,6 +21,8 @@ struct SummaryCard: View {
             Text(amount.formattedCurrency())
                 .font(.title3.bold())
                 .foregroundStyle(.primary)
+                .lineLimit(1)
+                .minimumScaleFactor(0.6)
 
             if let subtitle = subtitle {
                 Text(subtitle)

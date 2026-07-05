@@ -24,7 +24,7 @@ final class DashboardViewModel {
     }
 
     var totalReceivables: Decimal {
-        totalDebtorOutstanding
+        totalDebtorOutstanding + totalCommitteeReceivable
     }
 
     var monthlyIncome: Decimal {
@@ -87,13 +87,38 @@ final class DashboardViewModel {
         allCreditors.reduce(0) { $0 + $1.outstandingBalance }
     }
 
+    // MARK: - Committees
+
+    private var allCommittees: [Committee] {
+        (try? modelContext.fetch(FetchDescriptor<Committee>())) ?? []
+    }
+
+    private var allCommitteePayouts: [CommitteePayout] {
+        (try? modelContext.fetch(FetchDescriptor<CommitteePayout>())) ?? []
+    }
+
+    var totalCommitteeReceivable: Decimal {
+        allCommittees.reduce(0) { result, committee in
+            let received = allCommitteePayouts
+                .filter { $0.committeeId == committee.id }
+                .reduce(0) { $0 + $1.amount }
+            return result + max(0, committee.totalPayout - received)
+        }
+    }
+
+    var activeCommitteeCount: Int {
+        allCommittees.filter { $0.isActive && !$0.isComplete }.count
+    }
+
     private var incomeThisMonth: Decimal {
-        allTransactions.filter { $0.type == .income && $0.date.isInCurrentMonth }
+        allTransactions.filter { $0.date.isInCurrentMonth }
+            .filter { $0.type == .income || $0.type == .committeePayout }
             .reduce(0) { $0 + $1.amount }
     }
 
     private var expenseThisMonth: Decimal {
-        allTransactions.filter { $0.type == .expense && $0.date.isInCurrentMonth }
+        allTransactions.filter { $0.date.isInCurrentMonth }
+            .filter { $0.type == .expense || $0.type == .committeeContribution }
             .reduce(0) { $0 + $1.amount }
     }
 
@@ -126,8 +151,8 @@ final class DashboardViewModel {
             let monthStart = calendar.date(from: calendar.dateComponents([.year, .month], from: calendar.date(byAdding: .month, value: -monthsAgo, to: now)!))!
             let monthEnd = calendar.date(byAdding: DateComponents(month: 1, day: -1), to: monthStart)!
             let monthlyTxs = allTransactions.filter { $0.date >= monthStart && $0.date <= monthEnd }
-            let income = monthlyTxs.filter { $0.type == .income }.reduce(0) { $0 + $1.amount }
-            let expense = monthlyTxs.filter { $0.type == .expense }.reduce(0) { $0 + $1.amount }
+            let income = monthlyTxs.filter { $0.type == .income || $0.type == .committeePayout }.reduce(0) { $0 + $1.amount }
+            let expense = monthlyTxs.filter { $0.type == .expense || $0.type == .committeeContribution }.reduce(0) { $0 + $1.amount }
             return MonthlyComparison(month: monthStart, income: income, expense: expense)
         }
     }
@@ -170,7 +195,8 @@ final class DashboardViewModel {
             AllocationSlice(label: "Commodities", value: commodityValue, color: "commodity"),
             AllocationSlice(label: "Banks", value: totalBankBalances, color: "bank"),
             AllocationSlice(label: "Cash", value: totalCashBalances, color: "cash"),
-            AllocationSlice(label: "Receivable", value: totalReceivables, color: "receivable"),
+            AllocationSlice(label: "Receivable", value: totalDebtorOutstanding, color: "receivable"),
+            AllocationSlice(label: "Committee", value: totalCommitteeReceivable, color: "committee"),
             AllocationSlice(label: "Liabilities", value: totalLiabilities, color: "liability")
         ].filter { $0.value > 0 }
     }
