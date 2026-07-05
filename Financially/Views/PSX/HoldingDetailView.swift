@@ -35,9 +35,12 @@ struct HoldingDetailView: View {
                     Divider()
 
                     HStack(alignment: .top, spacing: 16) {
-                        SummaryMetric(label: "Shares", value: "\(holding.totalShares)")
-                        SummaryMetric(label: "Avg Cost", value: holding.avgCostPerShare.formattedCurrency(currency: account.currency))
-                        SummaryMetric(label: "Total Cost", value: holding.totalCost.formattedCurrency(currency: account.currency))
+                        SummaryMetric(label: "Shares", value: "\(holding.totalShares)", alignment: .leading)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                        SummaryMetric(label: "Avg Cost", value: holding.avgCostPerShare.formattedCurrency(currency: account.currency), alignment: .center)
+                            .frame(maxWidth: .infinity, alignment: .center)
+                        SummaryMetric(label: "Total Cost", value: holding.totalCost.formattedCurrency(currency: account.currency), alignment: .trailing)
+                            .frame(maxWidth: .infinity, alignment: .trailing)
                     }
 
                     HStack(alignment: .top, spacing: 16) {
