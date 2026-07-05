@@ -57,7 +57,7 @@ struct CommodityDetailView: View {
                         AnyView(SummaryMetric(label: "Total Cost", value: totalCostBasis.formattedCurrency(), alignment: .trailing))
                     ],
                     [
-                        AnyView(SummaryMetricView(label: "Return", alignment: .trailing) { PercentageText(value: totalPAndLPercentage).foregroundStyle(totalUnrealizedPAndL >= 0 ? .incomeGreen : .expenseRed) })
+                        AnyView(SummaryMetricView(label: "Return") { PercentageText(value: totalPAndLPercentage).foregroundStyle(totalUnrealizedPAndL >= 0 ? .incomeGreen : .expenseRed) })
                     ]
                 ]
             )
