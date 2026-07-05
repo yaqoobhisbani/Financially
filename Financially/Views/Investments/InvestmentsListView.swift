@@ -124,10 +124,21 @@ struct InvestmentsListView: View {
             commoditiesActionsSection
 
             if activeCommodityHoldings.isEmpty {
-                Text("No commodities yet. Buy gold or silver to get started.")
-                    .foregroundStyle(.secondary)
-                    .frame(maxWidth: .infinity, alignment: .center)
-                    .padding()
+                Section {
+                    VStack(spacing: 12) {
+                        Image(systemName: "diamond.fill")
+                            .font(.system(size: 40))
+                            .foregroundStyle(.secondary)
+                        Text("No Commodities")
+                            .font(.headline)
+                        Text("Buy gold or silver to start tracking your physical commodity holdings")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                            .multilineTextAlignment(.center)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 40)
+                }
             } else {
                 Section("Holdings") {
                     ForEach(activeCommodityHoldings) { holding in
