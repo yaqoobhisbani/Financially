@@ -54,10 +54,10 @@ struct CommodityDetailView: View {
                 detailRows: [
                     [
                         AnyView(SummaryMetric(label: "Holdings Value", value: totalHoldingValue.formattedCurrency(), color: .incomeGreen)),
-                        AnyView(SummaryMetric(label: "Total Cost", value: totalCostBasis.formattedCurrency()))
+                        AnyView(SummaryMetric(label: "Total Cost", value: totalCostBasis.formattedCurrency(), alignment: .trailing))
                     ],
                     [
-                        AnyView(SummaryMetricView(label: "Return") { PercentageText(value: totalPAndLPercentage).foregroundStyle(totalUnrealizedPAndL >= 0 ? .incomeGreen : .expenseRed) })
+                        AnyView(SummaryMetricView(label: "Return", alignment: .trailing) { PercentageText(value: totalPAndLPercentage).foregroundStyle(totalUnrealizedPAndL >= 0 ? .incomeGreen : .expenseRed) })
                     ]
                 ]
             )

@@ -68,11 +68,11 @@ struct PSXAccountDetailView: View {
                 detailRows: [
                     [
                         AnyView(SummaryMetric(label: "Available Cash", value: account.currentBalance.formattedCurrency(currency: account.currency))),
-                        AnyView(SummaryMetric(label: "Holdings Value", value: vm.totalHoldingValue.formattedCurrency(currency: account.currency), color: .incomeGreen))
+                        AnyView(SummaryMetric(label: "Holdings Value", value: vm.totalHoldingValue.formattedCurrency(currency: account.currency), color: .incomeGreen, alignment: .trailing))
                     ],
                     [
                         AnyView(SummaryMetric(label: "Total Cost", value: vm.totalCostBasis.formattedCurrency(currency: account.currency))),
-                        AnyView(SummaryMetricView(label: "Return") { PercentageText(value: vm.totalPAndLPercentage).foregroundStyle(vm.totalUnrealizedPAndL >= 0 ? .incomeGreen : .expenseRed) })
+                        AnyView(SummaryMetricView(label: "Return", alignment: .trailing) { PercentageText(value: vm.totalPAndLPercentage).foregroundStyle(vm.totalUnrealizedPAndL >= 0 ? .incomeGreen : .expenseRed) })
                     ]
                 ]
             )

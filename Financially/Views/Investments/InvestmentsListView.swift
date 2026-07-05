@@ -142,11 +142,11 @@ struct InvestmentsListView: View {
                 detailRows: [
                     [
                         AnyView(SummaryMetric(label: "Holdings Value", value: totalHoldingValue.formattedCurrency(), color: .incomeGreen)),
-                        AnyView(SummaryMetric(label: "P&L", value: totalUnrealizedPAndL.formattedCurrency(), color: totalUnrealizedPAndL >= 0 ? .incomeGreen : .expenseRed))
+                        AnyView(SummaryMetric(label: "P&L", value: totalUnrealizedPAndL.formattedCurrency(), color: totalUnrealizedPAndL >= 0 ? .incomeGreen : .expenseRed, alignment: .trailing))
                     ],
                     [
-                        AnyView(SummaryMetricView(label: "Return") { PercentageText(value: totalPAndLPercentage).foregroundStyle(totalUnrealizedPAndL >= 0 ? .incomeGreen : .expenseRed) }),
-                        AnyView(SummaryMetric(label: "Total Cost", value: totalCostBasis.formattedCurrency()))
+                        AnyView(SummaryMetricView(label: "Return", alignment: .trailing) { PercentageText(value: totalPAndLPercentage).foregroundStyle(totalUnrealizedPAndL >= 0 ? .incomeGreen : .expenseRed) }),
+                        AnyView(SummaryMetric(label: "Total Cost", value: totalCostBasis.formattedCurrency(), alignment: .trailing))
                     ]
                 ]
             )
