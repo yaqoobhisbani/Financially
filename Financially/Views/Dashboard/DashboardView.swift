@@ -132,7 +132,7 @@ struct DashboardView: View {
                         .clipShape(RoundedRectangle(cornerRadius: 4))
                 } else {
                     Image(systemName: account.icon ?? accountTypeIcon(account.accountType))
-                        .font(.caption)
+                        .font(.system(size: 15, weight: .medium))
                         .frame(width: 18, height: 18)
                 }
                 Text(account.name)
