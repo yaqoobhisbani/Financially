@@ -23,7 +23,7 @@ struct CommodityHoldingDetailView: View {
                             valueFont: .title.bold()
                         )
                         Spacer()
-                        SummaryMetricView(label: "Return") {
+                        SummaryMetricView(label: "Return", alignment: .trailing) {
                             PercentageText(value: holding.returnPercentage)
                                 .font(.title3.bold())
                                 .foregroundStyle(holding.unrealizedPAndL >= 0 ? .incomeGreen : .expenseRed)
