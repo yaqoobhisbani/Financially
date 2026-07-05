@@ -57,4 +57,15 @@ struct SeedCategories {
 
         try? modelContext.save()
     }
+
+    static func seedCommoditiesIfNeeded(modelContext: ModelContext) {
+        let descriptor = FetchDescriptor<CommodityInfo>()
+        guard let count = try? modelContext.fetchCount(descriptor), count == 0 else { return }
+
+        let gold = CommodityInfo(name: "Gold", currentRatePerGram: 0)
+        let silver = CommodityInfo(name: "Silver", currentRatePerGram: 0)
+        modelContext.insert(gold)
+        modelContext.insert(silver)
+        try? modelContext.save()
+    }
 }

@@ -93,7 +93,6 @@ struct SellCommodityView: View {
                     HStack {
                         VStack(alignment: .leading) {
                             Text(holding.commodityName).font(.headline)
-                            Text(holding.symbol).font(.caption).foregroundStyle(.secondary)
                         }
                         Spacer()
                         VStack(alignment: .trailing) {

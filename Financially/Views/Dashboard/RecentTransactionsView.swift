@@ -39,7 +39,7 @@ struct RecentTransactionsView: View {
                 }
             }
         }
-        .padding(.vertical, 8)
+        .padding(.vertical, 12)
         .liquidGlassCard()
         .sheet(item: $selectedTransaction) { tx in
             NavigationStack {

@@ -92,9 +92,6 @@ struct CommodityDetailView: View {
                         VStack(alignment: .leading, spacing: 2) {
                             Text(holding.commodityName)
                                 .font(.headline)
-                            Text(holding.symbol)
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
                             HStack(spacing: 4) {
                                 Text("\(holding.totalGrams.formattedNumber()) g")
                                     .font(.caption2)

@@ -71,6 +71,9 @@ struct AccountRowView: View {
     private var accountSubtitle: String {
         switch account.accountType {
         case .bank:
+            if let acctNum = account.accountNumber, acctNum.count >= 4 {
+                return "•••• \(acctNum.suffix(4))"
+            }
             return account.bankName ?? "Bank Account"
         case .cash:
             return account.cashSubType?.rawValue.capitalized ?? "Cash"

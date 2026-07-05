@@ -17,17 +17,22 @@ final class CommodityTradeViewModel {
         holdings.filter { $0.totalGrams > 0 }
     }
 
-    private func findOrCreateHolding(symbol: String, commodityName: String, currentPricePerGram: Decimal) -> CommodityHolding {
-        if let existing = holdings.first(where: { $0.symbol == symbol }) {
+    private func symbol(for commodityName: String) -> String {
+        commodityName.localizedCaseInsensitiveContains("gold") ? "XAU" : "XAG"
+    }
+
+    private func findOrCreateHolding(commodityName: String, currentPricePerGram: Decimal) -> CommodityHolding {
+        let sym = symbol(for: commodityName)
+        if let existing = holdings.first(where: { $0.symbol == sym }) {
             return existing
         }
-        let holding = CommodityHolding(commodityName: commodityName, symbol: symbol, currentPricePerGram: currentPricePerGram)
+        let holding = CommodityHolding(commodityName: commodityName, symbol: sym, currentPricePerGram: currentPricePerGram)
         modelContext.insert(holding)
         return holding
     }
 
     func buy(symbol: String, commodityName: String, grams: Decimal, pricePerGram: Decimal, brokerageFee: Decimal, tax: Decimal, netAmount: Decimal, date: Date, notes: String?) {
-        let holding = findOrCreateHolding(symbol: symbol, commodityName: commodityName, currentPricePerGram: pricePerGram)
+        let holding = findOrCreateHolding(commodityName: commodityName, currentPricePerGram: pricePerGram)
         let total = grams * pricePerGram
         let fees = brokerageFee + tax
 

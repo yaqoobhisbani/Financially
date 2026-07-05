@@ -11,7 +11,9 @@ struct FinanciallyApp: App {
             AuthGateView {
                 ContentView()
                     .onAppear {
-                        SeedCategories.seedIfNeeded(modelContext: sharedModelContainer.mainContext)
+                        let mc = sharedModelContainer.mainContext
+                        SeedCategories.seedIfNeeded(modelContext: mc)
+                        SeedCategories.seedCommoditiesIfNeeded(modelContext: mc)
                     }
             }
             .environment(authManager)

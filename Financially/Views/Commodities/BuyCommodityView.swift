@@ -30,9 +30,6 @@ struct BuyCommodityView: View {
                                     Text(commodity.name)
                                         .font(.headline)
                                         .foregroundStyle(.primary)
-                                    Text(commodity.symbol)
-                                        .font(.caption)
-                                        .foregroundStyle(.secondary)
                                 } else {
                                     Text("Select a commodity")
                                         .foregroundStyle(.secondary)
@@ -103,9 +100,6 @@ struct BuyCommodityView: View {
                         VStack(alignment: .leading) {
                             Text(commodity.name)
                                 .font(.headline)
-                            Text(commodity.symbol)
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
                         }
                         Spacer()
                         VStack(alignment: .trailing) {
@@ -145,8 +139,9 @@ struct BuyCommodityView: View {
         let vm = vm ?? CommodityTradeViewModel(modelContext: modelContext, commodityList: commodityList, holdings: allHoldings)
         self.vm = vm
 
+        let symbol = commodity.name.localizedCaseInsensitiveContains("gold") ? "XAU" : "XAG"
         vm.buy(
-            symbol: commodity.symbol,
+            symbol: symbol,
             commodityName: commodity.name,
             grams: gramsVal,
             pricePerGram: price,
