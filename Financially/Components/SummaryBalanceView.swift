@@ -58,12 +58,16 @@ struct SummaryBalanceView: View {
 
             ForEach(detailRows.indices, id: \.self) { rowIndex in
                 HStack(alignment: .top, spacing: 16) {
-                    ForEach(detailRows[rowIndex].indices, id: \.self) { metricIndex in
-                        if metricIndex > 0 { Spacer(minLength: 8) }
-                        detailRows[rowIndex][metricIndex]
-                    }
                     if detailRows[rowIndex].count == 1 {
+                        detailRows[rowIndex][0]
+                            .frame(maxWidth: .infinity, alignment: .leading)
                         Spacer()
+                    } else {
+                        ForEach(detailRows[rowIndex].indices, id: \.self) { metricIndex in
+                            if metricIndex > 0 { Spacer(minLength: 8) }
+                            detailRows[rowIndex][metricIndex]
+                                .frame(maxWidth: .infinity, alignment: metricIndex == 0 ? .leading : .trailing)
+                        }
                     }
                 }
             }
