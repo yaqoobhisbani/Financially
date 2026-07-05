@@ -115,6 +115,7 @@ struct DashboardView: View {
                 }
             }
             .scrollClipDisabled(true)
+            .contentMargins(.horizontal, 0)
         }
     }
 
