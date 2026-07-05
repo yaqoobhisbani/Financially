@@ -44,9 +44,10 @@ struct HoldingDetailView: View {
                     }
 
                     HStack(alignment: .top, spacing: 16) {
-                        SummaryMetric(label: "Unrealized P&L", value: holding.unrealizedPAndL.formattedCurrency(currency: account.currency), color: holding.unrealizedPAndL >= 0 ? .incomeGreen : .expenseRed)
-                        Spacer()
-                        SummaryMetric(label: "Fees Paid", value: holding.totalFeesPaid.formattedCurrency(currency: account.currency), color: .secondary)
+                        SummaryMetric(label: "Unrealized P&L", value: holding.unrealizedPAndL.formattedCurrency(currency: account.currency), color: holding.unrealizedPAndL >= 0 ? .incomeGreen : .expenseRed, alignment: .leading)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                        SummaryMetric(label: "Fees Paid", value: holding.totalFeesPaid.formattedCurrency(currency: account.currency), color: .secondary, alignment: .trailing)
+                            .frame(maxWidth: .infinity, alignment: .trailing)
                     }
                 }
                 .padding(.vertical, 8)

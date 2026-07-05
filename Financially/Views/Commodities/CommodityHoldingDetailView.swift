@@ -42,9 +42,10 @@ struct CommodityHoldingDetailView: View {
                     }
 
                     HStack(alignment: .top, spacing: 16) {
-                        SummaryMetric(label: "Unrealized P&L", value: holding.unrealizedPAndL.formattedCurrency(), color: holding.unrealizedPAndL >= 0 ? .incomeGreen : .expenseRed)
-                        Spacer()
-                        SummaryMetric(label: "Fees Paid", value: holding.totalFeesPaid.formattedCurrency(), color: .secondary)
+                        SummaryMetric(label: "Unrealized P&L", value: holding.unrealizedPAndL.formattedCurrency(), color: holding.unrealizedPAndL >= 0 ? .incomeGreen : .expenseRed, alignment: .leading)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                        SummaryMetric(label: "Fees Paid", value: holding.totalFeesPaid.formattedCurrency(), color: .secondary, alignment: .trailing)
+                            .frame(maxWidth: .infinity, alignment: .trailing)
                     }
                 }
                 .padding(.vertical, 8)

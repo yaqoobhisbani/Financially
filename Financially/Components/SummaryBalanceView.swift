@@ -12,9 +12,12 @@ struct SummaryMetric: View {
             Text(label)
                 .font(.caption)
                 .foregroundStyle(.secondary)
+                .lineLimit(1)
             Text(value)
                 .font(valueFont)
                 .foregroundStyle(color)
+                .lineLimit(1)
+                .minimumScaleFactor(0.7)
         }
     }
 }
