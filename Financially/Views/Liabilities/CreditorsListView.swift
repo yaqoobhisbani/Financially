@@ -35,8 +35,10 @@ struct CreditorsListView: View {
                 Section {
                     EmptyStateView(
                         title: "No Creditors",
-                        systemImage: "person.fill.questionmark",
-                        description: "Add someone whose money you're holding"
+                        systemImage: "arrow.left.circle",
+                        description: "Add someone whose money you're holding",
+                        buttonLabel: "Add Creditor",
+                        action: { showCreate = true }
                     )
                 }
             }

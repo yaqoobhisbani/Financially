@@ -35,8 +35,10 @@ struct DebtorsListView: View {
                 Section {
                     EmptyStateView(
                         title: "No Debtors",
-                        systemImage: "person.fill.questionmark",
-                        description: "Add someone you've lent money to"
+                        systemImage: "arrow.right.circle",
+                        description: "Add someone you've lent money to",
+                        buttonLabel: "Add Debtor",
+                        action: { showCreate = true }
                     )
                 }
             }
