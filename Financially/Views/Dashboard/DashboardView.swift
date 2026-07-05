@@ -133,8 +133,8 @@ struct DashboardView: View {
                 } else {
                     Image(account.accountType == .cash ? "CashIcon" : (account.icon ?? accountTypeIcon(account.accountType)))
                         .resizable()
-                        .scaledToFit()
                         .frame(width: 18, height: 18)
+                        .clipShape(RoundedRectangle(cornerRadius: 4))
                 }
                 Text(account.name)
                     .font(.caption)
