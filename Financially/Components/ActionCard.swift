@@ -22,7 +22,5 @@ struct ActionCard: View {
         }
         .buttonStyle(.plain)
         .background(Color(.secondarySystemGroupedBackground))
-        .clipShape(RoundedRectangle(cornerRadius: 16))
-        .shadow(color: .black.opacity(0.1), radius: 8, y: 2)
     }
 }
