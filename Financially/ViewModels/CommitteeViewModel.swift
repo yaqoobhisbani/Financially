@@ -64,6 +64,8 @@ final class CommitteeViewModel {
         let monthOffset = (committee.totalSlotsPaid ?? 0) / committee.mySlots
         let monthDate = currentCommitteeMonth(offset: monthOffset, from: committee.startMonth)
 
+        let amount = committee.monthlyAmount * Decimal(slots)
+
         let description = slots > 1
             ? "Committee: \(committee.name) - \(slots) slots (Month \(monthOffset + 1))"
             : "Committee: \(committee.name) - Month \(monthOffset + 1)"
