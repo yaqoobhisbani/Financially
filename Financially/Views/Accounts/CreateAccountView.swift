@@ -5,26 +5,17 @@ struct CreateAccountView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
 
-    let allowedTypes: [AccountType]
+    let accountType: AccountType
 
     @State private var vm: AccountViewModel?
 
     @State private var name = ""
-    @State private var accountType: AccountType = .bank
     @State private var selectedBank: String?
     @State private var cashSubType: CashSubType = .wallet
     @State private var accountNumber = ""
-    @State private var brokerName = ""
-    @State private var fundHouse = ""
     @State private var initialBalanceString = ""
-    @State private var investedAmountString = ""
     @State private var notes = ""
     @State private var errorMessage: String?
-
-    init(allowedTypes: [AccountType] = [.bank, .cash, .psx]) {
-        self.allowedTypes = allowedTypes
-        _accountType = State(initialValue: allowedTypes.first ?? .bank)
-    }
 
     private let popularBanks = [
         "Meezan Bank",
@@ -44,56 +35,32 @@ struct CreateAccountView: View {
     var body: some View {
         NavigationStack {
             Form {
-                Section("Account Type") {
-                    Picker("Type", selection: $accountType) {
-                        ForEach(allowedTypes, id: \.self) { type in
-                            Text(type.displayName).tag(type)
-                        }
-                    }
-                    .pickerStyle(.segmented)
-                }
-
                 Section("Details") {
                     TextField("Account Name", text: $name)
 
-                    switch accountType {
-                    case .bank:
+                    if accountType == .bank {
                         Picker("Bank", selection: $selectedBank) {
                             ForEach(popularBanks, id: \.self) { bank in
                                 Text(bank).tag(bank as String?)
                             }
                         }
                         TextField("Account Number (last 4 digits)", text: $accountNumber)
-
-                    case .cash:
+                    } else {
                         Picker("Sub Type", selection: $cashSubType) {
                             ForEach(CashSubType.allCases, id: \.self) { sub in
                                 Text(sub.rawValue.capitalized).tag(sub)
                             }
                         }
-
-                    case .psx:
-                        TextField("Broker Name", text: $brokerName)
                     }
                 }
 
                 Section("Balance") {
-                    if accountType == .psx {
-                        HStack {
-                            Text("Invested Amount")
-                            Spacer()
-                            TextField("0", text: $investedAmountString)
-                                .keyboardType(.decimalPad)
-                                .multilineTextAlignment(.trailing)
-                        }
-                    } else {
-                        HStack {
-                            Text("Initial Balance")
-                            Spacer()
-                            TextField("0", text: $initialBalanceString)
-                                .keyboardType(.decimalPad)
-                                .multilineTextAlignment(.trailing)
-                        }
+                    HStack {
+                        Text("Initial Balance")
+                        Spacer()
+                        TextField("0", text: $initialBalanceString)
+                            .keyboardType(.decimalPad)
+                            .multilineTextAlignment(.trailing)
                     }
                 }
 
@@ -103,7 +70,7 @@ struct CreateAccountView: View {
 
                 FormErrorSection(message: errorMessage)
             }
-            .navigationTitle("New Account")
+            .navigationTitle("New \(accountType == .bank ? "Bank" : "Cash") Account")
             .navigationBarTitleDisplayMode(.inline)
             .formToolbar(label: "Save", isDisabled: name.isEmpty) { saveAccount() }
         }
@@ -116,7 +83,6 @@ struct CreateAccountView: View {
         }
 
         let initialBalance = Decimal(string: initialBalanceString) ?? 0
-        let investedAmount = Decimal(string: investedAmountString) ?? 0
 
         let vm = vm ?? AccountViewModel(modelContext: modelContext)
         self.vm = vm
@@ -129,10 +95,7 @@ struct CreateAccountView: View {
                 cashSubType: accountType == .cash ? cashSubType : nil,
                 bankName: accountType == .bank ? selectedBank : nil,
                 accountNumber: accountNumber.isEmpty ? nil : accountNumber,
-                brokerName: brokerName.isEmpty ? nil : brokerName,
-                fundHouse: fundHouse.isEmpty ? nil : fundHouse,
-                initialBalance: accountType == .psx ? investedAmount : initialBalance,
-                investedAmount: accountType == .psx ? 0 : investedAmount,
+                initialBalance: initialBalance,
                 notes: notes.isEmpty ? nil : notes
             )
             dismiss()
@@ -140,8 +103,4 @@ struct CreateAccountView: View {
             errorMessage = "Failed to save account"
         }
     }
-}
-
-#Preview {
-    CreateAccountView()
 }

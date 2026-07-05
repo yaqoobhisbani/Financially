@@ -74,7 +74,7 @@ struct InvestmentsListView: View {
                 }
             }
             .sheet(isPresented: $showCreatePSX) {
-                CreateAccountView(allowedTypes: [.psx])
+                CreatePSXAccountView()
             }
         }
     }
