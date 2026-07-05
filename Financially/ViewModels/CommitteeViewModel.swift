@@ -39,13 +39,15 @@ final class CommitteeViewModel {
 
     // MARK: - Actions
 
-    func createCommittee(name: String, monthlyAmount: Decimal, totalMembers: Int, startMonth: Date, cyclePosition: Int?, monthsCompleted: Int = 0) {
+    func createCommittee(name: String, monthlyAmount: Decimal, totalMembers: Int, startMonth: Date, cyclePosition: Int?, mySlots: Int = 1, mySlotPositions: String? = nil, monthsCompleted: Int = 0) {
         let committee = Committee(
             name: name,
             monthlyAmount: monthlyAmount,
             totalMembers: totalMembers,
             startMonth: startMonth,
-            myCyclePosition: cyclePosition
+            myCyclePosition: cyclePosition,
+            mySlots: mySlots,
+            mySlotPositions: mySlotPositions
         )
         committee.monthsCompleted = monthsCompleted
         if monthsCompleted >= totalMembers {
@@ -55,16 +57,21 @@ final class CommitteeViewModel {
         try? modelContext.save()
     }
 
-    func payContribution(committee: Committee, sourceAccountId: UUID?, notes: String?) throws {
+    func payContribution(committee: Committee, sourceAccountId: UUID?, slots: Int = 1, notes: String?) throws {
         guard committee.monthsCompleted < committee.totalMembers else { return }
 
+        let amount = committee.monthlyAmount * Decimal(slots)
         let monthDate = currentCommitteeMonth(offset: committee.monthsCompleted, from: committee.startMonth)
+
+        let description = slots > 1
+            ? "Committee: \(committee.name) - \(slots) slots (Month \(committee.monthsCompleted + 1))"
+            : "Committee: \(committee.name) - Month \(committee.monthsCompleted + 1)"
 
         let request = TransactionRequest(
             type: .committeeContribution,
-            amount: committee.monthlyAmount,
+            amount: amount,
             date: Date(),
-            description: "Committee: \(committee.name) - Month \(committee.monthsCompleted + 1)",
+            description: description,
             sourceAccountId: sourceAccountId,
             relatedEntityId: committee.id
         )
@@ -74,8 +81,9 @@ final class CommitteeViewModel {
         let contribution = CommitteeContribution(
             committeeId: committee.id,
             month: monthDate,
-            amount: committee.monthlyAmount,
+            amount: amount,
             sourceAccountId: sourceAccountId,
+            slots: slots,
             notes: notes
         )
         modelContext.insert(contribution)

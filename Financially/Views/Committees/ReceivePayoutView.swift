@@ -87,8 +87,18 @@ struct ReceivePayoutView: View {
 
                 FormErrorSection(message: errorMessage)
             }
-            .navigationTitle("Receive Payout")
-            .formToolbar(label: "Receive", isDisabled: selectedAccountId == nil || amount.isEmpty) { receive() }
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") { dismiss() }
+                }
+                ToolbarItem(placement: .principal) {
+                    Text("Receive Payout").font(.headline)
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Receive") { receive() }
+                        .disabled(selectedAccountId == nil || amount.isEmpty)
+                }
+            }
             .sheet(isPresented: $showAccountPicker) {
                 AccountPickerView(
                     accounts: bankCashAccounts,

@@ -10,9 +10,18 @@ struct PayContributionView: View {
     @State private var selectedAccountId: UUID?
     @State private var selectedAccountName: String?
     @State private var isOutside = false
+    @State private var slots = 1
     @State private var notes = ""
     @State private var errorMessage: String?
     @State private var showAccountPicker = false
+
+    private var maxSlots: Int {
+        committee.mySlots
+    }
+
+    private var totalAmount: Decimal {
+        committee.monthlyAmount * Decimal(slots)
+    }
 
     private var bankCashAccounts: [Account] {
         let fetch = FetchDescriptor<Account>(predicate: #Predicate { $0.isActive })
@@ -56,14 +65,34 @@ struct PayContributionView: View {
                     )
                 }
 
+                Section("Slots / Amount") {
+                    Stepper("\(slots) slot\(slots == 1 ? "" : "s")", value: $slots, in: 1...maxSlots)
+                    HStack {
+                        Text("Total")
+                        Spacer()
+                        Text(totalAmount.formattedCurrency())
+                            .foregroundStyle(.primary)
+                    }
+                }
+
                 Section("Notes") {
                     TextField("Optional notes", text: $notes)
                 }
 
                 FormErrorSection(message: errorMessage)
             }
-            .navigationTitle("Pay Contribution")
-            .formToolbar(label: "Pay", isDisabled: (selectedAccountId == nil && !isOutside)) { pay() }
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") { dismiss() }
+                }
+                ToolbarItem(placement: .principal) {
+                    Text("Pay Contribution").font(.headline)
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Pay") { pay() }
+                        .disabled(selectedAccountId == nil && !isOutside)
+                }
+            }
             .sheet(isPresented: $showAccountPicker) {
                 AccountPickerView(
                     accounts: bankCashAccounts,
@@ -90,7 +119,7 @@ struct PayContributionView: View {
     private func pay() {
         guard selectedAccountId != nil || isOutside else { return }
         do {
-            try vm.payContribution(committee: committee, sourceAccountId: isOutside ? nil : selectedAccountId, notes: notes.isEmpty ? nil : notes)
+            try vm.payContribution(committee: committee, sourceAccountId: isOutside ? nil : selectedAccountId, slots: slots, notes: notes.isEmpty ? nil : notes)
             dismiss()
         } catch {
             errorMessage = (error as? ValidationError)?.localizedDescription ?? error.localizedDescription

@@ -25,7 +25,7 @@ struct CommitteeDetailView: View {
     }
 
     private var remainingPayout: Decimal {
-        max(0, committee.totalPayout - payouts.reduce(0) { $0 + $1.amount })
+        max(0, committee.myTotalPayout - payouts.reduce(0) { $0 + $1.amount })
     }
 
     var body: some View {
@@ -103,14 +103,27 @@ struct CommitteeDetailView: View {
     private var headerSection: some View {
         Section {
             VStack(spacing: 8) {
-                HStack {
-                    SummaryItem(title: "Monthly", value: committee.monthlyAmount.formattedCurrency())
-                    Spacer()
-                    SummaryItem(title: "Members", value: "\(committee.totalMembers)")
-                    Spacer()
-                    SummaryItem(title: "Payout", value: committee.totalPayout.formattedCurrency())
+                HStack(spacing: 0) {
+                    SummaryItem(title: "Monthly", value: committee.monthlyAmount.formattedCurrency(), alignment: .leading)
+                    SummaryItem(title: "Members", value: "\(committee.totalMembers)", alignment: .center)
+                    SummaryItem(title: "Payout", value: committee.totalPayout.formattedCurrency(), alignment: .trailing)
                 }
-                .padding(.vertical, 4)
+                if committee.mySlots > 1 {
+                    HStack(spacing: 0) {
+                        let label = committee.slotPositionList.isEmpty ? "\(committee.mySlots)" : committee.slotPositionList.map(String.init).joined(separator: ", ")
+                        SummaryItem(title: "My Slots", value: label, alignment: .leading)
+                        SummaryItem(title: "", value: "", alignment: .center)
+                        SummaryItem(title: "My Total", value: committee.myTotalPayout.formattedCurrency(), alignment: .trailing)
+                    }
+                    .padding(.vertical, 4)
+                } else if !committee.slotPositionList.isEmpty {
+                    HStack(spacing: 0) {
+                        SummaryItem(title: "My Slot", value: committee.slotPositionList.map(String.init).joined(separator: ", "), alignment: .leading)
+                        SummaryItem(title: "", value: "", alignment: .center)
+                        SummaryItem(title: "", value: "", alignment: .trailing)
+                    }
+                    .padding(.vertical, 4)
+                }
             }
         }
     }
@@ -127,7 +140,11 @@ struct CommitteeDetailView: View {
                         .font(.caption)
                         .foregroundStyle(.secondary)
                     Spacer()
-                    if let pos = committee.myCyclePosition {
+                    if !committee.slotPositionList.isEmpty {
+                        Text("My slot(s): \(committee.slotPositionList.map(String.init).joined(separator: ", "))")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    } else if let pos = committee.myCyclePosition {
                         Text("My slot: #\(pos)")
                             .font(.caption)
                             .foregroundStyle(.secondary)
@@ -172,6 +189,11 @@ struct CommitteeDetailView: View {
                     VStack(alignment: .leading, spacing: 2) {
                         Text(contribution.month, format: .dateTime.month().year())
                             .font(.subheadline)
+                        if let slotCount = contribution.slots, slotCount > 1 {
+                            Text("×\(slotCount) slots")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
                         if let notes = contribution.notes {
                             Text(notes)
                                 .font(.caption)
@@ -270,14 +292,16 @@ private let monthYearFormatter: DateFormatter = {
 struct SummaryItem: View {
     let title: String
     let value: String
+    var alignment: HorizontalAlignment = .center
 
     var body: some View {
-        VStack(spacing: 2) {
+        VStack(alignment: alignment, spacing: 2) {
             Text(title)
                 .font(.caption2)
                 .foregroundStyle(.secondary)
             Text(value)
                 .font(.caption.bold())
         }
+        .frame(maxWidth: .infinity, alignment: Alignment(horizontal: alignment, vertical: .center))
     }
 }

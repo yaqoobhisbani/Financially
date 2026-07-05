@@ -9,7 +9,8 @@ struct CreateCommitteeView: View {
     @State private var totalMembers = ""
     @State private var startMonth = Date()
     @State private var hasCyclePosition = false
-    @State private var cyclePosition = ""
+    @State private var slotPositions: [String] = [""]
+    @State private var mySlots = 1
     @State private var errorMessage: String?
 
     private var vm: CommitteeViewModel {
@@ -22,6 +23,10 @@ struct CreateCommitteeView: View {
         let now = calendar.dateComponents([.year, .month], from: Date())
         let total = (now.year! - start.year!) * 12 + (now.month! - start.month!)
         return max(0, total)
+    }
+
+    private var members: Int? {
+        Int(totalMembers).flatMap { $0 > 1 ? $0 : nil }
     }
 
     var body: some View {
@@ -63,26 +68,48 @@ struct CreateCommitteeView: View {
                     }
                 }
 
+                Section("My Slots") {
+                    Stepper("\(mySlots) slot\(mySlots == 1 ? "" : "s")", value: $mySlots, in: 1...max(members ?? 1, 1))
+                }
+
                 Section("My Cycle Position") {
-                    Toggle("Set my slot", isOn: $hasCyclePosition)
-                    if hasCyclePosition {
-                        HStack {
-                            Text("I am member #")
-                            Spacer()
-                            TextField("e.g. 3", text: $cyclePosition)
-                                .keyboardType(.numberPad)
-                                .multilineTextAlignment(.trailing)
-                                .frame(width: 60)
+                    Toggle("Set my slot number(s)", isOn: $hasCyclePosition)
+                        .onChange(of: hasCyclePosition) { _, on in
+                            if on {
+                                syncPositionsToSlots()
+                            }
                         }
+                    if hasCyclePosition {
+                        ForEach(0..<slotPositions.count, id: \.self) { index in
+                            HStack {
+                                Text("Slot \(index + 1) #")
+                                Spacer()
+                                TextField("member #", text: $slotPositions[index])
+                                    .keyboardType(.numberPad)
+                                    .multilineTextAlignment(.trailing)
+                                    .frame(width: 60)
+                            }
+                        }
+                    }
+                }
+                .onChange(of: mySlots) { _, _ in
+                    if hasCyclePosition {
+                        syncPositionsToSlots()
                     }
                 }
 
                 Section {
-                    if let members = Int(totalMembers), let amount = Decimal(string: monthlyAmount), members > 0 {
+                    if let m = members, let amount = Decimal(string: monthlyAmount), amount > 0 {
                         HStack {
-                            Text("Total Payout")
+                            Text("Payout per Slot")
                             Spacer()
-                            Text((amount * Decimal(members)).formattedCurrency())
+                            Text((amount * Decimal(m)).formattedCurrency())
+                                .foregroundStyle(.secondary)
+                        }
+                        HStack {
+                            Text("My Total Payout")
+                            Spacer()
+                            Text((amount * Decimal(m) * Decimal(mySlots)).formattedCurrency())
                                 .foregroundStyle(.secondary)
                         }
                     }
@@ -96,22 +123,32 @@ struct CreateCommitteeView: View {
         }
     }
 
+    private func syncPositionsToSlots() {
+        while slotPositions.count < mySlots {
+            slotPositions.append("")
+        }
+        if slotPositions.count > mySlots {
+            slotPositions = Array(slotPositions.prefix(mySlots))
+        }
+    }
+
     private func save() {
         guard let amount = Decimal(string: monthlyAmount), amount > 0 else {
             errorMessage = "Invalid monthly amount"
             return
         }
-        guard let members = Int(totalMembers), members > 1 else {
+        guard let totalMembers = members else {
             errorMessage = "Must have at least 2 members"
             return
         }
-        let position: Int?
-        if hasCyclePosition, let pos = Int(cyclePosition), pos > 0, pos <= members {
-            position = pos
+        let positionsString: String?
+        if hasCyclePosition {
+            let valid = slotPositions.compactMap { Int($0) }.filter { $0 >= 1 && $0 <= totalMembers }
+            positionsString = valid.isEmpty ? nil : valid.map(String.init).joined(separator: ",")
         } else {
-            position = nil
+            positionsString = nil
         }
-        vm.createCommittee(name: name, monthlyAmount: amount, totalMembers: members, startMonth: startMonth, cyclePosition: position, monthsCompleted: elapsedMonths)
+        vm.createCommittee(name: name, monthlyAmount: amount, totalMembers: totalMembers, startMonth: startMonth, cyclePosition: Int(positionsString?.split(separator: ",").first ?? ""), mySlots: mySlots, mySlotPositions: positionsString, monthsCompleted: elapsedMonths)
         dismiss()
     }
 }
