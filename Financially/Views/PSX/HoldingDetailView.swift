@@ -25,7 +25,7 @@ struct HoldingDetailView: View {
                             valueFont: .title.bold()
                         )
                         Spacer()
-                        SummaryMetricView(label: "Return") {
+                        SummaryMetricView(label: "Return", alignment: .trailing) {
                             PercentageText(value: holding.returnPercentage)
                                 .font(.title3.bold())
                                 .foregroundStyle(holding.unrealizedPAndL >= 0 ? .incomeGreen : .expenseRed)
@@ -34,13 +34,13 @@ struct HoldingDetailView: View {
 
                     Divider()
 
-                    HStack(alignment: .top, spacing: 16) {
-                        SummaryMetric(label: "Shares", value: "\(holding.totalShares)", alignment: .leading)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                        SummaryMetric(label: "Avg Cost", value: holding.avgCostPerShare.formattedCurrency(currency: account.currency), alignment: .center)
-                            .frame(maxWidth: .infinity, alignment: .center)
+                    HStack(alignment: .top) {
+                        HStack(spacing: 16) {
+                            SummaryMetric(label: "Shares", value: "\(holding.totalShares)", alignment: .leading)
+                            SummaryMetric(label: "Avg Cost", value: holding.avgCostPerShare.formattedCurrency(currency: account.currency), alignment: .leading)
+                        }
+                        Spacer()
                         SummaryMetric(label: "Total Cost", value: holding.totalCost.formattedCurrency(currency: account.currency), alignment: .trailing)
-                            .frame(maxWidth: .infinity, alignment: .trailing)
                     }
 
                     HStack(alignment: .top, spacing: 16) {

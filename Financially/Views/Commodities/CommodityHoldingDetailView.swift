@@ -32,13 +32,13 @@ struct CommodityHoldingDetailView: View {
 
                     Divider()
 
-                    HStack(alignment: .top, spacing: 16) {
-                        SummaryMetric(label: "Grams", value: holding.totalGrams.formattedNumber(), alignment: .leading)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                        SummaryMetric(label: "Avg Cost/g", value: holding.avgCostPerGram.formattedCurrency(), alignment: .center)
-                            .frame(maxWidth: .infinity, alignment: .center)
+                    HStack(alignment: .top) {
+                        HStack(spacing: 16) {
+                            SummaryMetric(label: "Grams", value: holding.totalGrams.formattedNumber(), alignment: .leading)
+                            SummaryMetric(label: "Avg Cost/g", value: holding.avgCostPerGram.formattedCurrency(), alignment: .leading)
+                        }
+                        Spacer()
                         SummaryMetric(label: "Total Cost", value: holding.totalCost.formattedCurrency(), alignment: .trailing)
-                            .frame(maxWidth: .infinity, alignment: .trailing)
                     }
 
                     HStack(alignment: .top, spacing: 16) {
