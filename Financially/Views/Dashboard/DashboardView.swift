@@ -143,9 +143,10 @@ struct DashboardView: View {
                 .font(.subheadline.bold())
                 .lineLimit(1)
             if account.accountType == .psx {
-                Text(vm.psxProfitLoss(account.id).formattedCurrency(currency: account.currency))
+                let pnl = vm.psxProfitLoss(account.id)
+                Text("\(pnl >= 0 ? "+" : "")\(pnl.formattedCurrency(currency: account.currency))")
                     .font(.caption)
-                    .foregroundStyle(vm.psxProfitLoss(account.id) >= 0 ? .incomeGreen : .expenseRed)
+                    .foregroundStyle(pnl >= 0 ? .incomeGreen : .expenseRed)
                     .lineLimit(1)
             } else if account.accountType == .bank {
                 if let acctNum = account.accountNumber, acctNum.count >= 4 {
@@ -166,7 +167,7 @@ struct DashboardView: View {
                     .lineLimit(1)
             }
         }
-        .frame(width: 120, height: 72, alignment: .top)
+        .frame(width: 120, height: 72, alignment: .center)
         .padding(10)
         .liquidGlassCard()
     }
