@@ -7,12 +7,12 @@ final class CommitteeContribution {
     var committeeId: UUID
     var month: Date
     var amount: Decimal
-    var sourceAccountId: UUID
+    var sourceAccountId: UUID?
     var paidAt: Date
     var transactionId: UUID?
     var notes: String?
 
-    init(committeeId: UUID, month: Date, amount: Decimal, sourceAccountId: UUID, notes: String? = nil) {
+    init(committeeId: UUID, month: Date, amount: Decimal, sourceAccountId: UUID?, notes: String? = nil) {
         self.id = UUID()
         self.committeeId = committeeId
         self.month = month

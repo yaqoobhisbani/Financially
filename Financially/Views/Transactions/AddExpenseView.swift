@@ -9,6 +9,7 @@ struct AddExpenseView: View {
 
     @Query private var accounts: [Account]
     @State private var sourceAccount: Account?
+    @State private var isOutside = false
     @State private var amount = ""
     @State private var category: Category?
     @State private var date = Date()
@@ -36,6 +37,8 @@ struct AddExpenseView: View {
                     AccountPickerButton(
                         label: "From",
                         accountName: sourceAccount?.name,
+                        placeholder: isOutside ? "Outside — No Account" : "Select account",
+                        isOutside: isOutside,
                         action: { showAccountPicker = true }
                     )
                 }
@@ -73,10 +76,16 @@ struct AddExpenseView: View {
                 FormErrorSection(message: errorMessage)
             }
             .navigationTitle("Add Expense")
-            .formToolbar(label: "Save", isDisabled: sourceAccount == nil || amount.isEmpty || category == nil) { saveExpense() }
+            .formToolbar(label: "Save", isDisabled: (sourceAccount == nil && !isOutside) || amount.isEmpty || category == nil) { saveExpense() }
             .sheet(isPresented: $showAccountPicker) {
-                AccountPickerView(accounts: accounts, title: "Select Account", filterType: nil) { account in
-                    sourceAccount = account
+                AccountPickerView(accounts: accounts, title: "Select Account", filterType: nil, showNoneOption: true) { account in
+                    if let account {
+                        sourceAccount = account
+                        isOutside = false
+                    } else {
+                        sourceAccount = nil
+                        isOutside = true
+                    }
                 }
             }
             .sheet(isPresented: $showCategoryPicker) {
@@ -106,7 +115,7 @@ struct AddExpenseView: View {
     }
 
     private func saveExpense() {
-        guard let account = sourceAccount, let amountValue = Decimal(string: amount), amountValue > 0 else {
+        guard let amountValue = Decimal(string: amount), amountValue > 0 else {
             errorMessage = "Please enter a valid amount"
             return
         }
@@ -118,7 +127,7 @@ struct AddExpenseView: View {
             date: date,
             category: category?.name,
             description: description.isEmpty ? nil : description,
-            sourceAccountId: account.id
+            sourceAccountId: isOutside ? nil : sourceAccount?.id
         )
 
         do {

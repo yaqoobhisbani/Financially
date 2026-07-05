@@ -170,6 +170,7 @@ struct PSXAddCashView: View {
 
     @Query private var accounts: [Account]
     @State private var sourceAccount: Account?
+    @State private var isOutside = false
     @State private var amount = ""
     @State private var date = Date()
     @State private var showAccountPicker = false
@@ -179,18 +180,13 @@ struct PSXAddCashView: View {
         NavigationStack {
             Form {
                 Section("Source Account") {
-                    Button(action: { showAccountPicker = true }) {
-                        HStack {
-                            Text("From")
-                            Spacer()
-                            if let account = sourceAccount {
-                                Text(account.name).foregroundStyle(.primary)
-                            } else {
-                                Text("Select account").foregroundStyle(.secondary)
-                            }
-                            Image(systemName: "chevron.right").font(.caption).foregroundStyle(.secondary)
-                        }
-                    }
+                    AccountPickerButton(
+                        label: "From",
+                        accountName: sourceAccount?.name,
+                        placeholder: isOutside ? "Outside — No Account" : "Select account",
+                        isOutside: isOutside,
+                        action: { showAccountPicker = true }
+                    )
                 }
 
                 Section("Amount") {
@@ -202,17 +198,22 @@ struct PSXAddCashView: View {
                 FormErrorSection(message: errorMessage)
             }
             .navigationTitle("Add Cash")
-            .formToolbar(label: "Add", isDisabled: sourceAccount == nil || amount.isEmpty) { save() }
+            .formToolbar(label: "Add", isDisabled: (sourceAccount == nil && !isOutside) || amount.isEmpty) { save() }
             .sheet(isPresented: $showAccountPicker) {
-                AccountPickerView(accounts: accounts, title: "Select Source", filterType: nil) { account in
-                    sourceAccount = account
+                AccountPickerView(accounts: accounts, title: "Select Source", filterType: nil, showNoneOption: true) { account in
+                    if let account {
+                        sourceAccount = account
+                        isOutside = false
+                    } else {
+                        sourceAccount = nil
+                        isOutside = true
+                    }
                 }
             }
         }
     }
 
     private func save() {
-        guard let source = sourceAccount else { errorMessage = "Please select a source account"; return }
         guard let amountValue = Decimal(string: amount), amountValue > 0 else { errorMessage = "Please enter a valid amount"; return }
 
         let service = LedgerService(modelContext: modelContext)
@@ -221,7 +222,7 @@ struct PSXAddCashView: View {
             amount: amountValue,
             date: date,
             description: "Add cash to PSX account",
-            sourceAccountId: source.id,
+            sourceAccountId: isOutside ? nil : sourceAccount?.id,
             destinationAccountId: account.id
         )
         do {

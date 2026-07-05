@@ -52,6 +52,7 @@ struct TransferView: View {
             .formToolbar(label: "Transfer", isDisabled: sourceAccount == nil || destinationAccount == nil || amount.isEmpty) { saveTransfer() }
             .sheet(isPresented: $showSourcePicker) {
                 AccountPickerView(accounts: accounts, title: "Select Source", filterType: nil) { account in
+                    guard let account else { return }
                     guard account.accountType == .bank || account.accountType == .cash else {
                         errorMessage = "Can only transfer from Bank or Cash accounts."
                         return
@@ -61,6 +62,7 @@ struct TransferView: View {
             }
             .sheet(isPresented: $showDestPicker) {
                 AccountPickerView(accounts: accounts, title: "Select Destination", filterType: nil) { account in
+                    guard let account else { return }
                     guard account.accountType == .bank || account.accountType == .cash else {
                         errorMessage = "Can only transfer to Bank or Cash accounts. Use Add Cash in PSX view instead."
                         return

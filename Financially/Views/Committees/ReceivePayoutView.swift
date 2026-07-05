@@ -95,6 +95,7 @@ struct ReceivePayoutView: View {
                     title: "Select Account",
                     filterType: nil,
                     onSelect: { account in
+                        guard let account else { return }
                         selectedAccountId = account.id
                         selectedAccountName = account.name
                         showAccountPicker = false

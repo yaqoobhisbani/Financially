@@ -55,7 +55,7 @@ final class CommitteeViewModel {
         try? modelContext.save()
     }
 
-    func payContribution(committee: Committee, sourceAccountId: UUID, notes: String?) throws {
+    func payContribution(committee: Committee, sourceAccountId: UUID?, notes: String?) throws {
         guard committee.monthsCompleted < committee.totalMembers else { return }
 
         let monthDate = currentCommitteeMonth(offset: committee.monthsCompleted, from: committee.startMonth)

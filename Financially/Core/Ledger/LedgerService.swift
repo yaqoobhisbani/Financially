@@ -7,7 +7,7 @@ struct TransactionRequest {
     var date: Date
     var category: String?
     var description: String?
-    var sourceAccountId: UUID
+    var sourceAccountId: UUID?
     var destinationAccountId: UUID?
     var relatedEntityId: UUID?
 }
@@ -23,8 +23,14 @@ struct LedgerService {
     }
 
     func execute(_ request: TransactionRequest) throws {
-        guard let sourceAccount = fetchAccount(request.sourceAccountId) else {
-            throw ValidationError.accountNotFound(request.sourceAccountId)
+        let sourceAccount: Account?
+        if let sourceId = request.sourceAccountId {
+            guard let account = fetchAccount(sourceId) else {
+                throw ValidationError.accountNotFound(sourceId)
+            }
+            sourceAccount = account
+        } else {
+            sourceAccount = nil
         }
 
         var destinationAccount: Account?
@@ -56,50 +62,82 @@ struct LedgerService {
 
         switch request.type {
         case .expense:
-            createExpenseEntries(transaction: transaction, source: sourceAccount)
+            guard let source = sourceAccount else { return }
+            createExpenseEntries(transaction: transaction, source: source)
+            source.updatedAt = Date()
 
         case .income:
-            createIncomeEntries(transaction: transaction, destination: sourceAccount)
+            guard let source = sourceAccount else { return }
+            createIncomeEntries(transaction: transaction, destination: source)
+            source.updatedAt = Date()
 
         case .transfer:
-            guard let dest = destinationAccount else { throw ValidationError.accountNotFound(UUID()) }
-            createTransferEntries(transaction: transaction, source: sourceAccount, destination: dest)
+            guard let source = sourceAccount, let dest = destinationAccount else { throw ValidationError.accountNotFound(UUID()) }
+            createTransferEntries(transaction: transaction, source: source, destination: dest)
+            source.updatedAt = Date()
+            dest.updatedAt = Date()
 
         case .investmentAddCapital:
             guard let dest = destinationAccount else { throw ValidationError.accountNotFound(UUID()) }
-            createAddCapitalEntries(transaction: transaction, source: sourceAccount, investment: dest)
+            if let source = sourceAccount {
+                createAddCapitalEntries(transaction: transaction, source: source, investment: dest)
+                source.updatedAt = Date()
+            } else {
+                createIncomeEntries(transaction: transaction, destination: dest)
+            }
+            dest.updatedAt = Date()
 
         case .investmentWithdrawal:
-            guard let dest = destinationAccount else { throw ValidationError.accountNotFound(UUID()) }
-            createWithdrawalEntries(transaction: transaction, investment: sourceAccount, destination: dest)
+            guard let source = sourceAccount, let dest = destinationAccount else { throw ValidationError.accountNotFound(UUID()) }
+            createWithdrawalEntries(transaction: transaction, investment: source, destination: dest)
+            source.updatedAt = Date()
+            dest.updatedAt = Date()
 
         case .loanGiven:
-            createLoanGivenEntries(transaction: transaction, source: sourceAccount)
+            guard let source = sourceAccount else { return }
+            createLoanGivenEntries(transaction: transaction, source: source)
+            source.updatedAt = Date()
 
         case .loanRepayment:
             guard let dest = destinationAccount else { throw ValidationError.accountNotFound(UUID()) }
             createLoanRepaymentEntries(transaction: transaction, destination: dest)
+            dest.updatedAt = Date()
 
         case .liabilityReceived:
             guard let dest = destinationAccount else { throw ValidationError.accountNotFound(UUID()) }
             createLiabilityReceivedEntries(transaction: transaction, destination: dest)
+            dest.updatedAt = Date()
 
         case .liabilityPayback:
-            createLiabilityPaybackEntries(transaction: transaction, source: sourceAccount)
+            guard let source = sourceAccount else { return }
+            createLiabilityPaybackEntries(transaction: transaction, source: source)
+            source.updatedAt = Date()
 
         case .investmentProfitLoss:
-            createProfitLossEntries(transaction: transaction, investment: sourceAccount)
+            guard let source = sourceAccount else { return }
+            createProfitLossEntries(transaction: transaction, investment: source)
+            source.updatedAt = Date()
 
         case .committeeContribution:
-            createExpenseEntries(transaction: transaction, source: sourceAccount)
+            guard let source = sourceAccount else { return }
+            createExpenseEntries(transaction: transaction, source: source)
+            source.updatedAt = Date()
 
         case .committeePayout:
             guard let dest = destinationAccount else { throw ValidationError.accountNotFound(UUID()) }
             createIncomeEntries(transaction: transaction, destination: dest)
-        }
+            dest.updatedAt = Date()
 
-        sourceAccount.updatedAt = Date()
-        destinationAccount?.updatedAt = Date()
+        case .commodityBuy:
+            guard let source = sourceAccount else { return }
+            createExpenseEntries(transaction: transaction, source: source)
+            source.updatedAt = Date()
+
+        case .commoditySell:
+            guard let source = sourceAccount else { return }
+            createIncomeEntries(transaction: transaction, destination: source)
+            source.updatedAt = Date()
+        }
     }
 
     // MARK: - Entry Creators

@@ -75,6 +75,12 @@ struct LedgerManager {
 
         case .committeePayout:
             destination?.currentBalance -= amount
+
+        case .commodityBuy:
+            source?.currentBalance += amount
+
+        case .commoditySell:
+            source?.currentBalance -= amount
         }
 
         source?.updatedAt = Date()

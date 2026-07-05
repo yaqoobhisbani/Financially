@@ -7,6 +7,8 @@ struct SellCommodityView: View {
 
     @State private var vm: CommodityTradeViewModel?
     @State private var selectedHolding: CommodityHolding?
+    @State private var destinationAccount: Account?
+    @State private var isOutside = false
     @State private var grams = ""
     @State private var pricePerGram = ""
     @State private var brokerageFee = ""
@@ -15,9 +17,11 @@ struct SellCommodityView: View {
     @State private var notes = ""
     @State private var errorMessage: String?
     @State private var showHoldingPicker = false
+    @State private var showAccountPicker = false
 
     @Query(sort: \CommodityInfo.name) private var commodityList: [CommodityInfo]
     @Query private var allHoldings: [CommodityHolding]
+    @Query private var accounts: [Account]
 
     private var activeHoldings: [CommodityHolding] {
         allHoldings.filter { $0.totalGrams > 0 }
@@ -41,6 +45,16 @@ struct SellCommodityView: View {
                             Image(systemName: "chevron.right").font(.caption).foregroundStyle(.secondary)
                         }
                     }
+                }
+
+                Section("To Account") {
+                    AccountPickerButton(
+                        label: "To",
+                        accountName: destinationAccount?.name,
+                        placeholder: isOutside ? "Outside — No Account" : "Select account",
+                        isOutside: isOutside,
+                        action: { showAccountPicker = true }
+                    )
                 }
 
                 Section("Trade Details") {
@@ -78,18 +92,32 @@ struct SellCommodityView: View {
             }
             .navigationTitle("Sell Commodity")
             .navigationBarTitleDisplayMode(.inline)
-            .formToolbar(label: "Sell", isDisabled: selectedHolding == nil || grams.isEmpty || pricePerGram.isEmpty) { save() }
+            .formToolbar(label: "Sell", isDisabled: selectedHolding == nil || grams.isEmpty || pricePerGram.isEmpty || (destinationAccount == nil && !isOutside)) { save() }
             .sheet(isPresented: $showHoldingPicker) { holdingPicker }
+            .sheet(isPresented: $showAccountPicker) {
+                AccountPickerView(accounts: accounts, title: "Select Account", filterType: nil, showNoneOption: true) { account in
+                    if let account {
+                        destinationAccount = account
+                        isOutside = false
+                    } else {
+                        destinationAccount = nil
+                        isOutside = true
+                    }
+                }
+            }
         }
     }
 
     private var holdingPicker: some View {
         NavigationStack {
             List(activeHoldings) { holding in
-                Button {
-                    selectedHolding = holding
-                    showHoldingPicker = false
-                } label: {
+                    Button {
+                        selectedHolding = holding
+                        if let rate = commodityList.first(where: { $0.name == holding.commodityName })?.currentRatePerGram, rate > 0 {
+                            pricePerGram = "\(rate)"
+                        }
+                        showHoldingPicker = false
+                    } label: {
                     HStack {
                         VStack(alignment: .leading) {
                             Text(holding.commodityName).font(.headline)
@@ -126,6 +154,21 @@ struct SellCommodityView: View {
         guard gramsVal <= holding.totalGrams else { errorMessage = "Cannot sell more grams than you hold"; return }
         guard let price = priceValue, price > 0 else { errorMessage = "Please enter a valid price per gram"; return }
         guard let proceeds = netProceeds, proceeds > 0 else { errorMessage = "Net proceeds must be positive"; return }
+
+        let ledger = LedgerService(modelContext: modelContext)
+        let request = TransactionRequest(
+            type: .commoditySell,
+            amount: proceeds,
+            date: date,
+            description: "Sell \(holding.commodityName) (\(gramsVal.formattedNumber())g)",
+            sourceAccountId: isOutside ? nil : destinationAccount?.id
+        )
+        do {
+            try ledger.execute(request)
+        } catch {
+            errorMessage = error.localizedDescription
+            return
+        }
 
         let vm = vm ?? CommodityTradeViewModel(modelContext: modelContext, commodityList: commodityList, holdings: allHoldings)
         self.vm = vm

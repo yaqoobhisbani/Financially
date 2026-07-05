@@ -13,10 +13,12 @@ enum TransactionType: String, Codable {
     case investmentProfitLoss
     case committeeContribution
     case committeePayout
+    case commodityBuy
+    case commoditySell
 }
 
 extension TransactionType: @retroactive CaseIterable {
     public static var allCases: [TransactionType] {
-        [.income, .expense, .transfer, .loanGiven, .loanRepayment, .liabilityReceived, .liabilityPayback, .investmentWithdrawal, .investmentAddCapital, .investmentProfitLoss, .committeeContribution, .committeePayout]
+        [.income, .expense, .transfer, .loanGiven, .loanRepayment, .liabilityReceived, .liabilityPayback, .investmentWithdrawal, .investmentAddCapital, .investmentProfitLoss, .committeeContribution, .committeePayout, .commodityBuy, .commoditySell]
     }
 }

@@ -9,6 +9,7 @@ struct PayContributionView: View {
 
     @State private var selectedAccountId: UUID?
     @State private var selectedAccountName: String?
+    @State private var isOutside = false
     @State private var notes = ""
     @State private var errorMessage: String?
     @State private var showAccountPicker = false
@@ -49,6 +50,8 @@ struct PayContributionView: View {
                     AccountPickerButton(
                         label: "Pay From",
                         accountName: selectedAccountName,
+                        placeholder: isOutside ? "Outside — No Account" : "Select account",
+                        isOutside: isOutside,
                         action: { showAccountPicker = true }
                     )
                 }
@@ -60,26 +63,34 @@ struct PayContributionView: View {
                 FormErrorSection(message: errorMessage)
             }
             .navigationTitle("Pay Contribution")
-            .formToolbar(label: "Pay", isDisabled: selectedAccountId == nil) { pay() }
+            .formToolbar(label: "Pay", isDisabled: (selectedAccountId == nil && !isOutside)) { pay() }
             .sheet(isPresented: $showAccountPicker) {
                 AccountPickerView(
                     accounts: bankCashAccounts,
                     title: "Select Account",
                     filterType: nil,
                     onSelect: { account in
-                        selectedAccountId = account.id
-                        selectedAccountName = account.name
+                        if let account {
+                            selectedAccountId = account.id
+                            selectedAccountName = account.name
+                            isOutside = false
+                        } else {
+                            selectedAccountId = nil
+                            selectedAccountName = nil
+                            isOutside = true
+                        }
                         showAccountPicker = false
-                    }
+                    },
+                    showNoneOption: true
                 )
             }
         }
     }
 
     private func pay() {
-        guard let accountId = selectedAccountId else { return }
+        guard selectedAccountId != nil || isOutside else { return }
         do {
-            try vm.payContribution(committee: committee, sourceAccountId: accountId, notes: notes.isEmpty ? nil : notes)
+            try vm.payContribution(committee: committee, sourceAccountId: isOutside ? nil : selectedAccountId, notes: notes.isEmpty ? nil : notes)
             dismiss()
         } catch {
             errorMessage = (error as? ValidationError)?.localizedDescription ?? error.localizedDescription

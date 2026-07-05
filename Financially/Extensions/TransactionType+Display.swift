@@ -15,6 +15,8 @@ extension TransactionType {
         case .investmentProfitLoss: return "P&L"
         case .committeeContribution: return "Committee"
         case .committeePayout: return "Committee Payout"
+        case .commodityBuy: return "Buy Commodity"
+        case .commoditySell: return "Sell Commodity"
         }
     }
 
@@ -32,6 +34,8 @@ extension TransactionType {
         case .investmentProfitLoss: return "chart.line.uptrend.xyaxis"
         case .committeeContribution: return "person.2.fill"
         case .committeePayout: return "person.2.wave.2.fill"
+        case .commodityBuy: return "shippingbox"
+        case .commoditySell: return "shippingbox"
         }
     }
 
@@ -44,12 +48,15 @@ extension TransactionType {
         case .investmentProfitLoss: return .purple
         case .committeeContribution: return .orange
         case .committeePayout: return .green
+        case .commodityBuy: return .brown
+        case .commoditySell: return .brown
         }
     }
 
     var amountColor: Color {
         switch self {
         case .income, .loanRepayment, .liabilityReceived, .committeePayout: return .incomeGreen
+        case .commoditySell: return .incomeGreen
         default: return .expenseRed
         }
     }

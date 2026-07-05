@@ -7,9 +7,12 @@ struct BuyCommodityView: View {
 
     @Query(sort: \CommodityInfo.name) private var commodityList: [CommodityInfo]
     @Query private var allHoldings: [CommodityHolding]
+    @Query private var accounts: [Account]
 
     @State private var vm: CommodityTradeViewModel?
     @State private var selectedCommodity: CommodityInfo?
+    @State private var sourceAccount: Account?
+    @State private var isOutside = false
     @State private var grams = ""
     @State private var pricePerGram = ""
     @State private var brokerageFee = ""
@@ -18,6 +21,7 @@ struct BuyCommodityView: View {
     @State private var notes = ""
     @State private var errorMessage: String?
     @State private var showCommodityPicker = false
+    @State private var showAccountPicker = false
 
     var body: some View {
         NavigationStack {
@@ -41,6 +45,16 @@ struct BuyCommodityView: View {
                                 .foregroundStyle(.secondary)
                         }
                     }
+                }
+
+                Section("From Account") {
+                    AccountPickerButton(
+                        label: "From",
+                        accountName: sourceAccount?.name,
+                        placeholder: isOutside ? "Outside — No Account" : "Select account",
+                        isOutside: isOutside,
+                        action: { showAccountPicker = true }
+                    )
                 }
 
                 Section("Trade Details") {
@@ -83,8 +97,19 @@ struct BuyCommodityView: View {
             }
             .navigationTitle("Buy Commodity")
             .navigationBarTitleDisplayMode(.inline)
-            .formToolbar(label: "Buy", isDisabled: selectedCommodity == nil || grams.isEmpty || pricePerGram.isEmpty) { save() }
+            .formToolbar(label: "Buy", isDisabled: selectedCommodity == nil || grams.isEmpty || pricePerGram.isEmpty || (sourceAccount == nil && !isOutside)) { save() }
             .sheet(isPresented: $showCommodityPicker) { commodityPicker }
+            .sheet(isPresented: $showAccountPicker) {
+                AccountPickerView(accounts: accounts, title: "Select Account", filterType: nil, showNoneOption: true) { account in
+                    if let account {
+                        sourceAccount = account
+                        isOutside = false
+                    } else {
+                        sourceAccount = nil
+                        isOutside = true
+                    }
+                }
+            }
         }
     }
 
@@ -135,6 +160,21 @@ struct BuyCommodityView: View {
         guard let gramsVal = gramsValue, gramsVal > 0 else { errorMessage = "Please enter a valid number of grams"; return }
         guard let price = priceValue, price > 0 else { errorMessage = "Please enter a valid price per gram"; return }
         guard let net = netAmount, net > 0 else { errorMessage = "Please enter valid amounts"; return }
+
+        let ledger = LedgerService(modelContext: modelContext)
+        let request = TransactionRequest(
+            type: .commodityBuy,
+            amount: net,
+            date: date,
+            description: "Buy \(commodity.name) (\(gramsVal.formattedNumber())g)",
+            sourceAccountId: isOutside ? nil : sourceAccount?.id
+        )
+        do {
+            try ledger.execute(request)
+        } catch {
+            errorMessage = error.localizedDescription
+            return
+        }
 
         let vm = vm ?? CommodityTradeViewModel(modelContext: modelContext, commodityList: commodityList, holdings: allHoldings)
         self.vm = vm

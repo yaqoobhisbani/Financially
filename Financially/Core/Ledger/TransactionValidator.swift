@@ -24,7 +24,7 @@ struct TransactionValidator {
         self.modelContext = modelContext
     }
 
-    func validate(transaction: Transaction, accounts sourceAccount: Account, destination destinationAccount: Account? = nil) throws(ValidationError) {
+    func validate(transaction: Transaction, accounts sourceAccount: Account?, destination destinationAccount: Account? = nil) throws(ValidationError) {
         guard transaction.amount > 0 else {
             throw .amountMustBePositive
         }
@@ -33,8 +33,10 @@ struct TransactionValidator {
             throw .futureDateNotAllowed
         }
 
-        guard sourceAccount.isActive else {
-            throw .accountNotActive(sourceAccount.id)
+        if let source = sourceAccount {
+            guard source.isActive else {
+                throw .accountNotActive(source.id)
+            }
         }
 
         if let destination = destinationAccount {
@@ -43,53 +45,55 @@ struct TransactionValidator {
             }
         }
 
+        guard let source = sourceAccount else { return }
+
         switch transaction.type {
         case .expense:
-            guard sourceAccount.accountType == .bank || sourceAccount.accountType == .cash else {
+            guard source.accountType == .bank || source.accountType == .cash else {
                 throw .accountTypeMismatch
             }
-            try validateSufficientBalance(account: sourceAccount, amount: transaction.amount)
+            try validateSufficientBalance(account: source, amount: transaction.amount)
 
         case .income:
-            guard sourceAccount.accountType == .bank || sourceAccount.accountType == .cash else {
+            guard source.accountType == .bank || source.accountType == .cash else {
                 throw .accountTypeMismatch
             }
 
         case .transfer:
             guard let dest = destinationAccount else { throw .accountNotFound(UUID()) }
-            guard sourceAccount.id != dest.id else { throw .selfTransfer }
+            guard source.id != dest.id else { throw .selfTransfer }
             guard dest.accountType == .bank || dest.accountType == .cash else {
                 throw .transferToInvestmentAccount
             }
-            try validateSufficientBalance(account: sourceAccount, amount: transaction.amount)
+            try validateSufficientBalance(account: source, amount: transaction.amount)
 
         case .investmentAddCapital:
             guard let dest = destinationAccount else { throw .accountNotFound(UUID()) }
             guard dest.accountType == .psx else {
                 throw .accountTypeMismatch
             }
-            guard sourceAccount.accountType == .bank || sourceAccount.accountType == .cash else {
+            guard source.accountType == .bank || source.accountType == .cash else {
                 throw .accountTypeMismatch
             }
-            try validateSufficientBalance(account: sourceAccount, amount: transaction.amount)
+            try validateSufficientBalance(account: source, amount: transaction.amount)
 
         case .investmentWithdrawal:
-            guard sourceAccount.accountType == .psx else {
+            guard source.accountType == .psx else {
                 throw .accountTypeMismatch
             }
             guard let dest = destinationAccount else { throw .accountNotFound(UUID()) }
             guard dest.accountType == .bank || dest.accountType == .cash else {
                 throw .invalidWithdrawalDestination
             }
-            guard transaction.amount <= sourceAccount.currentValue else {
-                throw .investmentWithdrawalCap(accountName: sourceAccount.name, currentValue: sourceAccount.currentValue, requested: transaction.amount)
+            guard transaction.amount <= source.currentValue else {
+                throw .investmentWithdrawalCap(accountName: source.name, currentValue: source.currentValue, requested: transaction.amount)
             }
 
         case .loanGiven:
-            guard sourceAccount.accountType == .bank || sourceAccount.accountType == .cash else {
+            guard source.accountType == .bank || source.accountType == .cash else {
                 throw .accountTypeMismatch
             }
-            try validateSufficientBalance(account: sourceAccount, amount: transaction.amount)
+            try validateSufficientBalance(account: source, amount: transaction.amount)
 
         case .loanRepayment:
             guard let dest = destinationAccount else { throw .accountNotFound(UUID()) }
@@ -104,25 +108,36 @@ struct TransactionValidator {
             }
 
         case .liabilityPayback:
-            guard sourceAccount.accountType == .bank || sourceAccount.accountType == .cash else {
+            guard source.accountType == .bank || source.accountType == .cash else {
                 throw .accountTypeMismatch
             }
-            try validateSufficientBalance(account: sourceAccount, amount: transaction.amount)
+            try validateSufficientBalance(account: source, amount: transaction.amount)
 
         case .investmentProfitLoss:
-            guard sourceAccount.accountType == .psx else {
+            guard source.accountType == .psx else {
                 throw .accountTypeMismatch
             }
 
         case .committeeContribution:
-            guard sourceAccount.accountType == .bank || sourceAccount.accountType == .cash else {
+            guard source.accountType == .bank || source.accountType == .cash else {
                 throw .accountTypeMismatch
             }
-            try validateSufficientBalance(account: sourceAccount, amount: transaction.amount)
+            try validateSufficientBalance(account: source, amount: transaction.amount)
 
         case .committeePayout:
             guard let dest = destinationAccount else { throw .accountNotFound(UUID()) }
             guard dest.accountType == .bank || dest.accountType == .cash else {
+                throw .accountTypeMismatch
+            }
+
+        case .commodityBuy:
+            guard source.accountType == .bank || source.accountType == .cash else {
+                throw .accountTypeMismatch
+            }
+            try validateSufficientBalance(account: source, amount: transaction.amount)
+
+        case .commoditySell:
+            guard source.accountType == .bank || source.accountType == .cash else {
                 throw .accountTypeMismatch
             }
         }

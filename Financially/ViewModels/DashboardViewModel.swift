@@ -112,13 +112,13 @@ final class DashboardViewModel {
 
     private var incomeThisMonth: Decimal {
         allTransactions.filter { $0.date.isInCurrentMonth }
-            .filter { $0.type == .income || $0.type == .committeePayout }
+            .filter { $0.type == .income || $0.type == .committeePayout || $0.type == .commoditySell }
             .reduce(0) { $0 + $1.amount }
     }
 
     private var expenseThisMonth: Decimal {
         allTransactions.filter { $0.date.isInCurrentMonth }
-            .filter { $0.type == .expense || $0.type == .committeeContribution }
+            .filter { $0.type == .expense || $0.type == .committeeContribution || $0.type == .commodityBuy }
             .reduce(0) { $0 + $1.amount }
     }
 
@@ -151,8 +151,8 @@ final class DashboardViewModel {
             let monthStart = calendar.date(from: calendar.dateComponents([.year, .month], from: calendar.date(byAdding: .month, value: -monthsAgo, to: now)!))!
             let monthEnd = calendar.date(byAdding: DateComponents(month: 1, day: -1), to: monthStart)!
             let monthlyTxs = allTransactions.filter { $0.date >= monthStart && $0.date <= monthEnd }
-            let income = monthlyTxs.filter { $0.type == .income || $0.type == .committeePayout }.reduce(0) { $0 + $1.amount }
-            let expense = monthlyTxs.filter { $0.type == .expense || $0.type == .committeeContribution }.reduce(0) { $0 + $1.amount }
+            let income = monthlyTxs.filter { $0.type == .income || $0.type == .committeePayout || $0.type == .commoditySell }.reduce(0) { $0 + $1.amount }
+            let expense = monthlyTxs.filter { $0.type == .expense || $0.type == .committeeContribution || $0.type == .commodityBuy }.reduce(0) { $0 + $1.amount }
             return MonthlyComparison(month: monthStart, income: income, expense: expense)
         }
     }

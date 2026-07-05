@@ -26,6 +26,7 @@ struct CommodityInfoManagementView: View {
                 HStack {
                     Text(commodity.name)
                         .font(.headline)
+                        .foregroundStyle(.primary)
                     Spacer()
                     VStack(alignment: .trailing) {
                         Button {
@@ -34,12 +35,13 @@ struct CommodityInfoManagementView: View {
                         } label: {
                             Text(commodity.currentRatePerGram.formattedCurrency())
                                 .font(.subheadline.weight(.medium))
-                                .foregroundStyle(.primary)
                         }
+                        .buttonStyle(.plain)
                         Text("per gram")
                             .font(.caption2)
                             .foregroundStyle(.tertiary)
                     }
+                    .foregroundStyle(.primary)
                 }
             }
         }
