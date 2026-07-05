@@ -72,7 +72,7 @@ struct PSXAccountDetailView: View {
                     ],
                     [
                         AnyView(SummaryMetric(label: "Total Cost", value: vm.totalCostBasis.formattedCurrency(currency: account.currency))),
-                        AnyView(SummaryMetricView(label: "Return") { PercentageText(value: vm.totalPAndLPercentage).foregroundStyle(vm.totalUnrealizedPAndL >= 0 ? .incomeGreen : .expenseRed) })
+                        AnyView(SummaryMetricView(label: "Return", alignment: .trailing) { PercentageText(value: vm.totalPAndLPercentage).foregroundStyle(vm.totalUnrealizedPAndL >= 0 ? .incomeGreen : .expenseRed) })
                     ]
                 ]
             )
