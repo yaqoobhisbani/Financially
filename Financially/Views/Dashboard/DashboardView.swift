@@ -35,7 +35,6 @@ struct DashboardView: View {
                 if vm.monthlyExpense > 0 { expenseChartWidget(vm) }
                 if !vm.recentTransactions.isEmpty { recentTransactionsSection(vm) }
             }
-            .padding()
         }
         .scrollClipDisabled(true)
         .background(Color(.systemGroupedBackground))
@@ -95,6 +94,7 @@ struct DashboardView: View {
                 color: .expenseRed
             )
         }
+        .padding(.horizontal)
     }
 
     // MARK: - Accounts Overview
@@ -115,8 +115,8 @@ struct DashboardView: View {
                 }
             }
             .scrollClipDisabled(true)
-            .contentMargins(.horizontal, 0)
         }
+        .padding(.horizontal)
     }
 
     private func accountCard(_ account: Account, _ vm: DashboardViewModel) -> some View {
@@ -200,6 +200,7 @@ struct DashboardView: View {
                         .buttonStyle(.plain)
                     }
                 }
+                .padding(.horizontal)
             }
         }
     }
@@ -275,6 +276,7 @@ struct DashboardView: View {
                 color: .teal
             )
         }
+        .padding(.horizontal)
     }
 
     private func activeWidget(title: String, count: Int, total: Decimal, icon: String, color: Color) -> some View {
