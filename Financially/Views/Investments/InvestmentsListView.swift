@@ -84,14 +84,32 @@ struct InvestmentsListView: View {
     private var psxSection: some View {
         List {
             if psxAccounts.isEmpty {
-                Text("No PSX accounts yet. Tap + to create one.")
-                    .foregroundStyle(.secondary)
-                    .frame(maxWidth: .infinity, alignment: .center)
-                    .padding()
-            }
-            ForEach(psxAccounts) { account in
-                NavigationLink(destination: AccountDetailView(account: account)) {
-                    PSXAccountRowView(account: account, holdings: allHoldings)
+                Section {
+                    VStack(spacing: 12) {
+                        Image("PSXLogo")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 40, height: 40)
+                            .clipShape(RoundedRectangle(cornerRadius: 8))
+                        Text("No PSX Accounts")
+                            .font(.headline)
+                        Text("Create a PSX account to track your stock investments and portfolio")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                            .multilineTextAlignment(.center)
+                        Button("Add PSX Account") {
+                            showCreatePSX = true
+                        }
+                        .buttonStyle(.bordered)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 40)
+                }
+            } else {
+                ForEach(psxAccounts) { account in
+                    NavigationLink(destination: AccountDetailView(account: account)) {
+                        PSXAccountRowView(account: account, holdings: allHoldings)
+                    }
                 }
             }
         }

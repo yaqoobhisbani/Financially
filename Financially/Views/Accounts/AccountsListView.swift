@@ -39,10 +39,7 @@ struct AccountsListView: View {
 
                 List {
                     if filteredAccounts.isEmpty {
-                        Text("No \(selectedSegment.rawValue.lowercased()) accounts yet. Tap + to add one.")
-                            .foregroundStyle(.secondary)
-                            .frame(maxWidth: .infinity, alignment: .center)
-                            .padding()
+                        emptyState
                     }
                     ForEach(filteredAccounts) { account in
                         NavigationLink(destination: AccountDetailView(account: account)) {
@@ -63,6 +60,28 @@ struct AccountsListView: View {
             .sheet(isPresented: $showCreateSheet) {
                 CreateAccountView(accountType: preSelectedType)
             }
+        }
+    }
+
+    private var emptyState: some View {
+        Section {
+            VStack(spacing: 12) {
+                Image(systemName: selectedSegment == .banks ? "building.columns.fill" : "wallet.pass.fill")
+                    .font(.system(size: 40))
+                    .foregroundStyle(.secondary)
+                Text(selectedSegment == .banks ? "No Bank Accounts" : "No Cash Accounts")
+                    .font(.headline)
+                Text(selectedSegment == .banks ? "Add a bank account to track your bank balances" : "Add a cash account to track your cash on hand")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+                Button(selectedSegment == .banks ? "Add Bank Account" : "Add Cash Account") {
+                    showCreateSheet = true
+                }
+                .buttonStyle(.bordered)
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 40)
         }
     }
 }
