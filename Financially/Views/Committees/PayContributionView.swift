@@ -19,6 +19,10 @@ struct PayContributionView: View {
         committee.mySlots
     }
 
+    private var currentMonth: Int {
+        (committee.totalSlotsPaid ?? 0) / committee.mySlots + 1
+    }
+
     private var totalAmount: Decimal {
         committee.monthlyAmount * Decimal(slots)
     }
@@ -45,7 +49,7 @@ struct PayContributionView: View {
                     HStack {
                         Text("Month")
                         Spacer()
-                        Text("\(committee.monthsCompleted + 1) of \(committee.totalMembers)")
+                        Text("\(currentMonth) of \(committee.totalMembers)")
                             .foregroundStyle(.secondary)
                     }
                     HStack {

@@ -12,6 +12,7 @@ final class Committee {
     var mySlots: Int
     var mySlotPositions: String?
     var monthsCompleted: Int
+    var totalSlotsPaid: Int?
     var isActive: Bool
     var createdAt: Date
 
@@ -25,6 +26,7 @@ final class Committee {
         self.mySlots = mySlots
         self.mySlotPositions = mySlotPositions
         self.monthsCompleted = 0
+        self.totalSlotsPaid = 0
         self.isActive = true
         self.createdAt = Date()
     }

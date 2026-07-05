@@ -166,7 +166,7 @@ struct CommitteeDetailView: View {
                 Button {
                     showPayContribution = true
                 } label: {
-                    Label("Pay Month \(committee.monthsCompleted + 1)", systemImage: "arrow.up.circle")
+                    Label("Pay Month \((committee.totalSlotsPaid ?? 0) / committee.mySlots + 1)", systemImage: "arrow.up.circle")
                 }
             }
 

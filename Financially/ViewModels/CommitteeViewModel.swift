@@ -58,14 +58,15 @@ final class CommitteeViewModel {
     }
 
     func payContribution(committee: Committee, sourceAccountId: UUID?, slots: Int = 1, notes: String?) throws {
-        guard committee.monthsCompleted < committee.totalMembers else { return }
+        let totalSlots = committee.totalMembers * committee.mySlots
+        guard (committee.totalSlotsPaid ?? 0) < totalSlots else { return }
 
-        let amount = committee.monthlyAmount * Decimal(slots)
-        let monthDate = currentCommitteeMonth(offset: committee.monthsCompleted, from: committee.startMonth)
+        let monthOffset = (committee.totalSlotsPaid ?? 0) / committee.mySlots
+        let monthDate = currentCommitteeMonth(offset: monthOffset, from: committee.startMonth)
 
         let description = slots > 1
-            ? "Committee: \(committee.name) - \(slots) slots (Month \(committee.monthsCompleted + 1))"
-            : "Committee: \(committee.name) - Month \(committee.monthsCompleted + 1)"
+            ? "Committee: \(committee.name) - \(slots) slots (Month \(monthOffset + 1))"
+            : "Committee: \(committee.name) - Month \(monthOffset + 1)"
 
         let request = TransactionRequest(
             type: .committeeContribution,
@@ -88,7 +89,8 @@ final class CommitteeViewModel {
         )
         modelContext.insert(contribution)
 
-        committee.monthsCompleted += 1
+        committee.totalSlotsPaid = (committee.totalSlotsPaid ?? 0) + slots
+        committee.monthsCompleted = (committee.totalSlotsPaid ?? 0) / committee.mySlots
 
         if committee.monthsCompleted >= committee.totalMembers {
             committee.isActive = false
