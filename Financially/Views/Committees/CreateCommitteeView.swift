@@ -72,6 +72,7 @@ struct CreateCommitteeView: View {
                 FormErrorSection(message: errorMessage)
             }
             .navigationTitle("New Committee")
+            .navigationBarTitleDisplayMode(.inline)
             .formToolbar(label: "Create", isDisabled: name.isEmpty || monthlyAmount.isEmpty || totalMembers.isEmpty) { save() }
         }
     }

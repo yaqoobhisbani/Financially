@@ -17,9 +17,6 @@ struct SettingsView: View {
                     NavigationLink(destination: LoansListView()) {
                         Label("Loans & Liabilities", systemImage: "arrow.left.arrow.right")
                     }
-                    NavigationLink(destination: CommitteesListView()) {
-                        Label("Committees", systemImage: "person.3.fill")
-                    }
                     NavigationLink(destination: ReportsListView()) {
                         Label("Reports", systemImage: "chart.bar.doc.horizontal")
                     }
