@@ -119,38 +119,55 @@ struct DashboardView: View {
     }
 
     private func accountCard(_ account: Account, _ vm: DashboardViewModel) -> some View {
-        VStack(alignment: .leading, spacing: 1) {
-            HStack(spacing: 4) {
+        VStack(alignment: .leading, spacing: 3) {
+            HStack(spacing: 5) {
                 if account.accountType == .bank, let bankName = account.bankName {
-                    BankLogoView(bankName: bankName, size: 16)
+                    BankLogoView(bankName: bankName, size: 18)
                 } else if account.accountType == .psx {
                     Image("PSXLogo")
                         .resizable()
                         .scaledToFit()
-                        .frame(width: 16, height: 16)
-                        .clipShape(RoundedRectangle(cornerRadius: 3))
+                        .frame(width: 18, height: 18)
+                        .clipShape(RoundedRectangle(cornerRadius: 4))
                 } else {
                     Image(systemName: account.icon ?? accountTypeIcon(account.accountType))
-                        .font(.caption2)
-                        .frame(height: 16)
+                        .font(.caption)
+                        .frame(height: 18)
                 }
                 Text(account.name)
-                    .font(.caption2)
+                    .font(.caption)
                     .lineLimit(1)
                     .foregroundStyle(.secondary)
             }
             Text(account.accountType == .psx ? (account.currentBalance + vm.psxPortfolioValue(account)).formattedCurrency(currency: account.currency) : account.currentBalance.formattedCurrency(currency: account.currency))
-                .font(.caption.bold())
+                .font(.subheadline.bold())
                 .lineLimit(1)
             if account.accountType == .psx {
                 Text(vm.psxProfitLoss(account.id).formattedCurrency(currency: account.currency))
-                    .font(.caption2)
+                    .font(.caption)
                     .foregroundStyle(vm.psxProfitLoss(account.id) >= 0 ? .incomeGreen : .expenseRed)
+                    .lineLimit(1)
+            } else if account.accountType == .bank {
+                if let acctNum = account.accountNumber, acctNum.count >= 4 {
+                    Text("•••• \(acctNum.suffix(4))")
+                        .font(.caption)
+                        .foregroundStyle(.tertiary)
+                        .lineLimit(1)
+                } else if let subType = account.bankSubType {
+                    Text(subType.rawValue == "traditional" ? "Bank" : subType.rawValue.capitalized)
+                        .font(.caption)
+                        .foregroundStyle(.tertiary)
+                        .lineLimit(1)
+                }
+            } else if account.accountType == .cash {
+                Text(account.cashSubType?.rawValue.capitalized ?? "Cash")
+                    .font(.caption)
+                    .foregroundStyle(.tertiary)
                     .lineLimit(1)
             }
         }
-        .frame(width: 100, height: 68, alignment: .top)
-        .padding(6)
+        .frame(width: 120, height: 72, alignment: .top)
+        .padding(10)
         .liquidGlassCard()
     }
 
