@@ -37,6 +37,7 @@ struct DashboardView: View {
             }
             .padding()
         }
+        .background(Color(.systemGroupedBackground))
         .navigationTitle("Dashboard")
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
@@ -198,7 +199,7 @@ struct DashboardView: View {
             }
         }
         .padding()
-        .background(.ultraThinMaterial)
+        .background(Color(.systemBackground))
         .clipShape(RoundedRectangle(cornerRadius: 12))
     }
 
@@ -218,7 +219,7 @@ struct DashboardView: View {
             BarChartView(data: vm.lastSixMonths)
         }
         .padding()
-        .background(.ultraThinMaterial)
+        .background(Color(.systemBackground))
         .clipShape(RoundedRectangle(cornerRadius: 14))
     }
 

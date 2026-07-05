@@ -2,12 +2,12 @@
 
 extension View {
     func liquidGlassBackground() -> some View {
-        self.background(.ultraThinMaterial)
+        self.background(Color(.systemBackground))
     }
 
     func liquidGlassCard() -> some View {
         self
-            .background(.ultraThinMaterial)
+            .background(Color(.systemBackground))
             .clipShape(RoundedRectangle(cornerRadius: 16))
             .shadow(color: .black.opacity(0.1), radius: 8, y: 2)
     }
