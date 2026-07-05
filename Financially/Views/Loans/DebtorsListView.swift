@@ -33,27 +33,13 @@ struct DebtorsListView: View {
 
             if debtors.isEmpty {
                 Section {
-                    VStack(spacing: 16) {
-                        ZStack {
-                            Image(systemName: "person.fill")
-                                .font(.system(size: 48))
-                                .foregroundStyle(.secondary)
-                            Image(systemName: "arrow.right.circle.fill")
-                                .font(.system(size: 20))
-                                .foregroundStyle(.blue)
-                                .offset(x: 18, y: 18)
-                        }
-                        Text("No Debtors")
-                            .font(.title3.bold())
-                        Text("Add someone you've lent money to")
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
-                            .multilineTextAlignment(.center)
-                        Button("Add Debtor") { showCreate = true }
-                            .buttonStyle(.bordered)
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 60)
+                    EmptyStateView(
+                        title: "No Debtors",
+                        systemImage: "person.fill.questionmark",
+                        description: "Add someone you've lent money to",
+                        buttonLabel: "Add Debtor",
+                        action: { showCreate = true }
+                    )
                 }
             }
         }
