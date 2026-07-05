@@ -7,9 +7,29 @@ struct CommodityInfoManagementView: View {
     @State private var showingAdd = false
     @State private var editingCommodity: CommodityInfo?
     @State private var editRate = ""
+    @State private var isSyncing = false
+    @State private var syncProgress: Double = 0
+    @State private var syncTotal = 0
+    @State private var syncCurrent = 0
+    @State private var syncMessage = ""
 
     var body: some View {
         List {
+            if isSyncing {
+                Section {
+                    VStack(spacing: 8) {
+                        ProgressView(value: syncProgress, total: Double(syncTotal))
+                        Text(syncMessage)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                        Text("\(syncCurrent) of \(syncTotal)")
+                            .font(.caption2)
+                            .foregroundStyle(.tertiary)
+                    }
+                    .padding(.vertical, 4)
+                }
+            }
+
             ForEach(commodityList) { commodity in
                 HStack {
                     VStack(alignment: .leading) {
@@ -61,6 +81,13 @@ struct CommodityInfoManagementView: View {
                 Button(action: { showingAdd = true }) {
                     Label("Add", systemImage: "plus")
                 }
+                .disabled(isSyncing)
+            }
+            ToolbarItem(placement: .primaryAction) {
+                Button(action: { Task { await syncAllPrices() } }) {
+                    Label("Sync", systemImage: "arrow.triangle.2.circlepath")
+                }
+                .disabled(isSyncing || commodityList.isEmpty)
             }
         }
         .sheet(isPresented: $showingAdd) {
@@ -81,6 +108,68 @@ struct CommodityInfoManagementView: View {
             if let commodity = editingCommodity {
                 Text("Update rate per gram for \(commodity.name)")
             }
+        }
+    }
+
+    private func syncAllPrices() async {
+        isSyncing = true
+        syncTotal = commodityList.count
+        syncCurrent = 0
+        syncProgress = 0
+
+        for commodity in commodityList {
+            syncCurrent += 1
+            syncMessage = "Fetching \(commodity.symbol)..."
+            syncProgress = Double(syncCurrent - 1)
+
+            let price: Decimal?
+            switch commodity.symbol.uppercased() {
+            case "XAU":
+                price = await fetchGoldPrice()
+            case "XAG":
+                price = await fetchSilverPrice()
+            default:
+                price = nil
+            }
+
+            if let price {
+                commodity.currentRatePerGram = price
+                syncRateToHoldings(symbol: commodity.symbol, rate: price)
+            }
+
+            syncProgress = Double(syncCurrent)
+        }
+
+        syncMessage = "Done!"
+        try? modelContext.save()
+        isSyncing = false
+    }
+
+    private func fetchGoldPrice() async -> Decimal? {
+        guard let url = URL(string: "https://beta-restapi.sarmaaya.pk/api/commodities/goldRates") else { return nil }
+        do {
+            let (data, _) = try await URLSession.shared.data(from: url)
+            let json = try JSONSerialization.jsonObject(with: data) as? [String: Any]
+            guard let response = json?["response"] as? [String: Any],
+                  let perGram = response["perGram"] as? [String: Any],
+                  let rate = perGram["24k"] as? NSNumber else { return nil }
+            return Decimal(string: "\(rate)")
+        } catch {
+            return nil
+        }
+    }
+
+    private func fetchSilverPrice() async -> Decimal? {
+        guard let url = URL(string: "https://beta-restapi.sarmaaya.pk/api/commodities/xag") else { return nil }
+        do {
+            let (data, _) = try await URLSession.shared.data(from: url)
+            let json = try JSONSerialization.jsonObject(with: data) as? [String: Any]
+            guard let response = json?["response"] as? [[String: Any]],
+                  let first = response.first,
+                  let rate = first["price1g"] as? NSNumber else { return nil }
+            return Decimal(string: "\(rate)")
+        } catch {
+            return nil
         }
     }
 
