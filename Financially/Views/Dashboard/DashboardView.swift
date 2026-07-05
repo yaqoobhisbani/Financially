@@ -35,6 +35,7 @@ struct DashboardView: View {
                 if vm.monthlyExpense > 0 { expenseChartWidget(vm) }
                 if !vm.recentTransactions.isEmpty { recentTransactionsSection(vm) }
             }
+            .padding()
         }
         .scrollClipDisabled(true)
         .background(Color(.systemGroupedBackground))
@@ -56,45 +57,44 @@ struct DashboardView: View {
     // MARK: - Summary Cards
 
     private func summaryCards(_ vm: DashboardViewModel) -> some View {
-        LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
-            SummaryCard(
-                title: "Net Worth",
-                amount: vm.netWorth,
-                icon: "heart.fill",
-                color: .netWorthAccent
-            )
-            SummaryCard(
-                title: "Total Assets",
-                amount: vm.totalOwnFunds + vm.totalReceivables,
-                icon: "building.columns.fill",
-                color: .assetsAccent
-            )
-            SummaryCard(
-                title: "Liabilities",
-                amount: vm.totalLiabilities,
-                icon: "arrow.right.circle.fill",
-                color: .liabilitiesAccent
-            )
-            SummaryCard(
-                title: "Receivables",
-                amount: vm.totalReceivables,
-                icon: "arrow.left.circle.fill",
-                color: .receivablesAccent
-            )
-            SummaryCard(
-                title: "Monthly Income",
-                amount: vm.monthlyIncome,
-                icon: "arrow.down.circle.fill",
-                color: .incomeGreen
-            )
-            SummaryCard(
-                title: "Monthly Expense",
-                amount: vm.monthlyExpense,
-                icon: "arrow.up.circle.fill",
-                color: .expenseRed
-            )
-        }
-        .padding(.horizontal)
+            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
+                SummaryCard(
+                    title: "Net Worth",
+                    amount: vm.netWorth,
+                    icon: "heart.fill",
+                    color: .netWorthAccent
+                )
+                SummaryCard(
+                    title: "Total Assets",
+                    amount: vm.totalOwnFunds + vm.totalReceivables,
+                    icon: "building.columns.fill",
+                    color: .assetsAccent
+                )
+                SummaryCard(
+                    title: "Liabilities",
+                    amount: vm.totalLiabilities,
+                    icon: "arrow.right.circle.fill",
+                    color: .liabilitiesAccent
+                )
+                SummaryCard(
+                    title: "Receivables",
+                    amount: vm.totalReceivables,
+                    icon: "arrow.left.circle.fill",
+                    color: .receivablesAccent
+                )
+                SummaryCard(
+                    title: "Monthly Income",
+                    amount: vm.monthlyIncome,
+                    icon: "arrow.down.circle.fill",
+                    color: .incomeGreen
+                )
+                SummaryCard(
+                    title: "Monthly Expense",
+                    amount: vm.monthlyExpense,
+                    icon: "arrow.up.circle.fill",
+                    color: .expenseRed
+                )
+            }
     }
 
     // MARK: - Accounts Overview
@@ -114,9 +114,9 @@ struct DashboardView: View {
                     }
                 }
             }
+            .contentMargins(.horizontal, 0)
             .scrollClipDisabled(true)
         }
-        .padding(.horizontal)
     }
 
     private func accountCard(_ account: Account, _ vm: DashboardViewModel) -> some View {
@@ -200,7 +200,6 @@ struct DashboardView: View {
                         .buttonStyle(.plain)
                     }
                 }
-                .padding(.horizontal)
             }
         }
     }
@@ -253,30 +252,34 @@ struct DashboardView: View {
     // MARK: - Active Loans / Liabilities
 
     private func activeLoansWidget(_ vm: DashboardViewModel) -> some View {
-        HStack(spacing: 12) {
-            activeWidget(
-                title: "Active Loans",
-                count: vm.activeLoanCount,
-                total: vm.activeLoanTotal,
-                icon: "arrow.left.arrow.right",
-                color: .blue
-            )
-            activeWidget(
-                title: "Liabilities Held",
-                count: vm.activeLiabilityCount,
-                total: vm.activeLiabilityTotal,
-                icon: "arrow.right.circle",
-                color: .orange
-            )
-            activeWidget(
-                title: "Active Committees",
-                count: vm.activeCommitteeCount,
-                total: vm.totalCommitteeReceivable,
-                icon: "person.3.fill",
-                color: .teal
-            )
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Active Loans / Liabilities / Committees")
+                .font(.headline)
+
+            HStack(spacing: 12) {
+                activeWidget(
+                    title: "Active Loans",
+                    count: vm.activeLoanCount,
+                    total: vm.activeLoanTotal,
+                    icon: "arrow.left.arrow.right",
+                    color: .blue
+                )
+                activeWidget(
+                    title: "Liabilities Held",
+                    count: vm.activeLiabilityCount,
+                    total: vm.activeLiabilityTotal,
+                    icon: "arrow.right.circle",
+                    color: .orange
+                )
+                activeWidget(
+                    title: "Active Committees",
+                    count: vm.activeCommitteeCount,
+                    total: vm.totalCommitteeReceivable,
+                    icon: "person.3.fill",
+                    color: .teal
+                )
+            }
         }
-        .padding(.horizontal)
     }
 
     private func activeWidget(title: String, count: Int, total: Decimal, icon: String, color: Color) -> some View {
