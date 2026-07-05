@@ -123,6 +123,7 @@ struct DashboardView: View {
             HStack(spacing: 5) {
                 if account.accountType == .bank, let bankName = account.bankName {
                     BankLogoView(bankName: bankName, size: 18)
+                        .frame(width: 18, height: 18)
                 } else if account.accountType == .psx {
                     Image("PSXLogo")
                         .resizable()
@@ -132,7 +133,7 @@ struct DashboardView: View {
                 } else {
                     Image(systemName: account.icon ?? accountTypeIcon(account.accountType))
                         .font(.caption)
-                        .frame(height: 18)
+                        .frame(width: 18, height: 18)
                 }
                 Text(account.name)
                     .font(.caption)
