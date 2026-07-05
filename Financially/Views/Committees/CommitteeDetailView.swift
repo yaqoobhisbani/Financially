@@ -1,23 +1,38 @@
 import SwiftUI
+import SwiftData
 
 struct CommitteeDetailView: View {
     @Environment(\.modelContext) private var modelContext
+    @Environment(\.dismiss) private var dismiss
     let committee: Committee
 
     @State private var showPayContribution = false
     @State private var showReceivePayout = false
-    @State private var contributions: [CommitteeContribution] = []
-    @State private var payouts: [CommitteePayout] = []
+    @State private var contributionToDelete: CommitteeContribution?
+    @State private var payoutToDelete: CommitteePayout?
+    @State private var showDeleteCommittee = false
 
-    private var vm: CommitteeViewModel {
-        CommitteeViewModel(modelContext: modelContext)
+    @Query private var contributions: [CommitteeContribution]
+    @Query private var payouts: [CommitteePayout]
+
+    init(committee: Committee) {
+        self.committee = committee
+        let committeeId = committee.id
+        let contributionPredicate = #Predicate<CommitteeContribution> { $0.committeeId == committeeId }
+        _contributions = Query(filter: contributionPredicate, sort: \.paidAt, order: .reverse)
+        let payoutPredicate = #Predicate<CommitteePayout> { $0.committeeId == committeeId }
+        _payouts = Query(filter: payoutPredicate, sort: \.receivedAt, order: .reverse)
+    }
+
+    private var remainingPayout: Decimal {
+        max(0, committee.totalPayout - payouts.reduce(0) { $0 + $1.amount })
     }
 
     var body: some View {
         List {
             headerSection
             progressSection
-            if !committee.isComplete {
+            if !committee.isComplete || remainingPayout > 0 {
                 actionsSection
             }
             if !contributions.isEmpty {
@@ -28,8 +43,14 @@ struct CommitteeDetailView: View {
             }
         }
         .navigationTitle(committee.name)
-        .onAppear {
-            reload()
+        .toolbar {
+            ToolbarItem(placement: .primaryAction) {
+                Button(role: .destructive) {
+                    showDeleteCommittee = true
+                } label: {
+                    Image(systemName: "trash")
+                }
+            }
         }
         .sheet(isPresented: $showPayContribution) {
             PayContributionView(committee: committee)
@@ -37,11 +58,44 @@ struct CommitteeDetailView: View {
         .sheet(isPresented: $showReceivePayout) {
             ReceivePayoutView(committee: committee)
         }
-    }
-
-    private func reload() {
-        contributions = vm.contributions(for: committee.id)
-        payouts = vm.payouts(for: committee.id)
+        .alert("Delete Committee", isPresented: $showDeleteCommittee) {
+            Button("Delete", role: .destructive) { deleteCommittee() }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("Are you sure you want to delete this committee and all its records? This action cannot be undone.")
+        }
+        .alert("Delete Contribution", isPresented: .init(
+            get: { contributionToDelete != nil },
+            set: { if !$0 { contributionToDelete = nil } }
+        )) {
+            Button("Delete", role: .destructive) {
+                if let c = contributionToDelete {
+                    deleteContribution(c)
+                }
+                contributionToDelete = nil
+            }
+            Button("Cancel", role: .cancel) {
+                contributionToDelete = nil
+            }
+        } message: {
+            Text("Are you sure you want to delete this contribution record? This action cannot be undone.")
+        }
+        .alert("Delete Payout", isPresented: .init(
+            get: { payoutToDelete != nil },
+            set: { if !$0 { payoutToDelete = nil } }
+        )) {
+            Button("Delete", role: .destructive) {
+                if let p = payoutToDelete {
+                    deletePayout(p)
+                }
+                payoutToDelete = nil
+            }
+            Button("Cancel", role: .cancel) {
+                payoutToDelete = nil
+            }
+        } message: {
+            Text("Are you sure you want to delete this payout record? This action cannot be undone.")
+        }
     }
 
     // MARK: - Header
@@ -52,9 +106,9 @@ struct CommitteeDetailView: View {
                 HStack {
                     SummaryItem(title: "Monthly", value: committee.monthlyAmount.formattedCurrency())
                     Spacer()
-                    SummaryItem(title: "Payout", value: committee.totalPayout.formattedCurrency())
-                    Spacer()
                     SummaryItem(title: "Members", value: "\(committee.totalMembers)")
+                    Spacer()
+                    SummaryItem(title: "Payout", value: committee.totalPayout.formattedCurrency())
                 }
                 .padding(.vertical, 4)
             }
@@ -91,16 +145,20 @@ struct CommitteeDetailView: View {
 
     private var actionsSection: some View {
         Section {
-            Button {
-                showPayContribution = true
-            } label: {
-                Label("Pay Month \(committee.monthsCompleted + 1)", systemImage: "arrow.up.circle")
+            if !committee.isComplete {
+                Button {
+                    showPayContribution = true
+                } label: {
+                    Label("Pay Month \(committee.monthsCompleted + 1)", systemImage: "arrow.up.circle")
+                }
             }
 
-            Button {
-                showReceivePayout = true
-            } label: {
-                Label("Receive Payout", systemImage: "arrow.down.circle.fill")
+            if remainingPayout > 0 {
+                Button {
+                    showReceivePayout = true
+                } label: {
+                    Label("Receive Payout (\(remainingPayout.formattedCurrency()))", systemImage: "arrow.down.circle.fill")
+                }
             }
         }
     }
@@ -123,6 +181,11 @@ struct CommitteeDetailView: View {
                     Spacer()
                     Text(contribution.amount.formattedCurrency())
                         .font(.subheadline.bold())
+                }
+                .swipeActions(edge: .trailing) {
+                    Button("Delete", role: .destructive) {
+                        contributionToDelete = contribution
+                    }
                 }
             }
         }
@@ -148,8 +211,53 @@ struct CommitteeDetailView: View {
                         .font(.subheadline.bold())
                         .foregroundStyle(.green)
                 }
+                .swipeActions(edge: .trailing) {
+                    Button("Delete", role: .destructive) {
+                        payoutToDelete = payout
+                    }
+                }
             }
         }
+    }
+
+    // MARK: - Delete
+
+    private func deleteContribution(_ contribution: CommitteeContribution) {
+        if let txnId = contribution.transactionId {
+            let fetch = FetchDescriptor<Transaction>(predicate: #Predicate { $0.id == txnId })
+            if let transaction = try? modelContext.fetch(fetch).first {
+                let manager = LedgerManager(modelContext: modelContext)
+                try? manager.deleteTransaction(transaction)
+            }
+        }
+        modelContext.delete(contribution)
+        try? modelContext.save()
+    }
+
+    private func deletePayout(_ payout: CommitteePayout) {
+        if let txnId = payout.transactionId {
+            let fetch = FetchDescriptor<Transaction>(predicate: #Predicate { $0.id == txnId })
+            if let transaction = try? modelContext.fetch(fetch).first {
+                let manager = LedgerManager(modelContext: modelContext)
+                try? manager.deleteTransaction(transaction)
+            }
+        }
+        modelContext.delete(payout)
+        try? modelContext.save()
+    }
+
+    private func deleteCommittee() {
+        let allContributions = contributions
+        let allPayouts = payouts
+        for contribution in allContributions {
+            deleteContribution(contribution)
+        }
+        for payout in allPayouts {
+            deletePayout(payout)
+        }
+        modelContext.delete(committee)
+        try? modelContext.save()
+        dismiss()
     }
 }
 

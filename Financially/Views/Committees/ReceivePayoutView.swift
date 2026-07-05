@@ -9,6 +9,7 @@ struct ReceivePayoutView: View {
 
     @State private var selectedAccountId: UUID?
     @State private var selectedAccountName: String?
+    @State private var amount = ""
     @State private var notes = ""
     @State private var errorMessage: String?
     @State private var showAccountPicker = false
@@ -22,6 +23,20 @@ struct ReceivePayoutView: View {
         CommitteeViewModel(modelContext: modelContext)
     }
 
+    private var existingPayouts: [CommitteePayout] {
+        let committeeId = committee.id
+        let predicate = #Predicate<CommitteePayout> { $0.committeeId == committeeId }
+        return (try? modelContext.fetch(FetchDescriptor(predicate: predicate))) ?? []
+    }
+
+    private var totalReceived: Decimal {
+        existingPayouts.reduce(0) { $0 + $1.amount }
+    }
+
+    private var remainingPayout: Decimal {
+        max(0, committee.totalPayout - totalReceived)
+    }
+
     var body: some View {
         NavigationStack {
             Form {
@@ -33,10 +48,28 @@ struct ReceivePayoutView: View {
                             .foregroundStyle(.secondary)
                     }
                     HStack {
-                        Text("Payout Amount")
+                        Text("Total Payout")
                         Spacer()
                         Text(committee.totalPayout.formattedCurrency())
                             .font(.headline)
+                    }
+                    HStack {
+                        Text("Remaining")
+                        Spacer()
+                        Text(remainingPayout.formattedCurrency())
+                            .foregroundStyle(remainingPayout > 0 ? .primary : .secondary)
+                    }
+                }
+
+                Section("Amount") {
+                    AmountField(amount: $amount)
+                    if remainingPayout > 0 {
+                        Button("Full Amount (\(remainingPayout.formattedCurrency()))") {
+                            amount = "\(remainingPayout)"
+                        }
+                        .buttonStyle(.plain)
+                        .font(.caption)
+                        .foregroundStyle(.blue)
                     }
                 }
 
@@ -55,7 +88,7 @@ struct ReceivePayoutView: View {
                 FormErrorSection(message: errorMessage)
             }
             .navigationTitle("Receive Payout")
-            .formToolbar(label: "Receive", isDisabled: selectedAccountId == nil) { receive() }
+            .formToolbar(label: "Receive", isDisabled: selectedAccountId == nil || amount.isEmpty) { receive() }
             .sheet(isPresented: $showAccountPicker) {
                 AccountPickerView(
                     accounts: bankCashAccounts,
@@ -73,8 +106,16 @@ struct ReceivePayoutView: View {
 
     private func receive() {
         guard let accountId = selectedAccountId else { return }
+        guard let payoutAmount = Decimal(string: amount), payoutAmount > 0 else {
+            errorMessage = "Invalid amount"
+            return
+        }
+        guard payoutAmount <= remainingPayout else {
+            errorMessage = "Amount exceeds remaining payout of \(remainingPayout.formattedCurrency())"
+            return
+        }
         do {
-            try vm.receivePayout(committee: committee, destinationAccountId: accountId, notes: notes.isEmpty ? nil : notes)
+            try vm.receivePayout(committee: committee, destinationAccountId: accountId, amount: payoutAmount, notes: notes.isEmpty ? nil : notes)
             dismiss()
         } catch {
             errorMessage = (error as? ValidationError)?.localizedDescription ?? error.localizedDescription

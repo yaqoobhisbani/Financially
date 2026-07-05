@@ -39,7 +39,7 @@ final class CommitteeViewModel {
 
     // MARK: - Actions
 
-    func createCommittee(name: String, monthlyAmount: Decimal, totalMembers: Int, startMonth: Date, cyclePosition: Int?) {
+    func createCommittee(name: String, monthlyAmount: Decimal, totalMembers: Int, startMonth: Date, cyclePosition: Int?, monthsCompleted: Int = 0) {
         let committee = Committee(
             name: name,
             monthlyAmount: monthlyAmount,
@@ -47,6 +47,10 @@ final class CommitteeViewModel {
             startMonth: startMonth,
             myCyclePosition: cyclePosition
         )
+        committee.monthsCompleted = monthsCompleted
+        if monthsCompleted >= totalMembers {
+            committee.isActive = false
+        }
         modelContext.insert(committee)
         try? modelContext.save()
     }
@@ -85,11 +89,9 @@ final class CommitteeViewModel {
         try modelContext.save()
     }
 
-    func receivePayout(committee: Committee, destinationAccountId: UUID, notes: String?) throws {
-        guard !committee.isComplete else { return }
-
-        let month = currentCommitteeMonth(offset: committee.monthsCompleted, from: committee.startMonth)
-        let amount = committee.totalPayout
+    func receivePayout(committee: Committee, destinationAccountId: UUID, amount: Decimal, notes: String?) throws {
+        let totalReceived = payouts(for: committee.id).reduce(0) { $0 + $1.amount }
+        guard totalReceived + amount <= committee.totalPayout else { return }
 
         let request = TransactionRequest(
             type: .committeePayout,
@@ -105,18 +107,12 @@ final class CommitteeViewModel {
 
         let payout = CommitteePayout(
             committeeId: committee.id,
-            month: month,
+            month: Date(),
             amount: amount,
             destinationAccountId: destinationAccountId,
             notes: notes
         )
         modelContext.insert(payout)
-
-        committee.monthsCompleted += 1
-
-        if committee.monthsCompleted >= committee.totalMembers {
-            committee.isActive = false
-        }
 
         try modelContext.save()
     }

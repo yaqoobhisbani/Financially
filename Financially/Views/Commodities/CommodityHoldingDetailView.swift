@@ -2,9 +2,13 @@ import SwiftUI
 import SwiftData
 
 struct CommodityHoldingDetailView: View {
+    @Environment(\.modelContext) private var modelContext
+    @Environment(\.dismiss) private var dismiss
     let holding: CommodityHolding
 
     @Query private var allTrades: [CommodityTrade]
+    @State private var showDeleteConfirmation = false
+    @State private var tradeToDelete: CommodityTrade?
 
     private var trades: [CommodityTrade] {
         allTrades
@@ -60,6 +64,11 @@ struct CommodityHoldingDetailView: View {
                         netAmount: trade.netAmount.formattedCurrency(),
                         fee: trade.brokerageFee + trade.tax
                     )
+                    .swipeActions(edge: .trailing) {
+                        Button("Delete", role: .destructive) {
+                            tradeToDelete = trade
+                        }
+                    }
                 }
 
                 if trades.isEmpty {
@@ -69,5 +78,58 @@ struct CommodityHoldingDetailView: View {
         }
         .navigationTitle(holding.commodityName)
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .primaryAction) {
+                Button(role: .destructive) {
+                    showDeleteConfirmation = true
+                } label: {
+                    Image(systemName: "trash")
+                }
+            }
+        }
+        .alert("Delete Holding", isPresented: $showDeleteConfirmation) {
+            Button("Delete", role: .destructive) { deleteHolding() }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("Are you sure you want to delete this holding and all its trades? This action cannot be undone.")
+        }
+        .alert("Delete Trade", isPresented: .init(
+            get: { tradeToDelete != nil },
+            set: { if !$0 { tradeToDelete = nil } }
+        )) {
+            Button("Delete", role: .destructive) {
+                if let trade = tradeToDelete {
+                    deleteTrade(trade)
+                }
+                tradeToDelete = nil
+            }
+            Button("Cancel", role: .cancel) {
+                tradeToDelete = nil
+            }
+        } message: {
+            Text("Are you sure you want to delete this trade? This action cannot be undone.")
+        }
+    }
+
+    private func deleteTrade(_ trade: CommodityTrade) {
+        modelContext.delete(trade)
+
+        let remaining = trades.filter { $0.id != trade.id }
+        let result = TradeService.recalculateCommodityHolding(trades: remaining)
+        holding.totalGrams = result.totalGrams
+        holding.totalCost = result.totalCost
+        holding.totalFeesPaid = result.totalFeesPaid
+        holding.avgCostPerGram = result.avgCostPerGram
+
+        try? modelContext.save()
+    }
+
+    private func deleteHolding() {
+        for trade in trades {
+            modelContext.delete(trade)
+        }
+        modelContext.delete(holding)
+        try? modelContext.save()
+        dismiss()
     }
 }

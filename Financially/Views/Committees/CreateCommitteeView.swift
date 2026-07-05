@@ -16,6 +16,14 @@ struct CreateCommitteeView: View {
         CommitteeViewModel(modelContext: modelContext)
     }
 
+    private var elapsedMonths: Int {
+        let calendar = Calendar.current
+        let start = calendar.dateComponents([.year, .month], from: startMonth)
+        let now = calendar.dateComponents([.year, .month], from: Date())
+        let total = (now.year! - start.year!) * 12 + (now.month! - start.month!)
+        return max(0, total)
+    }
+
     var body: some View {
         NavigationStack {
             Form {
@@ -42,6 +50,17 @@ struct CreateCommitteeView: View {
 
                 Section("Start Month") {
                     DatePicker("Start", selection: $startMonth, displayedComponents: .date)
+                }
+
+                if elapsedMonths > 0 {
+                    Section {
+                        HStack {
+                            Image(systemName: "info.circle.fill")
+                                .foregroundStyle(.blue)
+                            Text("\(elapsedMonths) month\(elapsedMonths == 1 ? "" : "s") will be auto-completed as already progressed.")
+                        }
+                        .font(.subheadline)
+                    }
                 }
 
                 Section("My Cycle Position") {
@@ -92,7 +111,7 @@ struct CreateCommitteeView: View {
         } else {
             position = nil
         }
-        vm.createCommittee(name: name, monthlyAmount: amount, totalMembers: members, startMonth: startMonth, cyclePosition: position)
+        vm.createCommittee(name: name, monthlyAmount: amount, totalMembers: members, startMonth: startMonth, cyclePosition: position, monthsCompleted: elapsedMonths)
         dismiss()
     }
 }

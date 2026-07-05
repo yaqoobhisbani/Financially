@@ -1,57 +1,57 @@
 import SwiftUI
+import SwiftData
 
 struct CommitteesListView: View {
     @Environment(\.modelContext) private var modelContext
-    @State private var vm: CommitteeViewModel?
+    @Query(sort: \Committee.createdAt, order: .reverse) private var allCommittees: [Committee]
     @State private var showCreate = false
+
+    private var activeCommittees: [Committee] {
+        allCommittees.filter { $0.isActive && !$0.isComplete }
+    }
+
+    private var completedCommittees: [Committee] {
+        allCommittees.filter { $0.isComplete || !$0.isActive }
+    }
 
     var body: some View {
         NavigationStack {
-            if let vm {
-                content(vm)
-            }
-        }
-        .onAppear {
-            vm = CommitteeViewModel(modelContext: modelContext)
-        }
-        .sheet(isPresented: $showCreate) {
-            CreateCommitteeView()
-        }
-    }
-
-    private func content(_ vm: CommitteeViewModel) -> some View {
-        List {
-            if vm.activeCommittees.isEmpty && vm.completedCommittees.isEmpty {
-                emptyState
-            } else {
-                if !vm.activeCommittees.isEmpty {
-                    Section("Active") {
-                        ForEach(vm.activeCommittees) { committee in
-                            NavigationLink(destination: CommitteeDetailView(committee: committee)) {
-                                committeeRow(committee)
+            List {
+                if activeCommittees.isEmpty && completedCommittees.isEmpty {
+                    emptyState
+                } else {
+                    if !activeCommittees.isEmpty {
+                        Section("Active") {
+                            ForEach(activeCommittees) { committee in
+                                NavigationLink(destination: CommitteeDetailView(committee: committee)) {
+                                    committeeRow(committee)
+                                }
                             }
                         }
                     }
-                }
-                if !vm.completedCommittees.isEmpty {
-                    Section("Completed") {
-                        ForEach(vm.completedCommittees) { committee in
-                            NavigationLink(destination: CommitteeDetailView(committee: committee)) {
-                                committeeRow(committee)
+                    if !completedCommittees.isEmpty {
+                        Section("Completed") {
+                            ForEach(completedCommittees) { committee in
+                                NavigationLink(destination: CommitteeDetailView(committee: committee)) {
+                                    committeeRow(committee)
+                                }
                             }
                         }
                     }
                 }
             }
-        }
-        .navigationTitle("Committees")
-        .toolbar {
-            ToolbarItem(placement: .primaryAction) {
-                Button {
-                    showCreate = true
-                } label: {
-                    Image(systemName: "plus")
+            .navigationTitle("Committees")
+            .toolbar {
+                ToolbarItem(placement: .primaryAction) {
+                    Button {
+                        showCreate = true
+                    } label: {
+                        Image(systemName: "plus")
+                    }
                 }
+            }
+            .sheet(isPresented: $showCreate) {
+                CreateCommitteeView()
             }
         }
     }
