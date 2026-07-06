@@ -41,8 +41,7 @@ struct DashboardView: View {
                 ScrollView {
                     VStack(spacing: 2) {
                         DashboardHeaderView(vm: vm)
-                            .frame(height: heroHeight)
-                            .padding(.horizontal)
+                            .padding(.horizontal, -16)
 
                         if vm.monthlyIncome > 0 || vm.monthlyExpense > 0 {
                             LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
