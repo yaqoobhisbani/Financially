@@ -5,9 +5,7 @@ struct DashboardHeaderView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            Spacer()
-
-            VStack(spacing: 4) {
+            VStack(spacing: 6) {
                 Text("Net Worth")
                     .font(.subheadline)
                     .foregroundStyle(.white.opacity(0.8))
@@ -18,7 +16,7 @@ struct DashboardHeaderView: View {
                     .minimumScaleFactor(0.5)
             }
 
-            Spacer()
+            Spacer(minLength: 16)
 
             LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
                 HeaderStat(title: "In Accounts", amount: vm.totalAccounts, icon: "building.columns.fill")
@@ -28,7 +26,7 @@ struct DashboardHeaderView: View {
             }
         }
         .padding(.horizontal)
-        .padding(.bottom, 16)
+        .padding(.vertical, 16)
     }
 }
 
