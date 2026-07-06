@@ -40,10 +40,6 @@ private struct HeaderStat: View {
 
     @Environment(\.colorScheme) private var colorScheme
 
-    private var material: Material {
-        colorScheme == .light ? .thinMaterial : .ultraThinMaterial
-    }
-
     var body: some View {
         HStack(spacing: 8) {
             Image(systemName: icon)
@@ -63,6 +59,11 @@ private struct HeaderStat: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(12)
-        .background(material, in: RoundedRectangle(cornerRadius: 12))
+        .background(
+            colorScheme == .light
+                ? AnyShapeStyle(Color.white.opacity(0.25))
+                : AnyShapeStyle(.ultraThinMaterial),
+            in: RoundedRectangle(cornerRadius: 12)
+        )
     }
 }
