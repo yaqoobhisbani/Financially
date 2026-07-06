@@ -67,7 +67,8 @@ struct DashboardView: View {
                         if vm.monthlyExpense > 0 { expenseChartWidget(vm) }
                         if !vm.recentTransactions.isEmpty { recentTransactionsSection(vm) }
                     }
-                    .padding()
+                    .padding(.horizontal)
+                    .padding(.bottom)
                     .frame(minHeight: geo.size.height)
                 }
                 .scrollClipDisabled(true)
