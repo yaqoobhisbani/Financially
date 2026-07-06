@@ -24,67 +24,44 @@ struct DashboardView: View {
     }
 
     private func content(_ vm: DashboardViewModel) -> some View {
-        ScrollView {
-            VStack(spacing: 16) {
-                DashboardHeaderView(vm: vm)
-                    .padding(.horizontal, -16)
-                    .padding(.top, -16)
+        GeometryReader { geo in
+            ScrollView {
+                VStack(spacing: 16) {
+                    DashboardHeaderView(vm: vm, heroHeight: geo.size.height * 0.65)
+                        .padding(.horizontal, -16)
+                        .padding(.top, -16)
 
-                LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
-                    SummaryCard(
-                        title: "In Accounts",
-                        amount: vm.totalAccounts,
-                        icon: "building.columns.fill",
-                        color: .blue
-                    )
-                    SummaryCard(
-                        title: "Invested",
-                        amount: vm.totalInvested,
-                        icon: "chart.line.uptrend.xyaxis",
-                        color: .purple
-                    )
-                    SummaryCard(
-                        title: "Liabilities",
-                        amount: vm.totalLiabilities,
-                        icon: "arrow.right.circle.fill",
-                        color: .orange
-                    )
-                    SummaryCard(
-                        title: "Receivables",
-                        amount: vm.totalReceivables,
-                        icon: "arrow.left.circle.fill",
-                        color: .teal
-                    )
-                }
-
-                if vm.monthlyIncome > 0 || vm.monthlyExpense > 0 {
-                    LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
-                        SummaryCard(
-                            title: "Monthly Income",
-                            amount: vm.monthlyIncome,
-                            icon: "arrow.down.circle.fill",
-                            color: .incomeGreen
-                        )
-                        SummaryCard(
-                            title: "Monthly Expense",
-                            amount: vm.monthlyExpense,
-                            icon: "arrow.up.circle.fill",
-                            color: .expenseRed
-                        )
+                    if vm.monthlyIncome > 0 || vm.monthlyExpense > 0 {
+                        LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
+                            SummaryCard(
+                                title: "Monthly Income",
+                                amount: vm.monthlyIncome,
+                                icon: "arrow.down.circle.fill",
+                                color: .incomeGreen
+                            )
+                            SummaryCard(
+                                title: "Monthly Expense",
+                                amount: vm.monthlyExpense,
+                                icon: "arrow.up.circle.fill",
+                                color: .expenseRed
+                            )
+                        }
                     }
-                }
 
-                if !vm.assetAllocation.isEmpty { AllocationPieChart(slices: vm.assetAllocation) }
-                if vm.activeLoanCount > 0 || vm.activeLiabilityCount > 0 || vm.activeCommitteeCount > 0 { activeLoansWidget(vm) }
-                if vm.monthlyIncome > 0 || vm.monthlyExpense > 0 { incomeVsExpenseWidget(vm) }
-                if vm.monthlyExpense > 0 { expenseChartWidget(vm) }
-                if !vm.recentTransactions.isEmpty { recentTransactionsSection(vm) }
+                    if !vm.assetAllocation.isEmpty { AllocationPieChart(slices: vm.assetAllocation) }
+                    if vm.activeLoanCount > 0 || vm.activeLiabilityCount > 0 || vm.activeCommitteeCount > 0 { activeLoansWidget(vm) }
+                    if vm.monthlyIncome > 0 || vm.monthlyExpense > 0 { incomeVsExpenseWidget(vm) }
+                    if vm.monthlyExpense > 0 { expenseChartWidget(vm) }
+                    if !vm.recentTransactions.isEmpty { recentTransactionsSection(vm) }
+                }
+                .padding()
+                .frame(minHeight: geo.size.height)
             }
-            .padding()
         }
         .scrollClipDisabled(true)
         .background(Color(.systemGroupedBackground))
         .navigationTitle("Dashboard")
+        .toolbarBackground(.hidden, for: .navigationBar)
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
                 Menu {
