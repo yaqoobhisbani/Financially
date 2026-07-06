@@ -25,42 +25,56 @@ struct DashboardView: View {
 
     private func content(_ vm: DashboardViewModel) -> some View {
         GeometryReader { geo in
-            ScrollView {
-                VStack(spacing: 16) {
-                    DashboardHeaderView(vm: vm, heroHeight: geo.size.height * 0.65)
-                        .padding(.horizontal, -16)
-                        .padding(.top, -16)
+            let heroHeight = geo.size.height * 0.65
+            ZStack(alignment: .top) {
+                Color(.systemGroupedBackground)
+                    .ignoresSafeArea()
 
-                    if vm.monthlyIncome > 0 || vm.monthlyExpense > 0 {
-                        LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
-                            SummaryCard(
-                                title: "Monthly Income",
-                                amount: vm.monthlyIncome,
-                                icon: "arrow.down.circle.fill",
-                                color: .incomeGreen
-                            )
-                            SummaryCard(
-                                title: "Monthly Expense",
-                                amount: vm.monthlyExpense,
-                                icon: "arrow.up.circle.fill",
-                                color: .expenseRed
-                            )
+                LinearGradient(
+                    colors: [Color(hex: "#2563EB") ?? .blue, Color(hex: "#1D4ED8") ?? Color(red: 0.11, green: 0.31, blue: 0.85)],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+                .frame(height: heroHeight)
+                .ignoresSafeArea()
+
+                ScrollView {
+                    VStack(spacing: 12) {
+                        DashboardHeaderView(vm: vm)
+                            .frame(height: heroHeight)
+                            .padding(.horizontal, -16)
+
+                        if vm.monthlyIncome > 0 || vm.monthlyExpense > 0 {
+                            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
+                                SummaryCard(
+                                    title: "Monthly Income",
+                                    amount: vm.monthlyIncome,
+                                    icon: "arrow.down.circle.fill",
+                                    color: .incomeGreen
+                                )
+                                SummaryCard(
+                                    title: "Monthly Expense",
+                                    amount: vm.monthlyExpense,
+                                    icon: "arrow.up.circle.fill",
+                                    color: .expenseRed
+                                )
+                            }
                         }
-                    }
 
-                    if !vm.assetAllocation.isEmpty { AllocationPieChart(slices: vm.assetAllocation) }
-                    if vm.activeLoanCount > 0 || vm.activeLiabilityCount > 0 || vm.activeCommitteeCount > 0 { activeLoansWidget(vm) }
-                    if vm.monthlyIncome > 0 || vm.monthlyExpense > 0 { incomeVsExpenseWidget(vm) }
-                    if vm.monthlyExpense > 0 { expenseChartWidget(vm) }
-                    if !vm.recentTransactions.isEmpty { recentTransactionsSection(vm) }
+                        if !vm.assetAllocation.isEmpty { AllocationPieChart(slices: vm.assetAllocation) }
+                        if vm.activeLoanCount > 0 || vm.activeLiabilityCount > 0 || vm.activeCommitteeCount > 0 { activeLoansWidget(vm) }
+                        if vm.monthlyIncome > 0 || vm.monthlyExpense > 0 { incomeVsExpenseWidget(vm) }
+                        if vm.monthlyExpense > 0 { expenseChartWidget(vm) }
+                        if !vm.recentTransactions.isEmpty { recentTransactionsSection(vm) }
+                    }
+                    .padding()
+                    .frame(minHeight: geo.size.height)
                 }
-                .padding()
-                .frame(minHeight: geo.size.height)
+                .scrollClipDisabled(true)
             }
         }
-        .scrollClipDisabled(true)
-        .background(Color(.systemGroupedBackground))
         .navigationTitle("Dashboard")
+        .navigationBarTitleDisplayMode(.inline)
         .toolbarBackground(.hidden, for: .navigationBar)
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
