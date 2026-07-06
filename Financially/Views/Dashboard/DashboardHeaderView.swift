@@ -4,7 +4,16 @@ struct DashboardHeaderView: View {
     let vm: DashboardViewModel
     let heroHeight: CGFloat
 
+    @State private var netWorthMinY: CGFloat = 0
     @State private var gridMinY: CGFloat = 0
+
+    private var netWorthTitleColor: Color {
+        netWorthMinY < heroHeight ? .white.opacity(0.8) : .secondary
+    }
+
+    private var netWorthAmountColor: Color {
+        netWorthMinY < heroHeight ? .white : .primary
+    }
 
     private var textColor: Color {
         gridMinY < heroHeight ? .white : .primary
@@ -27,13 +36,19 @@ struct DashboardHeaderView: View {
                     Text("Net Worth")
                 }
                 .font(.subheadline)
-                .foregroundStyle(.white.opacity(0.8))
+                .foregroundStyle(netWorthTitleColor)
                 Text(vm.totalOwnFunds.formattedCurrency())
                     .font(.system(size: 34, weight: .bold))
-                    .foregroundStyle(.white)
+                    .foregroundStyle(netWorthAmountColor)
                     .lineLimit(1)
                     .minimumScaleFactor(0.5)
             }
+            .background(GeometryReader { proxy in
+                Color.clear
+                    .onAppear { netWorthMinY = proxy.frame(in: .global).minY }
+                    .onChange(of: proxy.frame(in: .global).minY) { _, v in netWorthMinY = v }
+            })
+            .animation(.easeInOut(duration: 0.15), value: netWorthMinY)
 
             LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
                 HeaderStat(title: "In Accounts", amount: vm.totalAccounts, icon: "building.columns.fill", textColor: textColor, secondaryTextColor: secondaryTextColor, iconColor: iconColor)
