@@ -108,6 +108,11 @@ struct CommitteeDetailView: View {
                     SummaryItem(title: "Members", value: "\(committee.totalMembers)", alignment: .center)
                     SummaryItem(title: "Payout", value: committee.totalPayout.formattedCurrency(), alignment: .trailing)
                 }
+                HStack(spacing: 0) {
+                    SummaryItem(title: "Start", value: committee.startMonth.formatted(date: .abbreviated, time: .omitted), alignment: .leading)
+                    SummaryItem(title: "", value: "", alignment: .center)
+                    SummaryItem(title: "", value: "", alignment: .trailing)
+                }
                 if committee.mySlots > 1 {
                     HStack(spacing: 0) {
                         let label = committee.slotPositionList.isEmpty ? "\(committee.mySlots)" : committee.slotPositionList.map(String.init).joined(separator: ", ")
