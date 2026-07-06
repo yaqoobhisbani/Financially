@@ -25,7 +25,7 @@ struct DashboardView: View {
 
     private func content(_ vm: DashboardViewModel) -> some View {
         GeometryReader { geo in
-            let heroHeight = geo.size.height * 0.42
+            let heroHeight = geo.size.height * 0.55
             ZStack(alignment: .top) {
                 Color(.systemGroupedBackground)
                     .ignoresSafeArea()
