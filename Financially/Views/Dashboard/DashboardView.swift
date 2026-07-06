@@ -40,7 +40,7 @@ struct DashboardView: View {
                 .ignoresSafeArea()
 
                 ScrollView {
-                    VStack(spacing: 2) {
+                    VStack(spacing: 16) {
                         DashboardHeaderView(vm: vm)
                             .padding(.horizontal, -16)
 
@@ -127,6 +127,8 @@ struct DashboardView: View {
         VStack(alignment: .leading, spacing: 8) {
             Text("Active Loans / Liabilities / Committees")
                 .font(.headline)
+                .foregroundStyle(scrollOffset > -100 ? .white : .primary)
+                .animation(.easeInOut(duration: 0.15), value: scrollOffset)
 
             HStack(spacing: 12) {
                 activeWidget(
