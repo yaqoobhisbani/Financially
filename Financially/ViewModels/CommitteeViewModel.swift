@@ -50,6 +50,7 @@ final class CommitteeViewModel {
             mySlotPositions: mySlotPositions
         )
         committee.monthsCompleted = monthsCompleted
+        committee.totalSlotsPaid = monthsCompleted * mySlots
         if monthsCompleted >= totalMembers {
             committee.isActive = false
         }
