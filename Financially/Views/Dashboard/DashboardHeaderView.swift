@@ -6,9 +6,13 @@ struct DashboardHeaderView: View {
     var body: some View {
         VStack(spacing: 20) {
             VStack(spacing: 4) {
-                Text("Net Worth")
-                    .font(.subheadline)
-                    .foregroundStyle(.white.opacity(0.8))
+                HStack(spacing: 6) {
+                    Image(systemName: "heart.fill")
+                        .font(.caption)
+                    Text("Net Worth")
+                }
+                .font(.subheadline)
+                .foregroundStyle(.white.opacity(0.8))
                 Text(vm.totalOwnFunds.formattedCurrency())
                     .font(.system(size: 34, weight: .bold))
                     .foregroundStyle(.white)
