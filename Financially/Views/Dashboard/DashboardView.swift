@@ -62,15 +62,15 @@ struct DashboardView: View {
                             }
                         }
 
-                        if !vm.assetAllocation.isEmpty { AllocationPieChart(slices: vm.assetAllocation) }
-                        if vm.activeLoanCount > 0 || vm.activeLiabilityCount > 0 || vm.activeCommitteeCount > 0 { activeLoansWidget(vm, heroHeight: heroHeight) }
                         if vm.monthlyIncome > 0 || vm.monthlyExpense > 0 { incomeVsExpenseWidget(vm) }
                         if vm.monthlyExpense > 0 { expenseChartWidget(vm) }
+                        if !vm.assetAllocation.isEmpty { AllocationPieChart(slices: vm.assetAllocation) }
+                        if vm.activeLoanCount > 0 || vm.activeLiabilityCount > 0 || vm.activeCommitteeCount > 0 { activeLoansWidget(vm, heroHeight: heroHeight) }
                         if !vm.recentTransactions.isEmpty { recentTransactionsSection(vm) }
                     }
                     .padding(.horizontal)
                     .padding(.bottom)
-                    .frame(minHeight: geo.size.height)
+                    .frame(minHeight: geo.size.height, alignment: .top)
                     .background(GeometryReader { proxy in
                         Color.clear
                             .preference(key: ScrollOffsetKey.self, value: proxy.frame(in: .named("scroll")).minY)
@@ -126,7 +126,7 @@ struct DashboardView: View {
 
     private func activeLoansWidget(_ vm: DashboardViewModel, heroHeight: CGFloat) -> some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("Active Loans / Liabilities / Committees")
+            Text("Commitments")
                 .font(.headline)
                 .foregroundStyle(activeLoansTitleY < heroHeight ? .white : .primary)
                 .animation(.easeInOut(duration: 0.15), value: activeLoansTitleY)
