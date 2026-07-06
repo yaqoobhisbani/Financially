@@ -9,6 +9,7 @@ struct DashboardView: View {
     @State private var showIncome = false
     @State private var showTransfer = false
     @State private var scrollOffset: CGFloat = 0
+    @State private var activeLoansTitleY: CGFloat = 0
 
     var body: some View {
         NavigationStack {
@@ -62,7 +63,7 @@ struct DashboardView: View {
                         }
 
                         if !vm.assetAllocation.isEmpty { AllocationPieChart(slices: vm.assetAllocation) }
-                        if vm.activeLoanCount > 0 || vm.activeLiabilityCount > 0 || vm.activeCommitteeCount > 0 { activeLoansWidget(vm) }
+                        if vm.activeLoanCount > 0 || vm.activeLiabilityCount > 0 || vm.activeCommitteeCount > 0 { activeLoansWidget(vm, heroHeight: heroHeight) }
                         if vm.monthlyIncome > 0 || vm.monthlyExpense > 0 { incomeVsExpenseWidget(vm) }
                         if vm.monthlyExpense > 0 { expenseChartWidget(vm) }
                         if !vm.recentTransactions.isEmpty { recentTransactionsSection(vm) }
@@ -123,12 +124,17 @@ struct DashboardView: View {
 
     // MARK: - Active Loans / Liabilities
 
-    private func activeLoansWidget(_ vm: DashboardViewModel) -> some View {
+    private func activeLoansWidget(_ vm: DashboardViewModel, heroHeight: CGFloat) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             Text("Active Loans / Liabilities / Committees")
                 .font(.headline)
-                .foregroundStyle(scrollOffset > -100 ? .white : .primary)
-                .animation(.easeInOut(duration: 0.15), value: scrollOffset)
+                .foregroundStyle(activeLoansTitleY < heroHeight ? .white : .primary)
+                .animation(.easeInOut(duration: 0.15), value: activeLoansTitleY)
+                .background(GeometryReader { proxy in
+                    Color.clear
+                        .onChange(of: proxy.frame(in: .global).minY) { _, v in activeLoansTitleY = v }
+                        .onAppear { activeLoansTitleY = proxy.frame(in: .global).minY }
+                })
 
             HStack(spacing: 12) {
                 activeWidget(
