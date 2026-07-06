@@ -25,7 +25,7 @@ struct DashboardView: View {
 
     private func content(_ vm: DashboardViewModel) -> some View {
         GeometryReader { geo in
-            let heroHeight = geo.size.height * 0.55
+            let heroHeight = geo.size.height * 0.42
             ZStack(alignment: .top) {
                 Color(.systemGroupedBackground)
                     .ignoresSafeArea()
@@ -39,10 +39,10 @@ struct DashboardView: View {
                 .ignoresSafeArea()
 
                 ScrollView {
-                    VStack(spacing: 12) {
+                    VStack(spacing: 2) {
                         DashboardHeaderView(vm: vm)
                             .frame(height: heroHeight)
-                            .padding(.horizontal, -16)
+                            .padding(.horizontal)
 
                         if vm.monthlyIncome > 0 || vm.monthlyExpense > 0 {
                             LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {

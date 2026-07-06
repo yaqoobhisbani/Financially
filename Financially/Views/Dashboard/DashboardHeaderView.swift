@@ -4,8 +4,8 @@ struct DashboardHeaderView: View {
     let vm: DashboardViewModel
 
     var body: some View {
-        VStack(spacing: 0) {
-            VStack(spacing: 6) {
+        VStack(spacing: 20) {
+            VStack(spacing: 4) {
                 Text("Net Worth")
                     .font(.subheadline)
                     .foregroundStyle(.white.opacity(0.8))
@@ -16,8 +16,6 @@ struct DashboardHeaderView: View {
                     .minimumScaleFactor(0.5)
             }
 
-            Spacer(minLength: 16)
-
             LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
                 HeaderStat(title: "In Accounts", amount: vm.totalAccounts, icon: "building.columns.fill")
                 HeaderStat(title: "Invested", amount: vm.totalInvested, icon: "chart.line.uptrend.xyaxis")
@@ -27,7 +25,7 @@ struct DashboardHeaderView: View {
         }
         .padding(.horizontal)
         .padding(.top, 8)
-        .padding(.bottom, 24)
+        .padding(.bottom, 20)
     }
 }
 
