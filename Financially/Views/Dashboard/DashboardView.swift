@@ -27,6 +27,35 @@ struct DashboardView: View {
         ScrollView {
             VStack(spacing: 16) {
                 DashboardHeaderView(vm: vm)
+                    .padding(.horizontal, -16)
+                    .padding(.top, -16)
+
+                LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
+                    SummaryCard(
+                        title: "In Accounts",
+                        amount: vm.totalAccounts,
+                        icon: "building.columns.fill",
+                        color: .blue
+                    )
+                    SummaryCard(
+                        title: "Invested",
+                        amount: vm.totalInvested,
+                        icon: "chart.line.uptrend.xyaxis",
+                        color: .purple
+                    )
+                    SummaryCard(
+                        title: "Liabilities",
+                        amount: vm.totalLiabilities,
+                        icon: "arrow.right.circle.fill",
+                        color: .orange
+                    )
+                    SummaryCard(
+                        title: "Receivables",
+                        amount: vm.totalReceivables,
+                        icon: "arrow.left.circle.fill",
+                        color: .teal
+                    )
+                }
 
                 if vm.monthlyIncome > 0 || vm.monthlyExpense > 0 {
                     LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
