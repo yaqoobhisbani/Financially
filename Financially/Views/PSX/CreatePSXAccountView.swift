@@ -62,7 +62,7 @@ struct CreatePSXAccountView: View {
                 brokerName: brokerName.isEmpty ? nil : brokerName,
                 fundHouse: fundHouse.isEmpty ? nil : fundHouse,
                 initialBalance: investedAmount,
-                investedAmount: investedAmount,
+                investedAmount: 0,
                 notes: notes.isEmpty ? nil : notes
             )
             dismiss()

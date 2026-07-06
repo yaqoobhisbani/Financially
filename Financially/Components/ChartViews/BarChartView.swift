@@ -37,6 +37,15 @@ struct BarChartView: View {
                     AxisValueLabel(format: .dateTime.month(.abbreviated))
                 }
             }
+            .chartYAxis {
+                AxisMarks { value in
+                    AxisValueLabel {
+                        if let d = value.as(Decimal.self) {
+                            Text(d.formatted(.number.notation(.compactName)))
+                        }
+                    }
+                }
+            }
             .frame(height: 200)
         }
     }
