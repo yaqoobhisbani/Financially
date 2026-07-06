@@ -213,8 +213,13 @@ struct DashboardView: View {
 
     // MARK: - Recent Transactions
 
+    @State private var showAllTransactions = false
+
     private func recentTransactionsSection(_ vm: DashboardViewModel) -> some View {
-        RecentTransactionsView(transactions: vm.recentTransactions)
+        RecentTransactionsView(transactions: vm.recentTransactions, onViewAll: { showAllTransactions = true })
+            .sheet(isPresented: $showAllTransactions) {
+                NavigationStack { TransactionHistoryReport() }
+            }
     }
 }
 

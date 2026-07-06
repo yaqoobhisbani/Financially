@@ -140,6 +140,9 @@ struct TransactionValidator {
             guard source.accountType == .bank || source.accountType == .cash else {
                 throw .accountTypeMismatch
             }
+
+        case .stockBuy, .stockSell:
+            break
         }
     }
 

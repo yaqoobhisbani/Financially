@@ -137,6 +137,9 @@ struct LedgerService {
             guard let source = sourceAccount else { return }
             createIncomeEntries(transaction: transaction, destination: source)
             source.updatedAt = Date()
+
+        case .stockBuy, .stockSell:
+            break
         }
     }
 

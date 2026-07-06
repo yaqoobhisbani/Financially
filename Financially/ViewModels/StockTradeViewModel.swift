@@ -30,6 +30,12 @@ final class StockTradeViewModel {
 
     func buy(ticker: String, companyName: String, shares: Int, pricePerShare: Decimal, brokerageFee: Decimal, tax: Decimal, netAmount: Decimal, date: Date, notes: String?) {
         let holding = findOrCreateHolding(ticker: ticker, companyName: companyName)
+
+        if holding.currentPrice == nil, let stock = stockList.first(where: { $0.ticker == ticker }), stock.currentRate > 0 {
+            holding.currentPrice = stock.currentRate
+            holding.priceFetchedAt = Date()
+        }
+
         let total = Decimal(shares) * pricePerShare
         let fees = brokerageFee + tax
 
@@ -66,11 +72,17 @@ final class StockTradeViewModel {
         account.currentBalance -= netAmount
         syncAccountFromHoldings()
         account.updatedAt = Date()
+        createTransaction(type: .stockBuy, amount: netAmount, date: date, description: notes ?? "Buy \(companyName) (\(ticker))")
     }
 
     func sell(holding: StockHolding, shares: Int, pricePerShare: Decimal, brokerageFee: Decimal, tax: Decimal, netProceeds: Decimal, date: Date, notes: String?) {
         let total = Decimal(shares) * pricePerShare
         let fees = brokerageFee + tax
+
+        if holding.currentPrice == nil, let stock = stockList.first(where: { $0.ticker == holding.ticker }), stock.currentRate > 0 {
+            holding.currentPrice = stock.currentRate
+            holding.priceFetchedAt = Date()
+        }
 
         let trade = StockTrade(
             accountId: account.id,
@@ -103,6 +115,31 @@ final class StockTradeViewModel {
         account.currentBalance += netProceeds
         syncAccountFromHoldings()
         account.updatedAt = Date()
+        createTransaction(type: .stockSell, amount: netProceeds, date: date, description: notes ?? "Sell \(holding.companyName) (\(holding.ticker))")
+    }
+
+    private func createTransaction(type: TransactionType, amount: Decimal, date: Date, description: String) {
+        let transaction = Transaction(
+            type: type,
+            amount: amount,
+            date: date,
+            description: description,
+            fromAccountId: type == .stockBuy ? account.id : nil,
+            toAccountId: type == .stockSell ? account.id : nil,
+            relatedEntityId: account.id
+        )
+        modelContext.insert(transaction)
+
+        let entry = LedgerEntry(
+            transactionId: transaction.id,
+            accountId: account.id,
+            entryType: type == .stockBuy ? .debit : .credit,
+            amount: amount,
+            runningBalance: account.currentBalance,
+            date: date
+        )
+        entry.account = account
+        modelContext.insert(entry)
     }
 
     private func syncAccountFromHoldings() {

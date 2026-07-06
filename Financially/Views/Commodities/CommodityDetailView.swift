@@ -5,11 +5,19 @@ struct CommodityDetailView: View {
     @Environment(\.modelContext) private var modelContext
 
     @Query private var allHoldings: [CommodityHolding]
+    @Query private var allTransactions: [Transaction]
     @State private var showBuy = false
     @State private var showSell = false
+    @State private var selectedTransaction: Transaction?
 
     private var holdings: [CommodityHolding] {
         allHoldings.filter { $0.totalGrams > 0 }
+    }
+
+    private var commodityTransactions: [Transaction] {
+        allTransactions
+            .filter { $0.type == .commodityBuy || $0.type == .commoditySell }
+            .sorted { $0.date > $1.date }
     }
 
     private var totalHoldingValue: Decimal {
@@ -34,11 +42,15 @@ struct CommodityDetailView: View {
             balanceSection
             actionsSection
             holdingsSection
+            recentTransactionsSection
         }
         .navigationTitle("Commodities")
         .navigationBarTitleDisplayMode(.inline)
         .sheet(isPresented: $showBuy) { BuyCommodityView() }
         .sheet(isPresented: $showSell) { SellCommodityView() }
+        .sheet(item: $selectedTransaction) { tx in
+            NavigationStack { TransactionDetailView(transaction: tx) }
+        }
     }
 
     // MARK: - Balance
@@ -76,6 +88,22 @@ struct CommodityDetailView: View {
             .listRowBackground(Color.clear)
         } header: {
             Text("Actions")
+        }
+    }
+
+    // MARK: - Recent Transactions
+
+    private var recentTransactionsSection: some View {
+        Section("Recent Transactions") {
+            ForEach(Array(commodityTransactions.prefix(20))) { tx in
+                TransactionRowView(transaction: tx, showIcon: true)
+                .contentShape(Rectangle())
+                .onTapGesture { selectedTransaction = tx }
+            }
+
+            if commodityTransactions.isEmpty {
+                EmptyStateView(title: "No transactions yet", systemImage: "arrow.left.arrow.right")
+            }
         }
     }
 

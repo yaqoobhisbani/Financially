@@ -81,6 +81,9 @@ struct LedgerManager {
 
         case .commoditySell:
             source?.currentBalance -= amount
+
+        case .stockBuy, .stockSell:
+            break
         }
 
         source?.updatedAt = Date()

@@ -5,11 +5,14 @@ struct InvestmentsListView: View {
     @Query private var accounts: [Account]
     @Query private var allHoldings: [StockHolding]
     @Query private var allCommodityHoldings: [CommodityHolding]
+    @Query private var allTransactions: [Transaction]
 
     @State private var selectedSegment: InvestmentSegment = .psx
     @State private var showCreatePSX = false
     @State private var showBuyCommodity = false
     @State private var showSellCommodity = false
+    @State private var selectedTransaction: Transaction?
+    @State private var showCommodityStatement = false
 
     private enum InvestmentSegment: String, CaseIterable {
         case psx = "PSX"
@@ -72,9 +75,19 @@ struct InvestmentsListView: View {
                         Label("Add", systemImage: "plus")
                     }
                 }
+                ToolbarItem(placement: .primaryAction) {
+                    if selectedSegment == .commodities {
+                        Button(action: { showCommodityStatement = true }) {
+                            Label("View Statement", systemImage: "doc.text")
+                        }
+                    }
+                }
             }
             .sheet(isPresented: $showCreatePSX) {
                 CreatePSXAccountView()
+            }
+            .sheet(isPresented: $showCommodityStatement) {
+                CommodityStatementView()
             }
         }
     }
@@ -128,10 +141,42 @@ struct InvestmentsListView: View {
                     }
                 }
             }
+
+            commodityTransactionsSection
         }
         .listStyle(.insetGrouped)
         .sheet(isPresented: $showBuyCommodity) { BuyCommodityView() }
         .sheet(isPresented: $showSellCommodity) { SellCommodityView() }
+        .sheet(item: $selectedTransaction) { tx in
+            NavigationStack { TransactionDetailView(transaction: tx) }
+        }
+    }
+
+    private var commodityTransactionsSection: some View {
+        let txs = allTransactions
+            .filter { $0.type == .commodityBuy || $0.type == .commoditySell }
+            .sorted { $0.date > $1.date }
+        return Section {
+            ForEach(Array(txs.prefix(5))) { tx in
+                TransactionRowView(transaction: tx, showIcon: true)
+                    .contentShape(Rectangle())
+                    .onTapGesture { selectedTransaction = tx }
+            }
+
+            if txs.isEmpty {
+                EmptyStateView(title: "No transactions yet", systemImage: "arrow.left.arrow.right")
+            }
+        } header: {
+            HStack {
+                Text("Recent Transactions")
+                    .font(.headline)
+                    .foregroundStyle(.primary)
+                Spacer()
+                Button("View All") { showCommodityStatement = true }
+                    .font(.subheadline)
+            }
+            .listRowInsets(EdgeInsets())
+        }
     }
 
     private var commoditiesBalanceSection: some View {

@@ -21,18 +21,26 @@ final class CommodityTradeViewModel {
         commodityName.localizedCaseInsensitiveContains("gold") ? "XAU" : "XAG"
     }
 
-    private func findOrCreateHolding(commodityName: String, currentPricePerGram: Decimal) -> CommodityHolding {
+    private func referenceRate(for commodityName: String) -> Decimal? {
+        guard let commodity = commodityList.first(where: { $0.name.localizedCaseInsensitiveCompare(commodityName) == .orderedSame }),
+              commodity.currentRatePerGram > 0 else { return nil }
+        return commodity.currentRatePerGram
+    }
+
+    private func findOrCreateHolding(commodityName: String) -> CommodityHolding {
         let sym = symbol(for: commodityName)
         if let existing = holdings.first(where: { $0.symbol == sym }) {
             return existing
         }
-        let holding = CommodityHolding(commodityName: commodityName, symbol: sym, currentPricePerGram: currentPricePerGram)
+        let rate = referenceRate(for: commodityName) ?? 0
+        let holding = CommodityHolding(commodityName: commodityName, symbol: sym, currentPricePerGram: rate)
+        if rate > 0 { holding.priceFetchedAt = Date() }
         modelContext.insert(holding)
         return holding
     }
 
     func buy(symbol: String, commodityName: String, grams: Decimal, pricePerGram: Decimal, brokerageFee: Decimal, tax: Decimal, netAmount: Decimal, date: Date, notes: String?) {
-        let holding = findOrCreateHolding(commodityName: commodityName, currentPricePerGram: pricePerGram)
+        let holding = findOrCreateHolding(commodityName: commodityName)
         let total = grams * pricePerGram
         let fees = brokerageFee + tax
 
@@ -69,6 +77,12 @@ final class CommodityTradeViewModel {
     func sell(holding: CommodityHolding, grams: Decimal, pricePerGram: Decimal, brokerageFee: Decimal, tax: Decimal, netProceeds: Decimal, date: Date, notes: String?) {
         let total = grams * pricePerGram
         let fees = brokerageFee + tax
+
+        if holding.currentPricePerGram == nil || holding.currentPricePerGram == 0,
+           let rate = referenceRate(for: holding.commodityName) {
+            holding.currentPricePerGram = rate
+            holding.priceFetchedAt = Date()
+        }
 
         let trade = CommodityTrade(
             holdingId: holding.id,

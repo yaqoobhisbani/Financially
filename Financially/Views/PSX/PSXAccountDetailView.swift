@@ -142,8 +142,8 @@ struct PSXAccountDetailView: View {
     // MARK: - Recent Transactions
 
     private func recentTransactionsSection(vm: PSXPortfolioViewModel) -> some View {
-        Section("Recent Transactions") {
-            ForEach(Array(vm.ledgerEntries.prefix(20))) { entry in
+        Section {
+            ForEach(Array(vm.ledgerEntries.prefix(5))) { entry in
                 LedgerRowView(entry: entry, currency: account.currency)
                     .contentShape(Rectangle())
                     .onTapGesture {
@@ -154,6 +154,16 @@ struct PSXAccountDetailView: View {
             if vm.ledgerEntries.isEmpty {
                 EmptyStateView(title: "No transactions yet", systemImage: "arrow.left.arrow.right")
             }
+        } header: {
+            HStack {
+                Text("Recent Transactions")
+                    .font(.headline)
+                    .foregroundStyle(.primary)
+                Spacer()
+                Button("View All") { showStatement = true }
+                    .font(.subheadline)
+            }
+            .listRowInsets(EdgeInsets())
         }
         .sheet(item: $selectedTransaction) { tx in
             NavigationStack { TransactionDetailView(transaction: tx) }

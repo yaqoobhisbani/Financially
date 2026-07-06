@@ -17,6 +17,8 @@ extension TransactionType {
         case .committeePayout: return "Committee Payout"
         case .commodityBuy: return "Buy Commodity"
         case .commoditySell: return "Sell Commodity"
+        case .stockBuy: return "Buy Stock"
+        case .stockSell: return "Sell Stock"
         }
     }
 
@@ -36,6 +38,8 @@ extension TransactionType {
         case .committeePayout: return "person.2.wave.2.fill"
         case .commodityBuy: return "shippingbox"
         case .commoditySell: return "shippingbox"
+        case .stockBuy: return "chart.bar.fill"
+        case .stockSell: return "chart.bar.fill"
         }
     }
 
@@ -50,6 +54,8 @@ extension TransactionType {
         case .committeePayout: return .green
         case .commodityBuy: return .brown
         case .commoditySell: return .brown
+        case .stockBuy: return .blue
+        case .stockSell: return .blue
         }
     }
 
@@ -57,6 +63,7 @@ extension TransactionType {
         switch self {
         case .income, .loanRepayment, .liabilityReceived, .committeePayout: return .incomeGreen
         case .commoditySell: return .incomeGreen
+        case .stockSell: return .incomeGreen
         default: return .expenseRed
         }
     }
