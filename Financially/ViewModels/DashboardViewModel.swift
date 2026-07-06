@@ -19,6 +19,14 @@ final class DashboardViewModel {
         totalBankBalances + totalCashBalances + totalInvestmentValues
     }
 
+    var totalAccounts: Decimal {
+        totalBankBalances + totalCashBalances
+    }
+
+    var totalInvested: Decimal {
+        totalInvestmentValues
+    }
+
     var totalLiabilities: Decimal {
         totalCreditorOutstanding
     }

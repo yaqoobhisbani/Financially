@@ -55,19 +55,30 @@ struct DashboardView: View {
     // MARK: - Summary Cards
 
     private func summaryCards(_ vm: DashboardViewModel) -> some View {
+        VStack(spacing: 12) {
+            SummaryCard(
+                title: "Net Worth",
+                amount: vm.totalOwnFunds,
+                icon: "heart.fill",
+                color: .netWorthAccent
+            )
+
             LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
                 SummaryCard(
-                    title: "Net Worth",
-                    amount: vm.netWorth,
-                    icon: "heart.fill",
-                    color: .netWorthAccent
+                    title: "In Accounts",
+                    amount: vm.totalAccounts,
+                    icon: "building.columns.fill",
+                    color: .blue
                 )
                 SummaryCard(
-                    title: "Total Assets",
-                    amount: vm.totalOwnFunds + vm.totalReceivables,
-                    icon: "building.columns.fill",
-                    color: .assetsAccent
+                    title: "Invested",
+                    amount: vm.totalInvested,
+                    icon: "chart.line.uptrend.xyaxis",
+                    color: .purple
                 )
+            }
+
+            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
                 SummaryCard(
                     title: "Liabilities",
                     amount: vm.totalLiabilities,
@@ -80,6 +91,9 @@ struct DashboardView: View {
                     icon: "arrow.left.circle.fill",
                     color: .receivablesAccent
                 )
+            }
+
+            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
                 SummaryCard(
                     title: "Monthly Income",
                     amount: vm.monthlyIncome,
@@ -93,6 +107,7 @@ struct DashboardView: View {
                     color: .expenseRed
                 )
             }
+        }
     }
 
     // MARK: - Expense Chart
