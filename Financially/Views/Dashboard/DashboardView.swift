@@ -8,6 +8,7 @@ struct DashboardView: View {
     @State private var showExpense = false
     @State private var showIncome = false
     @State private var showTransfer = false
+    @State private var scrollOffset: CGFloat = 0
 
     var body: some View {
         NavigationStack {
@@ -69,14 +70,25 @@ struct DashboardView: View {
                     .padding(.horizontal)
                     .padding(.bottom)
                     .frame(minHeight: geo.size.height)
+                    .background(GeometryReader { proxy in
+                        Color.clear
+                            .preference(key: ScrollOffsetKey.self, value: proxy.frame(in: .named("scroll")).minY)
+                    })
                 }
                 .scrollClipDisabled(true)
+                .coordinateSpace(name: "scroll")
+                .onPreferenceChange(ScrollOffsetKey.self) { scrollOffset = $0 }
             }
         }
-        .navigationTitle("Dashboard")
         .navigationBarTitleDisplayMode(.inline)
         .toolbarBackground(.hidden, for: .navigationBar)
         .toolbar {
+            ToolbarItem(placement: .principal) {
+                Text("Dashboard")
+                    .font(.headline)
+                    .foregroundStyle(scrollOffset > -60 ? .white : .primary)
+                    .animation(.easeInOut(duration: 0.2), value: scrollOffset)
+            }
             ToolbarItem(placement: .primaryAction) {
                 Menu {
                     Button("Expense", systemImage: "cart.fill") { showExpense = true }
@@ -173,5 +185,12 @@ struct DashboardView: View {
 
     private func recentTransactionsSection(_ vm: DashboardViewModel) -> some View {
         RecentTransactionsView(transactions: vm.recentTransactions)
+    }
+}
+
+struct ScrollOffsetKey: PreferenceKey {
+    static var defaultValue: CGFloat = 0
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
+        value = nextValue()
     }
 }
