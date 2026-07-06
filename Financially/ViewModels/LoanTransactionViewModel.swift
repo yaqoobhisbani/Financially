@@ -32,7 +32,7 @@ final class LoanTransactionViewModel {
             type: .loanGiven,
             amount: amount,
             date: date,
-            description: description,
+            description: description ?? "Loan given to \(debtor.name)",
             sourceAccountId: sourceAccountId,
             relatedEntityId: debtor.id
         )
@@ -57,8 +57,8 @@ final class LoanTransactionViewModel {
             type: .loanRepayment,
             amount: amountValue,
             date: date,
-            description: description,
-            sourceAccountId: destinationAccountId,
+            description: description ?? "Repayment from \(debtor.name)",
+            sourceAccountId: nil,
             destinationAccountId: destinationAccountId,
             relatedEntityId: debtor.id
         )
@@ -83,8 +83,8 @@ final class LoanTransactionViewModel {
             type: .liabilityReceived,
             amount: amountValue,
             date: date,
-            description: description,
-            sourceAccountId: destinationAccountId,
+            description: description ?? "Received from \(creditor.name)",
+            sourceAccountId: nil,
             destinationAccountId: destinationAccountId,
             relatedEntityId: creditor.id
         )
@@ -109,7 +109,7 @@ final class LoanTransactionViewModel {
             type: .liabilityPayback,
             amount: amountValue,
             date: date,
-            description: description,
+            description: description ?? "Payback to \(creditor.name)",
             sourceAccountId: sourceAccountId,
             relatedEntityId: creditor.id
         )
