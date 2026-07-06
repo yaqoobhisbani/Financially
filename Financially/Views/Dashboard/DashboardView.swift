@@ -42,7 +42,7 @@ struct DashboardView: View {
 
                 ScrollView {
                     VStack(spacing: 16) {
-                        DashboardHeaderView(vm: vm)
+                        DashboardHeaderView(vm: vm, heroHeight: heroHeight)
                             .padding(.horizontal, -16)
 
                         if vm.monthlyIncome > 0 || vm.monthlyExpense > 0 {
