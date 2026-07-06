@@ -26,7 +26,25 @@ struct DashboardView: View {
     private func content(_ vm: DashboardViewModel) -> some View {
         ScrollView {
             VStack(spacing: 16) {
-                summaryCards(vm)
+                DashboardHeaderView(vm: vm)
+
+                if vm.monthlyIncome > 0 || vm.monthlyExpense > 0 {
+                    LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
+                        SummaryCard(
+                            title: "Monthly Income",
+                            amount: vm.monthlyIncome,
+                            icon: "arrow.down.circle.fill",
+                            color: .incomeGreen
+                        )
+                        SummaryCard(
+                            title: "Monthly Expense",
+                            amount: vm.monthlyExpense,
+                            icon: "arrow.up.circle.fill",
+                            color: .expenseRed
+                        )
+                    }
+                }
+
                 if !vm.assetAllocation.isEmpty { AllocationPieChart(slices: vm.assetAllocation) }
                 if vm.activeLoanCount > 0 || vm.activeLiabilityCount > 0 || vm.activeCommitteeCount > 0 { activeLoansWidget(vm) }
                 if vm.monthlyIncome > 0 || vm.monthlyExpense > 0 { incomeVsExpenseWidget(vm) }
@@ -48,64 +66,6 @@ struct DashboardView: View {
                     Image(systemName: "plus")
                         .font(.title3)
                 }
-            }
-        }
-    }
-
-    // MARK: - Summary Cards
-
-    private func summaryCards(_ vm: DashboardViewModel) -> some View {
-        VStack(spacing: 12) {
-            SummaryCard(
-                title: "Net Worth",
-                amount: vm.totalOwnFunds,
-                icon: "heart.fill",
-                color: .netWorthAccent
-            )
-
-            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
-                SummaryCard(
-                    title: "In Accounts",
-                    amount: vm.totalAccounts,
-                    icon: "building.columns.fill",
-                    color: .blue
-                )
-                SummaryCard(
-                    title: "Invested",
-                    amount: vm.totalInvested,
-                    icon: "chart.line.uptrend.xyaxis",
-                    color: .purple
-                )
-            }
-
-            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
-                SummaryCard(
-                    title: "Liabilities",
-                    amount: vm.totalLiabilities,
-                    icon: "arrow.right.circle.fill",
-                    color: .liabilitiesAccent
-                )
-                SummaryCard(
-                    title: "Receivables",
-                    amount: vm.totalReceivables,
-                    icon: "arrow.left.circle.fill",
-                    color: .receivablesAccent
-                )
-            }
-
-            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
-                SummaryCard(
-                    title: "Monthly Income",
-                    amount: vm.monthlyIncome,
-                    icon: "arrow.down.circle.fill",
-                    color: .incomeGreen
-                )
-                SummaryCard(
-                    title: "Monthly Expense",
-                    amount: vm.monthlyExpense,
-                    icon: "arrow.up.circle.fill",
-                    color: .expenseRed
-                )
             }
         }
     }
