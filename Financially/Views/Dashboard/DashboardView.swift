@@ -45,6 +45,8 @@ struct DashboardView: View {
                         DashboardHeaderView(vm: vm, heroHeight: heroHeight)
                             .padding(.horizontal, -16)
 
+                        if vm.hasNoData { emptyDashboardCard }
+
                         if vm.monthlyIncome > 0 || vm.monthlyExpense > 0 {
                             LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
                                 SummaryCard(
@@ -101,6 +103,26 @@ struct DashboardView: View {
                 }
             }
         }
+    }
+
+    // MARK: - Empty Dashboard
+
+    private var emptyDashboardCard: some View {
+        VStack(spacing: 12) {
+            Image(systemName: "sparkles")
+                .font(.title2)
+                .foregroundStyle(.secondary)
+            Text("Welcome to Financially")
+                .font(.headline)
+            Text("Track your money — accounts, investments, loans, committees & more")
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 40)
+        .padding(.horizontal, 24)
+        .liquidGlassCard()
     }
 
     // MARK: - Expense Chart

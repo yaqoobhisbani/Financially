@@ -209,6 +209,15 @@ final class DashboardViewModel {
         ].filter { $0.value > 0 }
     }
 
+    var hasNoData: Bool {
+        accounts.isEmpty
+            && allTransactions.isEmpty
+            && allDebtors.isEmpty
+            && allCreditors.isEmpty
+            && allCommittees.isEmpty
+            && allCommodityHoldings.isEmpty
+    }
+
     var activeCommodityHoldings: [CommodityHolding] {
         allCommodityHoldings.filter { $0.totalGrams > 0 }
     }
