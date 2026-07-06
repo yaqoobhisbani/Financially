@@ -38,8 +38,6 @@ private struct HeaderStat: View {
     let amount: Decimal
     let icon: String
 
-    @Environment(\.colorScheme) private var colorScheme
-
     var body: some View {
         HStack(spacing: 8) {
             Image(systemName: icon)
@@ -59,11 +57,6 @@ private struct HeaderStat: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(12)
-        .background(
-            colorScheme == .light
-                ? AnyShapeStyle(Color.white.opacity(0.25))
-                : AnyShapeStyle(.ultraThinMaterial),
-            in: RoundedRectangle(cornerRadius: 12)
-        )
+        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 12))
     }
 }
