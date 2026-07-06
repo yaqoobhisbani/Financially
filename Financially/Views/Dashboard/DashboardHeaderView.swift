@@ -41,7 +41,7 @@ private struct HeaderStat: View {
     @Environment(\.colorScheme) private var colorScheme
 
     private var material: Material {
-        colorScheme == .light ? .regularMaterial : .ultraThinMaterial
+        colorScheme == .light ? .thinMaterial : .ultraThinMaterial
     }
 
     var body: some View {
