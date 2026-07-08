@@ -26,11 +26,8 @@ struct SettingsView: View {
                     NavigationLink(destination: CategoriesManagementView()) {
                         Label("Categories", systemImage: "list.bullet")
                     }
-                    NavigationLink(destination: StockInfoManagementView()) {
-                        Label("Stocks", systemImage: "chart.line.uptrend.xyaxis")
-                    }
-                    NavigationLink(destination: CommodityInfoManagementView()) {
-                        Label("Commodities", systemImage: "diamond.fill")
+                    NavigationLink(destination: MarketRatesView()) {
+                        Label("Market Rates", systemImage: "chart.line.uptrend.xyaxis")
                     }
                 }
 
