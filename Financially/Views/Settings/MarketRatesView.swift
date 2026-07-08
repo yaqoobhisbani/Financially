@@ -5,10 +5,13 @@ struct MarketRatesView: View {
     @Environment(\.modelContext) private var modelContext
     @Query(sort: \StockInfo.ticker) private var stockList: [StockInfo]
     @Query(sort: \CommodityInfo.name) private var commodityList: [CommodityInfo]
+    @Query(sort: \MutualFundScheme.schemeName) private var mfSchemeList: [MutualFundScheme]
     @State private var selectedTab: MarketTab = .stocks
     @State private var showingAddStock = false
+    @State private var showingAddMFScheme = false
     @State private var editingStock: StockInfo?
     @State private var editingCommodity: CommodityInfo?
+    @State private var editingMFScheme: MutualFundScheme?
     @State private var editRate = ""
     @State private var isSyncing = false
     @State private var syncProgress: Double = 0
@@ -19,6 +22,7 @@ struct MarketRatesView: View {
     enum MarketTab: String, CaseIterable {
         case stocks = "Stocks"
         case commodities = "Commodities"
+        case mutualFunds = "Mutual Funds"
     }
 
     var body: some View {
@@ -54,6 +58,8 @@ struct MarketRatesView: View {
                     stocksSection
                 case .commodities:
                     commoditiesSection
+                case .mutualFunds:
+                    mutualFundsSection
                 }
             }
         }
@@ -66,16 +72,27 @@ struct MarketRatesView: View {
                 .disabled(isSyncing)
             }
             ToolbarItem(placement: .primaryAction) {
-                if selectedTab == .stocks {
+                switch selectedTab {
+                case .stocks:
                     Button(action: { showingAddStock = true }) {
                         Label("Add", systemImage: "plus")
                     }
                     .disabled(isSyncing)
+                case .mutualFunds:
+                    Button(action: { showingAddMFScheme = true }) {
+                        Label("Add", systemImage: "plus")
+                    }
+                    .disabled(isSyncing)
+                default:
+                    EmptyView()
                 }
             }
         }
         .sheet(isPresented: $showingAddStock) {
             AddStockInfoView()
+        }
+        .sheet(isPresented: $showingAddMFScheme) {
+            AddMFSchemeView()
         }
         .alert("Update Rate", isPresented: .init(get: { editingStock != nil }, set: { if !$0 { editingStock = nil } })) {
             TextField("Rate", text: $editRate)
@@ -110,6 +127,83 @@ struct MarketRatesView: View {
         } message: {
             if let commodity = editingCommodity {
                 Text("Update rate per gram for \(commodity.name)")
+            }
+        }
+        .alert("Update NAV", isPresented: .init(get: { editingMFScheme != nil }, set: { if !$0 { editingMFScheme = nil } })) {
+            TextField("NAV Price", text: $editRate)
+                .keyboardType(.decimalPad)
+            Button("Save") {
+                if let scheme = editingMFScheme, let rate = Decimal(string: editRate), rate > 0 {
+                    scheme.navPrice = rate
+                    scheme.lastUpdatedAt = Date()
+                    let service = MarketRateService(modelContext: modelContext)
+                    service.syncMFToHoldings(fundCode: scheme.fundCode, navPrice: rate)
+                    try? modelContext.save()
+                }
+                editingMFScheme = nil
+            }
+            Button("Cancel", role: .cancel) { editingMFScheme = nil }
+        } message: {
+            if let scheme = editingMFScheme {
+                Text("Update NAV for \(scheme.schemeName)")
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var mutualFundsSection: some View {
+        if mfSchemeList.isEmpty {
+            Text("No schemes added yet")
+                .foregroundStyle(.secondary)
+                .frame(maxWidth: .infinity, alignment: .center)
+                .padding()
+        } else {
+            ForEach(mfSchemeList) { scheme in
+                HStack {
+                    VStack(alignment: .leading) {
+                        Text(scheme.schemeName)
+                            .font(.headline)
+                        Text(scheme.fundCode)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                        if let fundHouse = scheme.fundHouse {
+                            Text(fundHouse)
+                                .font(.caption2)
+                                .foregroundStyle(.tertiary)
+                        }
+                        if let lastUpdated = scheme.lastUpdatedAt {
+                            Text(lastUpdated, style: .time)
+                                .font(.caption2)
+                                .foregroundStyle(.tertiary)
+                        }
+                    }
+                    Spacer()
+                    VStack(alignment: .trailing) {
+                        Text(scheme.navPrice.formattedCurrency())
+                            .font(.subheadline.weight(.medium))
+                            .foregroundStyle(.primary)
+                            .contentShape(Rectangle())
+                            .onTapGesture {
+                                editingMFScheme = scheme
+                                editRate = "\(scheme.navPrice)"
+                            }
+                        Text("per unit")
+                            .font(.caption2)
+                            .foregroundStyle(.tertiary)
+                    }
+                }
+                .swipeActions(edge: .trailing) {
+                    Button("Delete", role: .destructive) {
+                        modelContext.delete(scheme)
+                    }
+                }
+                .swipeActions(edge: .leading) {
+                    Button("Edit NAV") {
+                        editingMFScheme = scheme
+                        editRate = "\(scheme.navPrice)"
+                    }
+                    .tint(.orange)
+                }
             }
         }
     }
@@ -209,7 +303,7 @@ struct MarketRatesView: View {
 
     private func syncAll() async {
         isSyncing = true
-        let total = max(stockList.count + commodityList.count, 1)
+        let total = max(stockList.count + commodityList.count + mfSchemeList.count, 1)
         syncTotal = total
         syncCurrent = 0
         syncProgress = 0
@@ -222,8 +316,19 @@ struct MarketRatesView: View {
             syncProgress = Double(current)
         }
 
+        if selectedTab == .mutualFunds {
+            syncMFSchemes(service: service)
+        }
+
         syncMessage = "Done!"
         isSyncing = false
+    }
+
+    private func syncMFSchemes(service: MarketRateService) {
+        for scheme in mfSchemeList {
+            let navPrice = scheme.navPrice
+            service.syncMFToHoldings(fundCode: scheme.fundCode, navPrice: navPrice)
+        }
     }
 
     private func syncRateToHoldings(ticker: String, rate: Decimal) {

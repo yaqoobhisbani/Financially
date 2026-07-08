@@ -82,7 +82,7 @@ struct LedgerManager {
         case .commoditySell:
             source?.currentBalance -= amount
 
-        case .stockBuy, .stockSell:
+        case .stockBuy, .stockSell, .mutualFundBuy, .mutualFundSell:
             break
         }
 

@@ -50,6 +50,7 @@ struct AccountRowView: View {
         case .bank: return "building.columns.fill"
         case .cash: return "wallet.pass.fill"
         case .psx: return "chart.line.uptrend.xyaxis"
+        case .mutualFund: return "chart.pie.fill"
         }
     }
 
@@ -65,6 +66,7 @@ struct AccountRowView: View {
         case .bank: return .accountBank
         case .cash: return .accountCash
         case .psx: return .accountPSX
+        case .mutualFund: return .teal
         }
     }
 
@@ -79,6 +81,8 @@ struct AccountRowView: View {
             return account.cashSubType?.rawValue.capitalized ?? "Cash"
         case .psx:
             return account.brokerName ?? "PSX Account"
+        case .mutualFund:
+            return account.fundHouse ?? "MF Account"
         }
     }
 }

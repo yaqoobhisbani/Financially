@@ -138,7 +138,7 @@ struct LedgerService {
             createIncomeEntries(transaction: transaction, destination: source)
             source.updatedAt = Date()
 
-        case .stockBuy, .stockSell:
+        case .stockBuy, .stockSell, .mutualFundBuy, .mutualFundSell:
             break
         }
     }

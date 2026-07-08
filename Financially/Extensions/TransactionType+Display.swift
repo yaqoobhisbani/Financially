@@ -19,6 +19,8 @@ extension TransactionType {
         case .commoditySell: return "Sell Commodity"
         case .stockBuy: return "Buy Stock"
         case .stockSell: return "Sell Stock"
+        case .mutualFundBuy: return "Invest"
+        case .mutualFundSell: return "Redeem"
         }
     }
 
@@ -40,6 +42,8 @@ extension TransactionType {
         case .commoditySell: return "shippingbox"
         case .stockBuy: return "chart.bar.fill"
         case .stockSell: return "chart.bar.fill"
+        case .mutualFundBuy: return "chart.pie.fill"
+        case .mutualFundSell: return "chart.pie.fill"
         }
     }
 
@@ -56,6 +60,8 @@ extension TransactionType {
         case .commoditySell: return .brown
         case .stockBuy: return .blue
         case .stockSell: return .blue
+        case .mutualFundBuy: return .teal
+        case .mutualFundSell: return .teal
         }
     }
 
@@ -64,6 +70,7 @@ extension TransactionType {
         case .income, .loanRepayment, .liabilityReceived, .committeePayout: return .incomeGreen
         case .commoditySell: return .incomeGreen
         case .stockSell: return .incomeGreen
+        case .mutualFundSell: return .incomeGreen
         default: return .expenseRed
         }
     }

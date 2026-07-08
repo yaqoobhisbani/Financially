@@ -11,6 +11,8 @@ struct AccountDetailView: View {
                 PSXAccountDetailView(account: account)
             case .bank, .cash:
                 BankCashAccountDetailView(account: account)
+            case .mutualFund:
+                MFAccountDetailView(account: account)
             }
         }
     }

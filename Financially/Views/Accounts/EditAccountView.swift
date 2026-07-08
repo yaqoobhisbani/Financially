@@ -67,6 +67,9 @@ struct EditAccountView: View {
 
                     case .psx:
                         TextField("Broker Name", text: $brokerName)
+
+                    case .mutualFund:
+                        TextField("Fund House", text: $fundHouse)
                     }
                 }
 

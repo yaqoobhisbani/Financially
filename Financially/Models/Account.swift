@@ -28,9 +28,18 @@ final class Account {
         accounts.filter { $0.isActive && ($0.accountType == .bank || $0.accountType == .cash) }
     }
 
+    func syncFromMFHoldings(_ holdings: [MutualFundHolding]) {
+        guard accountType == .mutualFund else { return }
+        investedAmount = holdings.reduce(0) { $0 + $1.totalCost }
+        totalProfitLoss = holdings.reduce(0) { $0 + $1.currentValue - $1.totalCost }
+    }
+
     var currentValue: Decimal {
         if accountType == .psx {
             return currentBalance + investedAmount + totalProfitLoss
+        }
+        if accountType == .mutualFund {
+            return investedAmount + totalProfitLoss
         }
         return currentBalance
     }

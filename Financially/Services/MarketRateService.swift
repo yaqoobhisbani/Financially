@@ -107,4 +107,71 @@ final class MarketRateService {
             holding.priceFetchedAt = Date()
         }
     }
+
+    // MARK: - Mutual Fund NAV Sync
+
+    func fetchMFNav(schemeName: String) async -> Decimal? {
+        let urlString = "https://mufap.com.pk/Industry/IndustryStatDaily?tab=1"
+        guard let url = URL(string: urlString) else { return nil }
+
+        do {
+            let (data, _) = try await URLSession.shared.data(from: url)
+            guard let html = String(data: data, encoding: .utf8) else { return nil }
+            return parseNAVFromHTML(html, schemeName: schemeName)
+        } catch {
+            return nil
+        }
+    }
+
+    private func parseNAVFromHTML(_ html: String, schemeName: String) -> Decimal? {
+        let pattern = #"<tr[^>]*>(.*?)</tr>"#
+        guard let regex = try? NSRegularExpression(pattern: pattern, options: [.dotMatchesLineSeparators]) else { return nil }
+        let matches = regex.matches(in: html, options: [], range: NSRange(html.startIndex..., in: html))
+
+        for match in matches {
+            guard let rowRange = Range(match.range, in: html) else { continue }
+            let row = String(html[rowRange])
+
+            let cellPattern = #"<td[^>]*>(.*?)</td>"#
+            guard let cellRegex = try? NSRegularExpression(pattern: cellPattern, options: [.dotMatchesLineSeparators]) else { continue }
+            let cellMatches = cellRegex.matches(in: row, options: [], range: NSRange(row.startIndex..., in: row))
+
+            guard cellMatches.count >= 7 else { continue }
+
+            let nameRange = cellMatches[2].range(at: 1)
+            guard let nameStrRange = Range(nameRange, in: row) else { continue }
+            let name = String(row[nameStrRange]).trimmingCharacters(in: .whitespacesAndNewlines)
+
+            guard name.localizedCaseInsensitiveContains(schemeName) || schemeName.localizedCaseInsensitiveContains(name) else { continue }
+
+            let navRange = cellMatches[6].range(at: 1)
+            guard let navStrRange = Range(navRange, in: row) else { continue }
+            let navStr = String(row[navStrRange]).trimmingCharacters(in: .whitespacesAndNewlines)
+                .replacingOccurrences(of: ",", with: "")
+
+            return Decimal(string: navStr)
+        }
+
+        return nil
+    }
+
+    func syncMFToHoldings(fundCode: String, navPrice: Decimal) {
+        let fetch = FetchDescriptor<MutualFundHolding>()
+        guard let holdings = try? modelContext.fetch(fetch) else { return }
+        for holding in holdings where holding.fundCode == fundCode {
+            holding.currentNavPrice = navPrice
+            holding.priceFetchedAt = Date()
+        }
+
+        let mfType = AccountType.mutualFund.rawValue
+        let acctFetch = FetchDescriptor<Account>(predicate: #Predicate { $0.accountType.rawValue == mfType })
+        guard let accounts = try? modelContext.fetch(acctFetch) else { return }
+        for acct in accounts {
+            let acctId = acct.id
+            let holdingFetch = FetchDescriptor<MutualFundHolding>(predicate: #Predicate { $0.accountId == acctId })
+            guard let mfHoldings = try? modelContext.fetch(holdingFetch) else { continue }
+            acct.syncFromMFHoldings(mfHoldings)
+            acct.updatedAt = Date()
+        }
+    }
 }

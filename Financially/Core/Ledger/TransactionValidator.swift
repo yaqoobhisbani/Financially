@@ -143,6 +143,18 @@ struct TransactionValidator {
 
         case .stockBuy, .stockSell:
             break
+
+        case .mutualFundBuy:
+            guard source.accountType == .bank || source.accountType == .cash else {
+                throw .accountTypeMismatch
+            }
+            try validateSufficientBalance(account: source, amount: transaction.amount)
+
+        case .mutualFundSell:
+            guard let dest = destinationAccount else { throw .accountNotFound(UUID()) }
+            guard dest.accountType == .bank || dest.accountType == .cash else {
+                throw .accountTypeMismatch
+            }
         }
     }
 

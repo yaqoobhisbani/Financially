@@ -5,22 +5,29 @@ struct InvestmentsListView: View {
     @Query private var accounts: [Account]
     @Query private var allHoldings: [StockHolding]
     @Query private var allCommodityHoldings: [CommodityHolding]
+    @Query private var allMFHoldings: [MutualFundHolding]
     @Query private var allTransactions: [Transaction]
 
     @State private var selectedSegment: InvestmentSegment = .psx
     @State private var showCreatePSX = false
     @State private var showBuyCommodity = false
     @State private var showSellCommodity = false
+    @State private var showCreateMF = false
     @State private var selectedTransaction: Transaction?
     @State private var showCommodityStatement = false
 
     private enum InvestmentSegment: String, CaseIterable {
         case psx = "PSX"
         case commodities = "Commodities"
+        case mutualFunds = "Mutual Funds"
     }
 
     private var psxAccounts: [Account] {
         accounts.filter { $0.accountType == .psx }
+    }
+
+    private var mfAccounts: [Account] {
+        accounts.filter { $0.accountType == .mutualFund }
     }
 
     private var activeCommodityHoldings: [CommodityHolding] {
@@ -60,16 +67,18 @@ struct InvestmentsListView: View {
                     psxSection
                 case .commodities:
                     commoditiesSection
+                case .mutualFunds:
+                    mutualFundsSection
                 }
             }
             .navigationTitle("Investments")
             .toolbar {
                 ToolbarItem {
                     Button(action: {
-                        if selectedSegment == .psx {
-                            showCreatePSX = true
-                        } else {
-                            showBuyCommodity = true
+                        switch selectedSegment {
+                        case .psx: showCreatePSX = true
+                        case .commodities: showBuyCommodity = true
+                        case .mutualFunds: showCreateMF = true
                         }
                     }) {
                         Label("Add", systemImage: "plus")
@@ -88,6 +97,9 @@ struct InvestmentsListView: View {
             }
             .sheet(isPresented: $showCommodityStatement) {
                 CommodityStatementView()
+            }
+            .sheet(isPresented: $showCreateMF) {
+                CreateMFAccountView()
             }
         }
     }
@@ -150,6 +162,32 @@ struct InvestmentsListView: View {
         .sheet(item: $selectedTransaction) { tx in
             NavigationStack { TransactionDetailView(transaction: tx) }
         }
+    }
+
+    // MARK: - Mutual Funds Section
+
+    private var mutualFundsSection: some View {
+        List {
+            if mfAccounts.isEmpty {
+                Section {
+                    EmptyStateView(
+                        title: "No Mutual Fund Accounts",
+                        systemImage: "chart.pie.fill",
+                        description: "Create a mutual fund account to track your investments in schemes",
+                        buttonLabel: "Add MF Account",
+                        action: { showCreateMF = true }
+                    )
+                }
+            } else {
+                ForEach(mfAccounts) { account in
+                    let holdings = allMFHoldings.filter { $0.accountId == account.id && $0.totalUnits > 0 }
+                    NavigationLink(destination: MFAccountDetailView(account: account)) {
+                        MFAccountRowView(account: account, holdings: holdings)
+                    }
+                }
+            }
+        }
+        .listStyle(.insetGrouped)
     }
 
     private var commodityTransactionsSection: some View {
@@ -268,6 +306,57 @@ struct PSXAccountRowView: View {
 }
 
 // MARK: - Commodity Row
+
+// MARK: - MF Account Row
+
+struct MFAccountRowView: View {
+    let account: Account
+    let holdings: [MutualFundHolding]
+
+    private var portfolioValue: Decimal {
+        holdings.reduce(0) { $0 + $1.currentValue }
+    }
+
+    private var totalCost: Decimal {
+        holdings.reduce(0) { $0 + $1.totalCost }
+    }
+
+    private var profitLoss: Decimal {
+        portfolioValue - totalCost
+    }
+
+    var body: some View {
+        HStack(spacing: 12) {
+            Image(systemName: "chart.pie.fill")
+                .font(.title3)
+                .foregroundStyle(.teal)
+                .frame(width: 40, height: 40)
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text(account.name)
+                    .font(.headline)
+                    .lineLimit(1)
+                Text(account.fundHouse ?? "MF Account")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+            }
+
+            Spacer()
+
+            VStack(alignment: .trailing, spacing: 2) {
+                Text(portfolioValue.formattedCurrency())
+                    .font(.headline)
+                    .fixedSize(horizontal: true, vertical: false)
+                Text(profitLoss.formattedCurrency())
+                    .font(.caption)
+                    .foregroundStyle(profitLoss >= 0 ? .incomeGreen : .expenseRed)
+                    .fixedSize(horizontal: true, vertical: false)
+            }
+        }
+        .opacity(account.isActive ? 1 : 0.5)
+    }
+}
 
 struct CommodityRowView: View {
     let holding: CommodityHolding

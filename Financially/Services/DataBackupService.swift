@@ -22,6 +22,9 @@ struct BackupData: Codable {
     var stockInfos: [BackupStockInfo]
     var stockTrades: [BackupStockTrade]
     var transactions: [BackupTransaction]
+    var mutualFundSchemes: [BackupMutualFundScheme]
+    var mutualFundHoldings: [BackupMutualFundHolding]
+    var mutualFundTrades: [BackupMutualFundTrade]
 
     init(
         accounts: [BackupAccount] = [],
@@ -39,7 +42,10 @@ struct BackupData: Codable {
         stockHoldings: [BackupStockHolding] = [],
         stockInfos: [BackupStockInfo] = [],
         stockTrades: [BackupStockTrade] = [],
-        transactions: [BackupTransaction] = []
+        transactions: [BackupTransaction] = [],
+        mutualFundSchemes: [BackupMutualFundScheme] = [],
+        mutualFundHoldings: [BackupMutualFundHolding] = [],
+        mutualFundTrades: [BackupMutualFundTrade] = []
     ) {
         self.version = 1
         self.exportedAt = Date()
@@ -59,6 +65,9 @@ struct BackupData: Codable {
         self.stockInfos = stockInfos
         self.stockTrades = stockTrades
         self.transactions = transactions
+        self.mutualFundSchemes = mutualFundSchemes
+        self.mutualFundHoldings = mutualFundHoldings
+        self.mutualFundTrades = mutualFundTrades
     }
 }
 
@@ -255,6 +264,46 @@ struct BackupStockTrade: Codable {
     let createdAt: Date
 }
 
+struct BackupMutualFundScheme: Codable {
+    let id: UUID
+    let schemeName: String
+    let fundCode: String
+    let fundHouse: String?
+    let navPrice: Decimal
+    let lastUpdatedAt: Date?
+}
+
+struct BackupMutualFundHolding: Codable {
+    let id: UUID
+    let accountId: UUID
+    let schemeName: String
+    let fundCode: String
+    let totalUnits: Decimal
+    let avgNavPrice: Decimal
+    let totalCost: Decimal
+    let currentNavPrice: Decimal?
+    let priceFetchedAt: Date?
+    let cytdGainLoss: Decimal?
+    let createdAt: Date
+}
+
+struct BackupMutualFundTrade: Codable {
+    let id: UUID
+    let accountId: UUID
+    let holdingId: UUID
+    let type: TradeType
+    let fundCode: String
+    let schemeName: String
+    let units: Decimal
+    let navPrice: Decimal
+    let totalAmount: Decimal
+    let fees: Decimal
+    let netAmount: Decimal
+    let date: Date
+    let notes: String?
+    let createdAt: Date
+}
+
 struct BackupTransaction: Codable {
     let id: UUID
     let type: TransactionType
@@ -297,6 +346,9 @@ final class DataBackupService {
         let stockInfos: [StockInfo] = fetchAll()
         let stockTrades: [StockTrade] = fetchAll()
         let transactions: [Transaction] = fetchAll()
+        let mutualFundSchemes: [MutualFundScheme] = fetchAll()
+        let mutualFundHoldings: [MutualFundHolding] = fetchAll()
+        let mutualFundTrades: [MutualFundTrade] = fetchAll()
 
         let backup = BackupData(
             accounts: accounts.map { $0.toBackup },
@@ -314,7 +366,10 @@ final class DataBackupService {
             stockHoldings: stockHoldings.map { $0.toBackup },
             stockInfos: stockInfos.map { $0.toBackup },
             stockTrades: stockTrades.map { $0.toBackup },
-            transactions: transactions.map { $0.toBackup }
+            transactions: transactions.map { $0.toBackup },
+            mutualFundSchemes: mutualFundSchemes.map { $0.toBackup },
+            mutualFundHoldings: mutualFundHoldings.map { $0.toBackup },
+            mutualFundTrades: mutualFundTrades.map { $0.toBackup }
         )
 
         let encoder = JSONEncoder()
@@ -341,6 +396,9 @@ final class DataBackupService {
         try deleteAll(StockHolding.self)
         try deleteAll(StockInfo.self)
         try deleteAll(StockTrade.self)
+        try deleteAll(MutualFundScheme.self)
+        try deleteAll(MutualFundHolding.self)
+        try deleteAll(MutualFundTrade.self)
         try deleteAll(Transaction.self)
     }
 
@@ -368,11 +426,15 @@ final class DataBackupService {
         total += backup.stockInfos.count
         total += backup.stockTrades.count
         total += backup.transactions.count
+        total += backup.mutualFundSchemes.count
+        total += backup.mutualFundHoldings.count
+        total += backup.mutualFundTrades.count
 
         // Tier 1: No dependencies
         for item in backup.categories { modelContext.insert(item.toModel) }
         for item in backup.stockInfos { modelContext.insert(item.toModel) }
         for item in backup.commodityInfos { modelContext.insert(item.toModel) }
+        for item in backup.mutualFundSchemes { modelContext.insert(item.toModel) }
 
         // Tier 2: No dependencies
         for item in backup.accounts { modelContext.insert(item.toModel) }
@@ -383,10 +445,12 @@ final class DataBackupService {
         // Tier 3: Depend on Accounts
         for item in backup.stockHoldings { modelContext.insert(item.toModel) }
         for item in backup.commodityHoldings { modelContext.insert(item.toModel) }
+        for item in backup.mutualFundHoldings { modelContext.insert(item.toModel) }
 
         // Tier 4: Depend on Accounts + Holdings
         for item in backup.stockTrades { modelContext.insert(item.toModel) }
         for item in backup.commodityTrades { modelContext.insert(item.toModel) }
+        for item in backup.mutualFundTrades { modelContext.insert(item.toModel) }
 
         // Tier 5: Depend on Accounts
         for item in backup.transactions { modelContext.insert(item.toModel) }
@@ -786,6 +850,76 @@ private extension BackupTransaction {
             fromAccountId: fromAccountId,
             toAccountId: toAccountId,
             relatedEntityId: relatedEntityId
+        )
+    }
+}
+
+// MARK: - Mutual Fund Backups
+
+private extension MutualFundScheme {
+    var toBackup: BackupMutualFundScheme {
+        BackupMutualFundScheme(id: id, schemeName: schemeName, fundCode: fundCode, fundHouse: fundHouse, navPrice: navPrice, lastUpdatedAt: lastUpdatedAt)
+    }
+}
+
+private extension BackupMutualFundScheme {
+    var toModel: MutualFundScheme {
+        let item = MutualFundScheme(id: id, schemeName: schemeName, fundCode: fundCode, fundHouse: fundHouse, navPrice: navPrice)
+        item.lastUpdatedAt = lastUpdatedAt
+        return item
+    }
+}
+
+private extension MutualFundHolding {
+    var toBackup: BackupMutualFundHolding {
+        BackupMutualFundHolding(
+            id: id, accountId: accountId,
+            schemeName: schemeName, fundCode: fundCode,
+            totalUnits: totalUnits, avgNavPrice: avgNavPrice,
+            totalCost: totalCost, currentNavPrice: currentNavPrice,
+            priceFetchedAt: priceFetchedAt,
+            cytdGainLoss: cytdGainLoss, createdAt: createdAt
+        )
+    }
+}
+
+private extension BackupMutualFundHolding {
+    var toModel: MutualFundHolding {
+        let item = MutualFundHolding(
+            id: id, accountId: accountId,
+            schemeName: schemeName, fundCode: fundCode,
+            totalUnits: totalUnits, avgNavPrice: avgNavPrice,
+            totalCost: totalCost, currentNavPrice: currentNavPrice,
+            cytdGainLoss: cytdGainLoss
+        )
+        item.priceFetchedAt = priceFetchedAt
+        item.createdAt = createdAt
+        return item
+    }
+}
+
+private extension MutualFundTrade {
+    var toBackup: BackupMutualFundTrade {
+        BackupMutualFundTrade(
+            id: id, accountId: accountId, holdingId: holdingId,
+            type: type, fundCode: fundCode,
+            schemeName: schemeName, units: units,
+            navPrice: navPrice, totalAmount: totalAmount,
+            fees: fees, netAmount: netAmount, date: date,
+            notes: notes, createdAt: createdAt
+        )
+    }
+}
+
+private extension BackupMutualFundTrade {
+    var toModel: MutualFundTrade {
+        MutualFundTrade(
+            id: id, accountId: accountId, holdingId: holdingId,
+            type: type, fundCode: fundCode,
+            schemeName: schemeName, units: units,
+            navPrice: navPrice, totalAmount: totalAmount,
+            fees: fees, netAmount: netAmount, date: date,
+            notes: notes
         )
     }
 }

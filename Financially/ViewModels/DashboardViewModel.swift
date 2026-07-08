@@ -69,6 +69,10 @@ final class DashboardViewModel {
         (try? modelContext.fetch(FetchDescriptor<CommodityHolding>())) ?? []
     }
 
+    private var allMFHoldings: [MutualFundHolding] {
+        (try? modelContext.fetch(FetchDescriptor<MutualFundHolding>())) ?? []
+    }
+
     private var totalBankBalances: Decimal {
         accounts.filter { $0.accountType == .bank && $0.isActive }
             .reduce(0) { $0 + $1.currentBalance }
@@ -84,7 +88,9 @@ final class DashboardViewModel {
             .reduce(0) { $0 + $1.currentValue }
         let commodityValue = allCommodityHoldings.filter { $0.totalGrams > 0 }
             .reduce(0) { $0 + $1.currentValue }
-        return psxValue + commodityValue
+        let mfValue = allMFHoldings.filter { $0.totalUnits > 0 }
+            .reduce(0) { $0 + $1.currentValue }
+        return psxValue + commodityValue + mfValue
     }
 
     private var totalDebtorOutstanding: Decimal {
@@ -120,13 +126,13 @@ final class DashboardViewModel {
 
     private var incomeThisMonth: Decimal {
         allTransactions.filter { $0.date.isInCurrentMonth }
-            .filter { $0.type == .income || $0.type == .committeePayout || $0.type == .commoditySell }
+            .filter { $0.type == .income || $0.type == .committeePayout || $0.type == .commoditySell || $0.type == .mutualFundSell }
             .reduce(0) { $0 + $1.amount }
     }
 
     private var expenseThisMonth: Decimal {
         allTransactions.filter { $0.date.isInCurrentMonth }
-            .filter { $0.type == .expense || $0.type == .committeeContribution || $0.type == .commodityBuy }
+            .filter { $0.type == .expense || $0.type == .committeeContribution || $0.type == .commodityBuy || $0.type == .mutualFundBuy }
             .reduce(0) { $0 + $1.amount }
     }
 
@@ -139,10 +145,11 @@ final class DashboardViewModel {
     }
 
     var expenseByCategory: [ExpenseBreakdown] {
-        let transactions = allTransactions.filter { $0.date.isInCurrentMonth && ($0.type == .expense || $0.type == .committeeContribution || $0.type == .commodityBuy) }
+        let transactions = allTransactions.filter { $0.date.isInCurrentMonth && ($0.type == .expense || $0.type == .committeeContribution || $0.type == .commodityBuy || $0.type == .mutualFundBuy) }
         let labeled = transactions.map { tx -> (label: String, amount: Decimal) in
             if tx.type == .committeeContribution { return ("Committee", tx.amount) }
             if tx.type == .commodityBuy { return ("Commodity", tx.amount) }
+            if tx.type == .mutualFundBuy { return ("Mutual Fund", tx.amount) }
             return (tx.category ?? "Other", tx.amount)
         }
         let grouped = Dictionary(grouping: labeled, by: \.label)
@@ -165,8 +172,8 @@ final class DashboardViewModel {
             let monthStart = calendar.date(from: calendar.dateComponents([.year, .month], from: calendar.date(byAdding: .month, value: -monthsAgo, to: now)!))!
             let monthEnd = calendar.date(byAdding: DateComponents(month: 1, day: -1), to: monthStart)!
             let monthlyTxs = allTransactions.filter { $0.date >= monthStart && $0.date <= monthEnd }
-            let income = monthlyTxs.filter { $0.type == .income || $0.type == .committeePayout || $0.type == .commoditySell }.reduce(0) { $0 + $1.amount }
-            let expense = monthlyTxs.filter { $0.type == .expense || $0.type == .committeeContribution || $0.type == .commodityBuy }.reduce(0) { $0 + $1.amount }
+            let income = monthlyTxs.filter { $0.type == .income || $0.type == .committeePayout || $0.type == .commoditySell || $0.type == .mutualFundSell }.reduce(0) { $0 + $1.amount }
+            let expense = monthlyTxs.filter { $0.type == .expense || $0.type == .committeeContribution || $0.type == .commodityBuy || $0.type == .mutualFundBuy }.reduce(0) { $0 + $1.amount }
             return MonthlyComparison(month: monthStart, income: income, expense: expense)
         }
     }
@@ -203,10 +210,12 @@ final class DashboardViewModel {
     var assetAllocation: [AllocationSlice] {
         let psxValue = accounts.filter { $0.accountType == .psx }.reduce(0) { $0 + $1.currentValue }
         let commodityValue = allCommodityHoldings.filter { $0.totalGrams > 0 }.reduce(0) { $0 + $1.currentValue }
+        let mfValue = allMFHoldings.filter { $0.totalUnits > 0 }.reduce(0) { $0 + $1.currentValue }
 
         return [
             AllocationSlice(label: "PSX", value: psxValue, color: "psx"),
             AllocationSlice(label: "Commodities", value: commodityValue, color: "commodity"),
+            AllocationSlice(label: "Mutual Funds", value: mfValue, color: "mutualFund"),
             AllocationSlice(label: "Banks", value: totalBankBalances, color: "bank"),
             AllocationSlice(label: "Cash", value: totalCashBalances, color: "cash"),
             AllocationSlice(label: "Receivable", value: totalDebtorOutstanding, color: "receivable"),
