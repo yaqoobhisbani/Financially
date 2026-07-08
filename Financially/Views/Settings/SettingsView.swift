@@ -29,6 +29,9 @@ struct SettingsView: View {
                     NavigationLink(destination: MarketRatesView()) {
                         Label("Market Rates", systemImage: "chart.line.uptrend.xyaxis")
                     }
+                    NavigationLink(destination: DataManagementView()) {
+                        Label("Export / Import", systemImage: "arrow.down.doc.fill")
+                    }
                 }
 
                 Section {
