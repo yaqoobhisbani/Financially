@@ -54,7 +54,7 @@ struct GiveLoanView: View {
             .navigationBarTitleDisplayMode(.inline)
             .formToolbar(label: "Give Loan", isDisabled: (sourceAccount == nil && !isOutside) || amount.isEmpty) { save() }
             .sheet(isPresented: $showAccountPicker) {
-                AccountPickerView(accounts: accounts, title: "Select Source", filterType: nil, showNoneOption: true) { account in
+                AccountPickerView(accounts: Account.bankAndCash(from: accounts), title: "Select Source", filterType: nil, showNoneOption: true) { account in
                     if let account {
                         sourceAccount = account
                         isOutside = false

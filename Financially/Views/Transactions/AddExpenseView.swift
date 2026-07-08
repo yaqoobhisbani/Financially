@@ -78,7 +78,7 @@ struct AddExpenseView: View {
             .navigationTitle("Add Expense")
             .formToolbar(label: "Save", isDisabled: (sourceAccount == nil && !isOutside) || amount.isEmpty || category == nil) { saveExpense() }
             .sheet(isPresented: $showAccountPicker) {
-                AccountPickerView(accounts: accounts, title: "Select Account", filterType: nil, showNoneOption: true) { account in
+                AccountPickerView(accounts: Account.bankAndCash(from: accounts), title: "Select Account", filterType: nil, showNoneOption: true) { account in
                     if let account {
                         sourceAccount = account
                         isOutside = false

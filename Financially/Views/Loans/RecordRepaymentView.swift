@@ -64,7 +64,7 @@ struct RecordRepaymentView: View {
             .navigationBarTitleDisplayMode(.inline)
             .formToolbar(label: "Record", isDisabled: destinationAccount == nil || amount.isEmpty) { save() }
             .sheet(isPresented: $showAccountPicker) {
-                AccountPickerView(accounts: accounts, title: "Select Destination", filterType: nil) { account in
+                AccountPickerView(accounts: Account.bankAndCash(from: accounts), title: "Select Destination", filterType: nil) { account in
                     destinationAccount = account
                 }
             }

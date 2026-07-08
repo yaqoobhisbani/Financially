@@ -210,7 +210,7 @@ struct PSXAddCashView: View {
             .navigationTitle("Add Cash")
             .formToolbar(label: "Add", isDisabled: (sourceAccount == nil && !isOutside) || amount.isEmpty) { save() }
             .sheet(isPresented: $showAccountPicker) {
-                AccountPickerView(accounts: accounts, title: "Select Source", filterType: nil, showNoneOption: true) { account in
+                AccountPickerView(accounts: Account.bankAndCash(from: accounts), title: "Select Source", filterType: nil, showNoneOption: true) { account in
                     if let account {
                         sourceAccount = account
                         isOutside = false
@@ -291,7 +291,7 @@ struct PSXWithdrawCashView: View {
             .navigationTitle("Withdraw Cash")
             .formToolbar(label: "Withdraw", isDisabled: destinationAccount == nil || amount.isEmpty) { save() }
             .sheet(isPresented: $showAccountPicker) {
-                AccountPickerView(accounts: accounts, title: "Select Destination", filterType: nil) { account in
+                AccountPickerView(accounts: Account.bankAndCash(from: accounts), title: "Select Destination", filterType: nil) { account in
                     destinationAccount = account
                 }
             }

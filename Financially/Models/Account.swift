@@ -24,6 +24,10 @@ final class Account {
     var updatedAt: Date
     var notes: String?
 
+    static func bankAndCash(from accounts: [Account]) -> [Account] {
+        accounts.filter { $0.isActive && ($0.accountType == .bank || $0.accountType == .cash) }
+    }
+
     var currentValue: Decimal {
         if accountType == .psx {
             return currentBalance + investedAmount + totalProfitLoss

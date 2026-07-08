@@ -100,7 +100,7 @@ struct BuyCommodityView: View {
             .formToolbar(label: "Buy", isDisabled: selectedCommodity == nil || grams.isEmpty || pricePerGram.isEmpty || (sourceAccount == nil && !isOutside)) { save() }
             .sheet(isPresented: $showCommodityPicker) { commodityPicker }
             .sheet(isPresented: $showAccountPicker) {
-                AccountPickerView(accounts: accounts, title: "Select Account", filterType: nil, showNoneOption: true) { account in
+                AccountPickerView(accounts: Account.bankAndCash(from: accounts), title: "Select Account", filterType: nil, showNoneOption: true) { account in
                     if let account {
                         sourceAccount = account
                         isOutside = false

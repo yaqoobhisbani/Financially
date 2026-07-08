@@ -95,7 +95,7 @@ struct SellCommodityView: View {
             .formToolbar(label: "Sell", isDisabled: selectedHolding == nil || grams.isEmpty || pricePerGram.isEmpty || (destinationAccount == nil && !isOutside)) { save() }
             .sheet(isPresented: $showHoldingPicker) { holdingPicker }
             .sheet(isPresented: $showAccountPicker) {
-                AccountPickerView(accounts: accounts, title: "Select Account", filterType: nil, showNoneOption: true) { account in
+                AccountPickerView(accounts: Account.bankAndCash(from: accounts), title: "Select Account", filterType: nil, showNoneOption: true) { account in
                     if let account {
                         destinationAccount = account
                         isOutside = false
