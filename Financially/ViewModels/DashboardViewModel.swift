@@ -139,7 +139,13 @@ final class DashboardViewModel {
     }
 
     var expenseByCategory: [ExpenseBreakdown] {
-        let grouped = Dictionary(grouping: allTransactions.filter { $0.type == .expense && $0.date.isInCurrentMonth }) { $0.category ?? "Other" }
+        let transactions = allTransactions.filter { $0.date.isInCurrentMonth && ($0.type == .expense || $0.type == .committeeContribution || $0.type == .commodityBuy) }
+        let labeled = transactions.map { tx -> (label: String, amount: Decimal) in
+            if tx.type == .committeeContribution { return ("Committee", tx.amount) }
+            if tx.type == .commodityBuy { return ("Commodity", tx.amount) }
+            return (tx.category ?? "Other", tx.amount)
+        }
+        let grouped = Dictionary(grouping: labeled, by: \.label)
         return grouped.map { ExpenseBreakdown(category: $0.key, total: $0.value.reduce(0) { $0 + $1.amount }) }
             .filter { $0.total > 0 }
             .sorted { $0.total > $1.total }
