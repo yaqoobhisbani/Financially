@@ -110,49 +110,71 @@ final class MarketRateService {
 
     // MARK: - Mutual Fund NAV Sync
 
-    func fetchMFNav(schemeName: String) async -> Decimal? {
+    func fetchAllMFNavs() async -> [String: Decimal] {
         let urlString = "https://mufap.com.pk/Industry/IndustryStatDaily?tab=1"
-        guard let url = URL(string: urlString) else { return nil }
+        guard let url = URL(string: urlString) else { return [:] }
 
         do {
             let (data, _) = try await URLSession.shared.data(from: url)
-            guard let html = String(data: data, encoding: .utf8) else { return nil }
-            return parseNAVFromHTML(html, schemeName: schemeName)
+            guard let html = String(data: data, encoding: .utf8) else { return [:] }
+            return parseAllNAVsFromHTML(html)
         } catch {
-            return nil
+            return [:]
         }
     }
 
-    private func parseNAVFromHTML(_ html: String, schemeName: String) -> Decimal? {
-        let pattern = #"<tr[^>]*>(.*?)</tr>"#
-        guard let regex = try? NSRegularExpression(pattern: pattern, options: [.dotMatchesLineSeparators]) else { return nil }
-        let matches = regex.matches(in: html, options: [], range: NSRange(html.startIndex..., in: html))
+    func fetchMFNav(schemeName: String) async -> Decimal? {
+        let allNavs = await fetchAllMFNavs()
+        let match = allNavs.first { name, _ in
+            name.localizedCaseInsensitiveContains(schemeName) || schemeName.localizedCaseInsensitiveContains(name)
+        }
+        return match?.value
+    }
 
-        for match in matches {
+    private func parseAllNAVsFromHTML(_ html: String) -> [String: Decimal] {
+        let rowPattern = #"<tr[^>]*>(.*?)</tr>"#
+        guard let rowRegex = try? NSRegularExpression(pattern: rowPattern, options: [.dotMatchesLineSeparators]) else { return [:] }
+        let rowMatches = rowRegex.matches(in: html, options: [], range: NSRange(html.startIndex..., in: html))
+
+        var result: [String: Decimal] = [:]
+
+        for match in rowMatches {
             guard let rowRange = Range(match.range, in: html) else { continue }
             let row = String(html[rowRange])
 
-            let cellPattern = #"<td[^>]*>(.*?)</td>"#
-            guard let cellRegex = try? NSRegularExpression(pattern: cellPattern, options: [.dotMatchesLineSeparators]) else { continue }
-            let cellMatches = cellRegex.matches(in: row, options: [], range: NSRange(row.startIndex..., in: row))
-
-            guard cellMatches.count >= 7 else { continue }
-
-            let nameRange = cellMatches[2].range(at: 1)
-            guard let nameStrRange = Range(nameRange, in: row) else { continue }
-            let name = String(row[nameStrRange]).trimmingCharacters(in: .whitespacesAndNewlines)
-
-            guard name.localizedCaseInsensitiveContains(schemeName) || schemeName.localizedCaseInsensitiveContains(name) else { continue }
-
-            let navRange = cellMatches[6].range(at: 1)
-            guard let navStrRange = Range(navRange, in: row) else { continue }
-            let navStr = String(row[navStrRange]).trimmingCharacters(in: .whitespacesAndNewlines)
-                .replacingOccurrences(of: ",", with: "")
-
-            return Decimal(string: navStr)
+            guard let nav = parseNAVFromRow(row) else { continue }
+            result[nav.name] = nav.nav
         }
 
-        return nil
+        return result
+    }
+
+    private func parseNAVFromRow(_ row: String) -> (name: String, nav: Decimal)? {
+        let cellPattern = #"<td[^>]*>(.*?)</td>"#
+        guard let cellRegex = try? NSRegularExpression(pattern: cellPattern, options: [.dotMatchesLineSeparators]) else { return nil }
+        let cellMatches = cellRegex.matches(in: row, options: [], range: NSRange(row.startIndex..., in: row))
+
+        guard cellMatches.count >= 7 else { return nil }
+
+        let nameRange = cellMatches[2].range(at: 1)
+        guard let nameStrRange = Range(nameRange, in: row) else { return nil }
+        let rawName = String(row[nameStrRange])
+        let name = stripHTMLTags(rawName).trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !name.isEmpty else { return nil }
+
+        let navRange = cellMatches[6].range(at: 1)
+        guard let navStrRange = Range(navRange, in: row) else { return nil }
+        let navStr = String(row[navStrRange]).trimmingCharacters(in: .whitespacesAndNewlines)
+            .replacingOccurrences(of: ",", with: "")
+        guard let nav = Decimal(string: navStr), nav > 0 else { return nil }
+
+        return (name, nav)
+    }
+
+    private func stripHTMLTags(_ string: String) -> String {
+        guard let regex = try? NSRegularExpression(pattern: #"<[^>]+>"#, options: []) else { return string }
+        let range = NSRange(string.startIndex..., in: string)
+        return regex.stringByReplacingMatches(in: string, options: [], range: range, withTemplate: "")
     }
 
     func syncMFToHoldings(fundCode: String, navPrice: Decimal) {
@@ -163,10 +185,9 @@ final class MarketRateService {
             holding.priceFetchedAt = Date()
         }
 
-        let mfType = AccountType.mutualFund.rawValue
-        let acctFetch = FetchDescriptor<Account>(predicate: #Predicate { $0.accountType.rawValue == mfType })
-        guard let accounts = try? modelContext.fetch(acctFetch) else { return }
-        for acct in accounts {
+        let allAccounts = (try? modelContext.fetch(FetchDescriptor<Account>())) ?? []
+        let mfAccounts = allAccounts.filter { $0.accountType == .mutualFund }
+        for acct in mfAccounts {
             let acctId = acct.id
             let holdingFetch = FetchDescriptor<MutualFundHolding>(predicate: #Predicate { $0.accountId == acctId })
             guard let mfHoldings = try? modelContext.fetch(holdingFetch) else { continue }
