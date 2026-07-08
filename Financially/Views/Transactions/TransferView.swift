@@ -7,6 +7,7 @@ struct TransferView: View {
 
     @Query private var accounts: [Account]
     @State private var sourceAccount: Account?
+    @State private var isOutside = false
     @State private var destinationAccount: Account?
     @State private var amount = ""
     @State private var date = Date()
@@ -22,7 +23,8 @@ struct TransferView: View {
                     AccountPickerButton(
                         label: "From",
                         accountName: sourceAccount?.name,
-                        placeholder: "Select source",
+                        placeholder: isOutside ? "Outside — No Account" : "Select source",
+                        isOutside: isOutside,
                         action: { showSourcePicker = true }
                     )
 
@@ -49,15 +51,20 @@ struct TransferView: View {
                 FormErrorSection(message: errorMessage)
             }
             .navigationTitle("Transfer")
-            .formToolbar(label: "Transfer", isDisabled: sourceAccount == nil || destinationAccount == nil || amount.isEmpty) { saveTransfer() }
+            .formToolbar(label: "Transfer", isDisabled: (sourceAccount == nil && !isOutside) || destinationAccount == nil || amount.isEmpty) { saveTransfer() }
             .sheet(isPresented: $showSourcePicker) {
-                AccountPickerView(accounts: accounts, title: "Select Source", filterType: nil) { account in
-                    guard let account else { return }
-                    guard account.accountType == .bank || account.accountType == .cash else {
-                        errorMessage = "Can only transfer from Bank or Cash accounts."
-                        return
+                AccountPickerView(accounts: accounts, title: "Select Source", filterType: nil, showNoneOption: true) { account in
+                    if let account {
+                        guard account.accountType == .bank || account.accountType == .cash else {
+                            errorMessage = "Can only transfer from Bank or Cash accounts."
+                            return
+                        }
+                        sourceAccount = account
+                        isOutside = false
+                    } else {
+                        sourceAccount = nil
+                        isOutside = true
                     }
-                    sourceAccount = account
                 }
             }
             .sheet(isPresented: $showDestPicker) {
@@ -74,8 +81,8 @@ struct TransferView: View {
     }
 
     private func saveTransfer() {
-        guard let source = sourceAccount, let dest = destinationAccount else {
-            errorMessage = "Please select both accounts"
+        guard let dest = destinationAccount else {
+            errorMessage = "Please select a destination account"
             return
         }
         guard let amountValue = Decimal(string: amount), amountValue > 0 else {
@@ -89,7 +96,7 @@ struct TransferView: View {
             amount: amountValue,
             date: date,
             description: description.isEmpty ? nil : description,
-            sourceAccountId: source.id,
+            sourceAccountId: isOutside ? nil : sourceAccount?.id,
             destinationAccountId: dest.id
         )
 

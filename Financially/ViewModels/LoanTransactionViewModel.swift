@@ -23,7 +23,7 @@ final class LoanTransactionViewModel {
         }
     }
 
-    func giveLoan(to debtor: Debtor, amount: Decimal, date: Date, description: String?, sourceAccountId: UUID) throws {
+    func giveLoan(to debtor: Debtor, amount: Decimal, date: Date, description: String?, sourceAccountId: UUID?) throws {
         debtor.totalLent += amount
         debtor.updatedAt = Date()
 
@@ -96,7 +96,7 @@ final class LoanTransactionViewModel {
         }
     }
 
-    func payBack(to creditor: Creditor, amount: String, date: Date, description: String?, sourceAccountId: UUID) throws {
+    func payBack(to creditor: Creditor, amount: String, date: Date, description: String?, sourceAccountId: UUID?) throws {
         guard let amountValue = Decimal(string: amount), amountValue > 0 else {
             throw LoanError.invalidAmount
         }

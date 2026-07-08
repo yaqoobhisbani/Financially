@@ -9,6 +9,7 @@ struct PayBackView: View {
     @Query private var accounts: [Account]
     @State private var vm: LoanTransactionViewModel?
     @State private var sourceAccount: Account?
+    @State private var isOutside = false
     @State private var amount = ""
     @State private var date = Date()
     @State private var description = ""
@@ -23,7 +24,8 @@ struct PayBackView: View {
                     AccountPickerButton(
                         label: "From",
                         accountName: sourceAccount?.name,
-                        placeholder: "Select Bank or Cash account",
+                        placeholder: isOutside ? "Outside — No Account" : "Select Bank or Cash account",
+                        isOutside: isOutside,
                         action: { showAccountPicker = true }
                     )
                 }
@@ -62,10 +64,16 @@ struct PayBackView: View {
             }
             .navigationTitle("Pay Back")
             .navigationBarTitleDisplayMode(.inline)
-            .formToolbar(label: "Pay", isDisabled: sourceAccount == nil || amount.isEmpty) { save() }
+            .formToolbar(label: "Pay", isDisabled: (sourceAccount == nil && !isOutside) || amount.isEmpty) { save() }
             .sheet(isPresented: $showAccountPicker) {
-                AccountPickerView(accounts: accounts, title: "Select Source", filterType: nil) { account in
-                    sourceAccount = account
+                AccountPickerView(accounts: accounts, title: "Select Source", filterType: nil, showNoneOption: true) { account in
+                    if let account {
+                        sourceAccount = account
+                        isOutside = false
+                    } else {
+                        sourceAccount = nil
+                        isOutside = true
+                    }
                 }
             }
         }
@@ -77,13 +85,13 @@ struct PayBackView: View {
     }
 
     private func save() {
-        guard let source = sourceAccount else { errorMessage = "Please select a source account"; return }
+        guard let amountValue = Decimal(string: amount), amountValue > 0 else { errorMessage = "Please enter a valid amount"; return }
 
         let vm = vm ?? LoanTransactionViewModel(modelContext: modelContext)
         self.vm = vm
 
         do {
-            try vm.payBack(to: creditor, amount: amount, date: date, description: description.isEmpty ? nil : description, sourceAccountId: source.id)
+            try vm.payBack(to: creditor, amount: amount, date: date, description: description.isEmpty ? nil : description, sourceAccountId: isOutside ? nil : sourceAccount?.id)
             dismiss()
         } catch let error as LoanTransactionViewModel.LoanError {
             errorMessage = error.localizedDescription
