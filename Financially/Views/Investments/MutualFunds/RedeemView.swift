@@ -92,7 +92,7 @@ struct RedeemView: View {
                         HStack {
                             Text("NAV Price")
                             Spacer()
-                            Text(currentNavPrice.formattedCurrency())
+                            Text(currentNavPrice.formattedNAVPrice())
                                 .foregroundStyle(.secondary)
                         }
                     }

@@ -100,7 +100,7 @@ struct MFAccountDetailView: View {
                             Text(holding.fundCode)
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
-                            Text("\(holding.totalUnits.formattedNumber()) units @ \(holding.avgNavPrice.formattedCurrency())")
+                            Text("\(holding.totalUnits.formattedNumber()) units @ \(holding.avgNavPrice.formattedNAVPrice())")
                                 .font(.caption2)
                                 .foregroundStyle(.tertiary)
                         }

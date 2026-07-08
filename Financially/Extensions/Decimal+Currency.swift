@@ -16,4 +16,12 @@ extension Decimal {
         formatter.maximumFractionDigits = 4
         return formatter.string(from: self as NSDecimalNumber) ?? "0"
     }
+
+    func formattedNAVPrice() -> String {
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .decimal
+        formatter.minimumFractionDigits = 4
+        formatter.maximumFractionDigits = 4
+        return formatter.string(from: self as NSDecimalNumber) ?? "0.0000"
+    }
 }

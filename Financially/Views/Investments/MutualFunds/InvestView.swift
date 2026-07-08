@@ -11,10 +11,10 @@ struct InvestView: View {
     @Query private var allMFHoldings: [MutualFundHolding]
 
     @State private var selectedBank: Account?
+    @State private var isOutside = false
     @State private var selectedScheme: MutualFundScheme?
-    @State private var unitsOrAmount: UnitsOrAmount = .units
     @State private var unitsValue = ""
-    @State private var amountValue = ""
+    @State private var navPriceValue = ""
     @State private var feesValue = ""
     @State private var date = Date()
     @State private var notes = ""
@@ -22,54 +22,37 @@ struct InvestView: View {
     @State private var showSchemePicker = false
     @State private var errorMessage: String?
 
-    enum UnitsOrAmount: String, CaseIterable {
-        case units = "Units"
-        case amount = "Amount"
-    }
-
     private var bankAccounts: [Account] {
         Account.bankAndCash(from: accounts)
     }
 
-    private var navPrice: Decimal {
-        selectedScheme?.navPrice ?? 0
+    private var enteredUnits: Decimal {
+        Decimal(string: unitsValue) ?? 0
     }
 
-    private var calculatedUnits: Decimal {
-        if unitsOrAmount == .units {
-            return Decimal(string: unitsValue) ?? 0
-        }
-        guard navPrice > 0 else { return 0 }
-        return (Decimal(string: amountValue) ?? 0) / navPrice
+    private var enteredNavPrice: Decimal {
+        Decimal(string: navPriceValue) ?? 0
     }
 
     private var calculatedAmount: Decimal {
-        if unitsOrAmount == .amount {
-            return Decimal(string: amountValue) ?? 0
-        }
-        return (Decimal(string: unitsValue) ?? 0) * navPrice
+        enteredUnits * enteredNavPrice
     }
 
     private var isFormValid: Bool {
-        selectedBank != nil && selectedScheme != nil && ((!unitsValue.isEmpty && unitsOrAmount == .units) || (!amountValue.isEmpty && unitsOrAmount == .amount)) && calculatedAmount > 0
+        (selectedBank != nil || isOutside) && selectedScheme != nil && enteredUnits > 0 && enteredNavPrice > 0
     }
 
     var body: some View {
         NavigationStack {
             Form {
                 Section("Bank Account") {
-                    Button(action: { showBankPicker = true }) {
-                        HStack {
-                            Text("From")
-                            Spacer()
-                            if let bank = selectedBank {
-                                Text(bank.name).foregroundStyle(.primary)
-                            } else {
-                                Text("Select account").foregroundStyle(.secondary)
-                            }
-                            Image(systemName: "chevron.right").font(.caption).foregroundStyle(.secondary)
-                        }
-                    }
+                    AccountPickerButton(
+                        label: "From",
+                        accountName: selectedBank?.name,
+                        placeholder: isOutside ? "Outside — No Account" : "Select account",
+                        isOutside: isOutside,
+                        action: { showBankPicker = true }
+                    )
                 }
 
                 Section("Scheme") {
@@ -81,7 +64,7 @@ struct InvestView: View {
                                 VStack(alignment: .trailing, spacing: 2) {
                                     Text(scheme.schemeName)
                                         .foregroundStyle(.primary)
-                                    Text("NAV: \(scheme.navPrice.formattedCurrency())")
+                                    Text("NAV: \(scheme.navPrice.formattedNAVPrice())")
                                         .font(.caption)
                                         .foregroundStyle(.secondary)
                                 }
@@ -94,45 +77,27 @@ struct InvestView: View {
                 }
 
                 Section("Investment Details") {
-                    Picker("By", selection: $unitsOrAmount) {
-                        ForEach(UnitsOrAmount.allCases, id: \.self) { option in
-                            Text(option.rawValue).tag(option)
-                        }
+                    HStack {
+                        Text("Units")
+                        Spacer()
+                        TextField("0", text: $unitsValue)
+                            .keyboardType(.decimalPad)
+                            .multilineTextAlignment(.trailing)
                     }
-                    .pickerStyle(.segmented)
 
-                    if unitsOrAmount == .units {
-                        HStack {
-                            Text("Units")
-                            Spacer()
-                            TextField("0", text: $unitsValue)
-                                .keyboardType(.decimalPad)
-                                .multilineTextAlignment(.trailing)
-                        }
-                        if navPrice > 0, let units = Decimal(string: unitsValue), units > 0 {
-                            HStack {
-                                Text("Investment Amount")
-                                Spacer()
-                                Text((units * navPrice).formattedCurrency())
-                                    .foregroundStyle(.secondary)
-                            }
-                        }
-                    } else {
-                        HStack {
-                            Text("Amount")
-                            Spacer()
-                            TextField("0", text: $amountValue)
-                                .keyboardType(.decimalPad)
-                                .multilineTextAlignment(.trailing)
-                        }
-                        if navPrice > 0, let amount = Decimal(string: amountValue), amount > 0 {
-                            HStack {
-                                Text("Units")
-                                Spacer()
-                                Text((amount / navPrice).formattedNumber())
-                                    .foregroundStyle(.secondary)
-                            }
-                        }
+                    HStack {
+                        Text("NAV Price")
+                        Spacer()
+                        TextField(selectedScheme?.navPrice.formattedNAVPrice() ?? "0.0000", text: $navPriceValue)
+                            .keyboardType(.decimalPad)
+                            .multilineTextAlignment(.trailing)
+                    }
+
+                    HStack {
+                        Text("Amount")
+                        Spacer()
+                        Text(calculatedAmount.formattedCurrency())
+                            .foregroundStyle(.secondary)
                     }
 
                     HStack {
@@ -156,8 +121,14 @@ struct InvestView: View {
             .navigationBarTitleDisplayMode(.inline)
             .formToolbar(label: "Invest", isDisabled: !isFormValid) { invest() }
             .sheet(isPresented: $showBankPicker) {
-                AccountPickerView(accounts: bankAccounts, title: "Select Bank", filterType: nil) { account in
-                    selectedBank = account
+                AccountPickerView(accounts: bankAccounts, title: "Select Bank", filterType: nil, showNoneOption: true) { account in
+                    if let account {
+                        selectedBank = account
+                        isOutside = false
+                    } else {
+                        selectedBank = nil
+                        isOutside = true
+                    }
                 }
             }
             .sheet(isPresented: $showSchemePicker) {
@@ -183,7 +154,7 @@ struct InvestView: View {
                                 .foregroundStyle(.secondary)
                         }
                         Spacer()
-                        Text(scheme.navPrice.formattedCurrency())
+                        Text(scheme.navPrice.formattedNAVPrice())
                             .font(.subheadline.weight(.medium))
                             .foregroundStyle(.primary)
                     }
@@ -201,24 +172,26 @@ struct InvestView: View {
     }
 
     private func invest() {
-        guard let bank = selectedBank else { return }
         guard let scheme = selectedScheme else { return }
-        let units = calculatedUnits
+        let units = enteredUnits
+        let navPrice = enteredNavPrice
         let amount = calculatedAmount
-        guard units > 0, amount > 0 else {
-            errorMessage = "Please enter a valid amount"
+        guard units > 0, navPrice > 0, amount > 0 else {
+            errorMessage = "Please enter valid units and NAV price"
             return
         }
-        guard amount <= bank.currentBalance else {
-            errorMessage = "Insufficient balance in \(bank.name)"
-            return
+        if let bank = selectedBank, !isOutside {
+            guard amount <= bank.currentBalance else {
+                errorMessage = "Insufficient balance in \(bank.name)"
+                return
+            }
         }
 
         let fees = Decimal(string: feesValue) ?? 0
 
         let vm = MutualFundTradeViewModel(modelContext: modelContext, account: account, schemeList: schemeList, holdings: allMFHoldings)
         vm.invest(
-            bankAccount: bank,
+            bankAccount: isOutside ? nil : selectedBank,
             scheme: scheme,
             units: units,
             navPrice: navPrice,

@@ -8,7 +8,7 @@ struct InvestmentsListView: View {
     @Query private var allMFHoldings: [MutualFundHolding]
     @Query private var allTransactions: [Transaction]
 
-    @State private var selectedSegment: InvestmentSegment = .psx
+    @State private var selectedSegment: InvestmentSegment = .mutualFunds
     @State private var showCreatePSX = false
     @State private var showBuyCommodity = false
     @State private var showSellCommodity = false
@@ -17,9 +17,9 @@ struct InvestmentsListView: View {
     @State private var showCommodityStatement = false
 
     private enum InvestmentSegment: String, CaseIterable {
+        case mutualFunds = "Mutual Funds"
         case psx = "PSX"
         case commodities = "Commodities"
-        case mutualFunds = "Mutual Funds"
     }
 
     private var psxAccounts: [Account] {
@@ -63,12 +63,12 @@ struct InvestmentsListView: View {
                 .padding()
 
                 switch selectedSegment {
+                case .mutualFunds:
+                    mutualFundsSection
                 case .psx:
                     psxSection
                 case .commodities:
                     commoditiesSection
-                case .mutualFunds:
-                    mutualFundsSection
                 }
             }
             .navigationTitle("Investments")
@@ -76,9 +76,9 @@ struct InvestmentsListView: View {
                 ToolbarItem {
                     Button(action: {
                         switch selectedSegment {
+                        case .mutualFunds: showCreateMF = true
                         case .psx: showCreatePSX = true
                         case .commodities: showBuyCommodity = true
-                        case .mutualFunds: showCreateMF = true
                         }
                     }) {
                         Label("Add", systemImage: "plus")

@@ -140,4 +140,39 @@ struct TradeService {
         let avg = totalGrams > 0 ? totalCost / totalGrams : 0
         return (totalGrams, totalCost, totalFeesPaid, avg)
     }
+
+    static func recalculateMFHolding(trades: [MutualFundTrade]) -> (totalUnits: Decimal, totalCost: Decimal, totalFeesPaid: Decimal, avgNavPrice: Decimal) {
+        var totalUnits: Decimal = 0
+        var totalCost: Decimal = 0
+        var totalFeesPaid: Decimal = 0
+
+        for trade in trades.sorted(by: { $0.date < $1.date }) {
+            if trade.type == .buy {
+                let result = weightedAverageBuy(
+                    currentQuantity: totalUnits,
+                    currentCost: totalCost,
+                    currentFees: totalFeesPaid,
+                    addedQuantity: trade.units,
+                    addedCost: trade.totalAmount,
+                    addedFees: trade.fees
+                )
+                totalUnits = result.quantity
+                totalCost = result.cost
+                totalFeesPaid = result.fees
+            } else {
+                let result = weightedAverageSell(
+                    currentQuantity: totalUnits,
+                    currentCost: totalCost,
+                    currentFees: totalFeesPaid,
+                    soldQuantity: trade.units
+                )
+                totalUnits = result.quantity
+                totalCost = result.cost
+                totalFeesPaid = result.fees
+            }
+        }
+
+        let avg = totalUnits > 0 ? totalCost / totalUnits : 0
+        return (totalUnits, totalCost, totalFeesPaid, avg)
+    }
 }

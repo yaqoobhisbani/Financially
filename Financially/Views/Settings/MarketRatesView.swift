@@ -6,7 +6,7 @@ struct MarketRatesView: View {
     @Query(sort: \StockInfo.ticker) private var stockList: [StockInfo]
     @Query(sort: \CommodityInfo.name) private var commodityList: [CommodityInfo]
     @Query(sort: \MutualFundScheme.schemeName) private var mfSchemeList: [MutualFundScheme]
-    @State private var selectedTab: MarketTab = .stocks
+    @State private var selectedTab: MarketTab = .mutualFunds
     @State private var showingAddStock = false
     @State private var showingAddMFScheme = false
     @State private var editingStock: StockInfo?
@@ -20,9 +20,9 @@ struct MarketRatesView: View {
     @State private var syncMessage = ""
 
     enum MarketTab: String, CaseIterable {
+        case mutualFunds = "Mutual Funds"
         case stocks = "Stocks"
         case commodities = "Commodities"
-        case mutualFunds = "Mutual Funds"
     }
 
     var body: some View {
@@ -54,12 +54,12 @@ struct MarketRatesView: View {
 
             List {
                 switch selectedTab {
+                case .mutualFunds:
+                    mutualFundsSection
                 case .stocks:
                     stocksSection
                 case .commodities:
                     commoditiesSection
-                case .mutualFunds:
-                    mutualFundsSection
                 }
             }
         }
@@ -73,13 +73,13 @@ struct MarketRatesView: View {
             }
             ToolbarItem(placement: .primaryAction) {
                 switch selectedTab {
-                case .stocks:
-                    Button(action: { showingAddStock = true }) {
+                case .mutualFunds:
+                    Button(action: { showingAddMFScheme = true }) {
                         Label("Add", systemImage: "plus")
                     }
                     .disabled(isSyncing)
-                case .mutualFunds:
-                    Button(action: { showingAddMFScheme = true }) {
+                case .stocks:
+                    Button(action: { showingAddStock = true }) {
                         Label("Add", systemImage: "plus")
                     }
                     .disabled(isSyncing)
@@ -179,7 +179,7 @@ struct MarketRatesView: View {
                     }
                     Spacer()
                     VStack(alignment: .trailing) {
-                        Text(scheme.navPrice.formattedCurrency())
+                        Text(scheme.navPrice.formattedNAVPrice())
                             .font(.subheadline.weight(.medium))
                             .foregroundStyle(.primary)
                             .contentShape(Rectangle())

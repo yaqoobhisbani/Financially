@@ -29,7 +29,7 @@ final class MutualFundTradeViewModel {
     }
 
     func invest(
-        bankAccount: Account,
+        bankAccount: Account?,
         scheme: MutualFundScheme,
         units: Decimal,
         navPrice: Decimal,
@@ -39,13 +39,15 @@ final class MutualFundTradeViewModel {
     ) {
         let netAmount = units * navPrice + fees
 
-        bankAccount.currentBalance -= netAmount
-        bankAccount.updatedAt = Date()
+        if let bank = bankAccount {
+            bank.currentBalance -= netAmount
+            bank.updatedAt = Date()
+        }
 
         let holding = findOrCreateHolding(fundCode: scheme.fundCode, schemeName: scheme.schemeName)
 
-        if holding.currentNavPrice == nil, navPrice > 0 {
-            holding.currentNavPrice = navPrice
+        if scheme.navPrice > 0 {
+            holding.currentNavPrice = scheme.navPrice
             holding.priceFetchedAt = Date()
         }
 
@@ -78,7 +80,7 @@ final class MutualFundTradeViewModel {
         modelContext.insert(trade)
 
         let description = notes ?? "Invest in \(scheme.schemeName)"
-        createTransaction(type: .mutualFundBuy, amount: netAmount, date: date, description: description, bankAccountId: bankAccount.id)
+        createTransaction(type: .mutualFundBuy, amount: netAmount, date: date, description: description, bankAccountId: bankAccount?.id)
 
         syncAccountFromHoldings()
         account.updatedAt = Date()
@@ -108,6 +110,11 @@ final class MutualFundTradeViewModel {
         holding.totalCost = update.cost
         holding.avgNavPrice = update.avgCost
 
+        if let scheme = schemeList.first(where: { $0.fundCode == holding.fundCode }), scheme.navPrice > 0 {
+            holding.currentNavPrice = scheme.navPrice
+            holding.priceFetchedAt = Date()
+        }
+
         let trade = MutualFundTrade(
             accountId: account.id,
             holdingId: holding.id,
@@ -131,7 +138,7 @@ final class MutualFundTradeViewModel {
         account.updatedAt = Date()
     }
 
-    private func createTransaction(type: TransactionType, amount: Decimal, date: Date, description: String, bankAccountId: UUID) {
+    private func createTransaction(type: TransactionType, amount: Decimal, date: Date, description: String, bankAccountId: UUID?) {
         let transaction = Transaction(
             type: type,
             amount: amount,
@@ -143,18 +150,21 @@ final class MutualFundTradeViewModel {
         )
         modelContext.insert(transaction)
 
-        let entry = LedgerEntry(
-            transactionId: transaction.id,
-            accountId: type == .mutualFundBuy ? bankAccountId : bankAccountId,
-            entryType: type == .mutualFundBuy ? .debit : .credit,
-            amount: amount,
-            runningBalance: 0,
-            date: date
-        )
-        if let bank = try? modelContext.fetch(FetchDescriptor<Account>(predicate: #Predicate { $0.id == bankAccountId })).first {
-            entry.account = bank
+        if let bankId = bankAccountId {
+            let entry = LedgerEntry(
+                transactionId: transaction.id,
+                accountId: bankId,
+                entryType: type == .mutualFundBuy ? .debit : .credit,
+                amount: amount,
+                runningBalance: 0,
+                date: date
+            )
+            let acctId = bankId
+            if let bank = try? modelContext.fetch(FetchDescriptor<Account>(predicate: #Predicate { $0.id == acctId })).first {
+                entry.account = bank
+            }
+            modelContext.insert(entry)
         }
-        modelContext.insert(entry)
     }
 
     private func syncAccountFromHoldings() {

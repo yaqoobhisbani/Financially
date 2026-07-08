@@ -109,6 +109,13 @@ struct AboutView: View {
             Section {
                 LabeledContent("Platform", value: "iOS")
                 LabeledContent("Architecture", value: "SwiftUI + SwiftData")
+                LabeledContent("Developer", value: "Muhammad Yaqoob")
+                LabeledContent {
+                    Link("@yaqoobhisbani", destination: URL(string: "https://github.com/yaqoobhisbani")!)
+                        .foregroundStyle(.tint)
+                } label: {
+                    Text("GitHub")
+                }
             }
 
             Section {
