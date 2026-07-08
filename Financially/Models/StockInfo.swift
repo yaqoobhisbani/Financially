@@ -7,6 +7,7 @@ final class StockInfo {
     var companyName: String
     var ticker: String
     var currentRate: Decimal
+    var lastUpdatedAt: Date?
 
     init(
         id: UUID = UUID(),

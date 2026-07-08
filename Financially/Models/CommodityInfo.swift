@@ -6,6 +6,7 @@ final class CommodityInfo {
     @Attribute(.unique) var id: UUID
     var name: String
     var currentRatePerGram: Decimal
+    var lastUpdatedAt: Date?
 
     init(
         id: UUID = UUID(),

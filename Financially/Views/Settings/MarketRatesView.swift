@@ -83,6 +83,7 @@ struct MarketRatesView: View {
             Button("Save") {
                 if let stock = editingStock, let rate = Decimal(string: editRate), rate > 0 {
                     stock.currentRate = rate
+                    stock.lastUpdatedAt = Date()
                     syncRateToHoldings(ticker: stock.ticker, rate: rate)
                 }
                 editingStock = nil
@@ -99,6 +100,7 @@ struct MarketRatesView: View {
             Button("Save") {
                 if let commodity = editingCommodity, let rate = Decimal(string: editRate), rate > 0 {
                     commodity.currentRatePerGram = rate
+                    commodity.lastUpdatedAt = Date()
                     syncRateToHoldings(commodityName: commodity.name, rate: rate)
                     try? modelContext.save()
                 }
@@ -128,6 +130,11 @@ struct MarketRatesView: View {
                         Text(stock.ticker)
                             .font(.caption)
                             .foregroundStyle(.secondary)
+                        if let lastUpdated = stock.lastUpdatedAt {
+                            Text(lastUpdated, style: .time)
+                                .font(.caption2)
+                                .foregroundStyle(.tertiary)
+                        }
                     }
                     Spacer()
                     VStack(alignment: .trailing) {
@@ -170,9 +177,16 @@ struct MarketRatesView: View {
         } else {
             ForEach(commodityList) { commodity in
                 HStack {
-                    Text(commodity.name)
-                        .font(.headline)
-                        .foregroundStyle(.primary)
+                    VStack(alignment: .leading) {
+                        Text(commodity.name)
+                            .font(.headline)
+                            .foregroundStyle(.primary)
+                        if let lastUpdated = commodity.lastUpdatedAt {
+                            Text(lastUpdated, style: .time)
+                                .font(.caption2)
+                                .foregroundStyle(.tertiary)
+                        }
+                    }
                     Spacer()
                     VStack(alignment: .trailing) {
                         Button {

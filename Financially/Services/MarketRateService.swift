@@ -19,6 +19,7 @@ final class MarketRateService {
             progress?(current, total, "Fetching \(stock.ticker)...")
             if let price = await fetchStockPrice(ticker: stock.ticker) {
                 stock.currentRate = price
+                stock.lastUpdatedAt = Date()
                 syncRateToHoldings(ticker: stock.ticker, rate: price)
             }
         }
@@ -36,6 +37,7 @@ final class MarketRateService {
             }
             if let price {
                 commodity.currentRatePerGram = price
+                commodity.lastUpdatedAt = Date()
                 syncRateToHoldings(commodityName: commodity.name, rate: price)
             }
         }
