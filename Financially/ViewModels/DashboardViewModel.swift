@@ -207,6 +207,7 @@ final class DashboardViewModel {
             AllocationSlice(label: "Committee", value: totalCommitteeReceivable, color: "committee"),
             AllocationSlice(label: "Liabilities", value: totalLiabilities, color: "liability")
         ].filter { $0.value > 0 }
+            .sorted { $0.value > $1.value }
     }
 
     var hasNoData: Bool {
