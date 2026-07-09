@@ -42,40 +42,22 @@ struct FinanciallyShortcuts: AppShortcutsProvider {
             systemImageName: "arrow.right.circle"
         )
         AppShortcut(
-            intent: BuySharesIntent(),
+            intent: PayContributionIntent(),
             phrases: [
-                "Buy $shares shares of $stock with ${applicationName}",
-                "Buy shares with ${applicationName}",
+                "Pay committee contribution with ${applicationName}",
+                "Pay contribution for $committee with ${applicationName}",
             ],
-            shortTitle: "Buy Shares",
-            systemImageName: "chart.line.uptrend.xyaxis"
+            shortTitle: "Pay Contribution",
+            systemImageName: "person.3.fill"
         )
         AppShortcut(
-            intent: SellSharesIntent(),
+            intent: ReceivePayoutIntent(),
             phrases: [
-                "Sell $shares shares of $stock with ${applicationName}",
-                "Sell shares with ${applicationName}",
+                "Receive committee payout with ${applicationName}",
+                "Receive payout from $committee with ${applicationName}",
             ],
-            shortTitle: "Sell Shares",
-            systemImageName: "chart.line.downtrend.xyaxis"
-        )
-        AppShortcut(
-            intent: InvestMFIntent(),
-            phrases: [
-                "Invest $units units in $scheme with ${applicationName}",
-                "Invest in mutual fund with ${applicationName}",
-            ],
-            shortTitle: "Invest MF",
-            systemImageName: "leaf.fill"
-        )
-        AppShortcut(
-            intent: BuyCommodityIntent(),
-            phrases: [
-                "Buy $grams grams of $commodity with ${applicationName}",
-                "Buy commodity with ${applicationName}",
-            ],
-            shortTitle: "Buy Commodity",
-            systemImageName: "cube.box.fill"
+            shortTitle: "Receive Payout",
+            systemImageName: "person.3"
         )
         AppShortcut(
             intent: RecordRepaymentIntent(),
