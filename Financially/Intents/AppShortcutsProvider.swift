@@ -41,5 +41,59 @@ struct FinanciallyShortcuts: AppShortcutsProvider {
             shortTitle: "Give Loan",
             systemImageName: "arrow.right.circle"
         )
+        AppShortcut(
+            intent: BuySharesIntent(),
+            phrases: [
+                "Buy $shares shares of $stock with ${applicationName}",
+                "Buy shares with ${applicationName}",
+            ],
+            shortTitle: "Buy Shares",
+            systemImageName: "chart.line.uptrend.xyaxis"
+        )
+        AppShortcut(
+            intent: SellSharesIntent(),
+            phrases: [
+                "Sell $shares shares of $stock with ${applicationName}",
+                "Sell shares with ${applicationName}",
+            ],
+            shortTitle: "Sell Shares",
+            systemImageName: "chart.line.downtrend.xyaxis"
+        )
+        AppShortcut(
+            intent: InvestMFIntent(),
+            phrases: [
+                "Invest $units units in $scheme with ${applicationName}",
+                "Invest in mutual fund with ${applicationName}",
+            ],
+            shortTitle: "Invest MF",
+            systemImageName: "leaf.fill"
+        )
+        AppShortcut(
+            intent: BuyCommodityIntent(),
+            phrases: [
+                "Buy $grams grams of $commodity with ${applicationName}",
+                "Buy commodity with ${applicationName}",
+            ],
+            shortTitle: "Buy Commodity",
+            systemImageName: "cube.box.fill"
+        )
+        AppShortcut(
+            intent: RecordRepaymentIntent(),
+            phrases: [
+                "Record repayment of $amount from $debtor with ${applicationName}",
+                "Record a repayment with ${applicationName}",
+            ],
+            shortTitle: "Record Repayment",
+            systemImageName: "arrow.left.circle.fill"
+        )
+        AppShortcut(
+            intent: PayBackIntent(),
+            phrases: [
+                "Pay back $amount to $creditor with ${applicationName}",
+                "Pay back a creditor with ${applicationName}",
+            ],
+            shortTitle: "Pay Back Creditor",
+            systemImageName: "arrow.right.circle.fill"
+        )
     }
 }
