@@ -3,9 +3,9 @@
 <plist version="1.0">
 <dict>
 	<key>NSFaceIDUsageDescription</key>
-	<string>Financially uses Face ID to protect your financial data and keep your accounts, transactions, and personal information secure.</string>
+	<string>Financially uses Face ID to secure your financial data and authenticate quick actions from Shortcuts.</string>
 	<key>NSContactsUsageDescription</key>
-	<string>Financially needs access to your contacts to import names, phone numbers, and email addresses for debtors and creditors.</string>
+	<string>Financially uses contacts to help you select people when recording loans and transactions.</string>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>remote-notification</string>

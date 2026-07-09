@@ -69,6 +69,24 @@ final class BiometricAuthManager {
         isAuthenticated = false
     }
 
+    @MainActor
+    static func authenticateForIntent() async throws {
+        guard shared.biometricEnabled else { return }
+        let context = LAContext()
+        context.localizedFallbackTitle = ""
+        let success = try await context.evaluatePolicy(
+            .deviceOwnerAuthenticationWithBiometrics,
+            localizedReason: "Authenticate to perform this action"
+        )
+        if !success {
+            throw AuthError.cancelled
+        }
+    }
+
+    enum AuthError: Error {
+        case cancelled
+    }
+
     private func biometricType(from type: LABiometryType) -> BiometricType {
         switch type {
         case .faceID: return .faceID

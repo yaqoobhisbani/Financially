@@ -9,7 +9,6 @@ struct DashboardView: View {
     @State private var showIncome = false
     @State private var showTransfer = false
     @State private var scrollOffset: CGFloat = 0
-    @State private var activeLoansTitleY: CGFloat = 0
 
     var body: some View {
         NavigationStack {
@@ -41,8 +40,8 @@ struct DashboardView: View {
                 .ignoresSafeArea()
 
                 ScrollView {
-                    VStack(spacing: 16) {
-                        DashboardHeaderView(vm: vm, heroHeight: heroHeight)
+                    LazyVStack(spacing: 16) {
+                        DashboardHeaderView(vm: vm)
                             .padding(.horizontal, -16)
 
                         if vm.hasNoData { emptyDashboardCard }
@@ -67,7 +66,7 @@ struct DashboardView: View {
                         if vm.monthlyIncome > 0 || vm.monthlyExpense > 0 { incomeVsExpenseWidget(vm) }
                         if vm.monthlyExpense > 0 { expenseChartWidget(vm) }
                         if !vm.assetAllocation.isEmpty { AllocationPieChart(slices: vm.assetAllocation) }
-                        if vm.activeLoanCount > 0 || vm.activeLiabilityCount > 0 || vm.activeCommitteeCount > 0 { activeLoansWidget(vm, heroHeight: heroHeight) }
+                        if vm.activeLoanCount > 0 || vm.activeLiabilityCount > 0 || vm.activeCommitteeCount > 0 { activeLoansWidget(vm) }
                         if !vm.recentTransactions.isEmpty { recentTransactionsSection(vm) }
                     }
                     .padding(.horizontal)
@@ -146,17 +145,12 @@ struct DashboardView: View {
 
     // MARK: - Active Loans / Liabilities
 
-    private func activeLoansWidget(_ vm: DashboardViewModel, heroHeight: CGFloat) -> some View {
+    private func activeLoansWidget(_ vm: DashboardViewModel) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             Text("Commitments")
                 .font(.headline)
-                .foregroundStyle(activeLoansTitleY < heroHeight ? .white : .primary)
-                .animation(.easeInOut(duration: 0.15), value: activeLoansTitleY)
-                .background(GeometryReader { proxy in
-                    Color.clear
-                        .onChange(of: proxy.frame(in: .global).minY) { _, v in activeLoansTitleY = v }
-                        .onAppear { activeLoansTitleY = proxy.frame(in: .global).minY }
-                })
+                .foregroundStyle(scrollOffset > -200 ? .white : .primary)
+                .animation(.easeInOut(duration: 0.15), value: scrollOffset)
 
             HStack(spacing: 12) {
                 activeWidget(
