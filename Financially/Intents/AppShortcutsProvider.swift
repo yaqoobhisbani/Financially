@@ -77,5 +77,16 @@ struct FinanciallyShortcuts: AppShortcutsProvider {
             shortTitle: "Pay Back Creditor",
             systemImageName: "arrow.right.circle.fill"
         )
+        AppShortcut(
+            intent: GetDashboardSummaryIntent(),
+            phrases: [
+                "What is my net worth with ${applicationName}",
+                "Show my dashboard with ${applicationName}",
+                "Get financial summary with ${applicationName}",
+                "How are my finances with ${applicationName}",
+            ],
+            shortTitle: "Dashboard Summary",
+            systemImageName: "rectangle.grid.1x2.fill"
+        )
     }
 }
