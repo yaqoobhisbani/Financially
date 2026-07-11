@@ -21,6 +21,6 @@ struct ActionCard: View {
             .padding(.horizontal, 4)
         }
         .buttonStyle(.plain)
-        .background(Color(.secondarySystemGroupedBackground))
+        .dataCard(radius: DesignRadius.control)
     }
 }

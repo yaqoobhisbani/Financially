@@ -15,13 +15,8 @@ struct LoansListView: View {
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
-                Picker("Type", selection: $selectedSegment) {
-                    ForEach(LoanSegment.allCases, id: \.rawValue) { segment in
-                        Text(segment.rawValue).tag(segment)
-                    }
-                }
-                .pickerStyle(.segmented)
-                .padding()
+                GlassSegmentedControl(options: LoanSegment.allCases, selection: $selectedSegment) { $0.rawValue }
+                    .padding()
 
                 if selectedSegment == .debtors {
                     DebtorsListView()

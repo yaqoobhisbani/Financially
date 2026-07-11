@@ -58,13 +58,8 @@ struct InvestmentsListView: View {
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
-                Picker("Segment", selection: $selectedSegment) {
-                    ForEach(InvestmentSegment.allCases, id: \.self) { segment in
-                        Text(segment.rawValue).tag(segment)
-                    }
-                }
-                .pickerStyle(.segmented)
-                .padding()
+                GlassSegmentedControl(options: InvestmentSegment.allCases, selection: $selectedSegment) { $0.rawValue }
+                    .padding()
 
                 switch selectedSegment {
                 case .mutualFunds:
@@ -82,6 +77,7 @@ struct InvestmentsListView: View {
                         Button(action: { showCommodityStatement = true }) {
                             Label("View Statement", systemImage: "doc.text")
                         }
+                        .buttonStyle(.glass)
                     }
                     ToolbarSpacer(.fixed, placement: .primaryAction)
                 }
@@ -95,6 +91,7 @@ struct InvestmentsListView: View {
                     }) {
                         Label("Add", systemImage: "plus")
                     }
+                    .buttonStyle(.glassProminent)
                 }
             }
             .sheet(isPresented: $showCreatePSX) {
@@ -299,10 +296,12 @@ struct PSXAccountRowView: View {
                 let totalValue = account.currentBalance + psxPortfolioValue
                 Text(totalValue.formattedCurrency(currency: account.currency))
                     .font(.headline)
+                    .tabularNumbers()
                     .fixedSize(horizontal: true, vertical: false)
                 Text(psxProfitLoss.formattedCurrency(currency: account.currency))
                     .font(.caption)
-                    .foregroundStyle(psxProfitLoss >= 0 ? .incomeGreen : .expenseRed)
+                    .tabularNumbers()
+                    .foregroundStyle(psxProfitLoss >= 0 ? .gain : .loss)
                     .fixedSize(horizontal: true, vertical: false)
             }
         }
@@ -352,10 +351,12 @@ struct MFAccountRowView: View {
             VStack(alignment: .trailing, spacing: 2) {
                 Text(portfolioValue.formattedCurrency())
                     .font(.headline)
+                    .tabularNumbers()
                     .fixedSize(horizontal: true, vertical: false)
                 Text(profitLoss.formattedCurrency())
                     .font(.caption)
-                    .foregroundStyle(profitLoss >= 0 ? .incomeGreen : .expenseRed)
+                    .tabularNumbers()
+                    .foregroundStyle(profitLoss >= 0 ? .gain : .loss)
                     .fixedSize(horizontal: true, vertical: false)
             }
         }
@@ -386,11 +387,13 @@ struct CommodityRowView: View {
             VStack(alignment: .trailing, spacing: 2) {
                 Text(holding.currentValue.formattedCurrency())
                     .font(.headline)
+                    .tabularNumbers()
                     .lineLimit(1)
                     .fixedSize(horizontal: true, vertical: false)
                 Text(holding.unrealizedPAndL.formattedCurrency())
                     .font(.caption)
-                    .foregroundStyle(holding.unrealizedPAndL >= 0 ? .incomeGreen : .expenseRed)
+                    .tabularNumbers()
+                    .foregroundStyle(holding.unrealizedPAndL >= 0 ? .gain : .loss)
                     .lineLimit(1)
                     .fixedSize(horizontal: true, vertical: false)
             }
