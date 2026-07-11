@@ -6,7 +6,18 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXContainerItemProxy section */
+		4C29893E88460547F84D9317 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = BDCCAC532FF7E15400FE7C74 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = BDCCAC5A2FF7E15400FE7C74;
+			remoteInfo = Financially;
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXFileReference section */
+		A3BF6720A0A8EF7276027958 /* FinanciallyTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = FinanciallyTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		BDCCAC5B2FF7E15400FE7C74 /* Financially.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Financially.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -21,6 +32,11 @@
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
+		50C338C821693F09C1798EE5 /* FinanciallyTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = FinanciallyTests;
+			sourceTree = "<group>";
+		};
 		BDCCAC5D2FF7E15400FE7C74 /* Financially */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
@@ -32,6 +48,13 @@
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		347BBAE4F7315095B547D690 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		BDCCAC582FF7E15400FE7C74 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -47,6 +70,7 @@
 			children = (
 				BDCCAC5D2FF7E15400FE7C74 /* Financially */,
 				BDCCAC5C2FF7E15400FE7C74 /* Products */,
+				50C338C821693F09C1798EE5 /* FinanciallyTests */,
 			);
 			sourceTree = "<group>";
 		};
@@ -54,6 +78,7 @@
 			isa = PBXGroup;
 			children = (
 				BDCCAC5B2FF7E15400FE7C74 /* Financially.app */,
+				A3BF6720A0A8EF7276027958 /* FinanciallyTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -61,6 +86,27 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		3DF33D7BF2B45E62231EF85F /* FinanciallyTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 9DAF498AE11A862E76AD1C39 /* Build configuration list for PBXNativeTarget "FinanciallyTests" */;
+			buildPhases = (
+				A64B10A27683FDE2D8FA027A /* Sources */,
+				347BBAE4F7315095B547D690 /* Frameworks */,
+				F0F59330B289C32233CD75EB /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				D0FE20957CFA9E6BE2C0BFD1 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				50C338C821693F09C1798EE5 /* FinanciallyTests */,
+			);
+			name = FinanciallyTests;
+			productName = FinanciallyTests;
+			productReference = A3BF6720A0A8EF7276027958 /* FinanciallyTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 		BDCCAC5A2FF7E15400FE7C74 /* Financially */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = BDCCAC692FF7E15500FE7C74 /* Build configuration list for PBXNativeTarget "Financially" */;
@@ -77,8 +123,6 @@
 				BDCCAC5D2FF7E15400FE7C74 /* Financially */,
 			);
 			name = Financially;
-			packageProductDependencies = (
-			);
 			productName = Financially;
 			productReference = BDCCAC5B2FF7E15400FE7C74 /* Financially.app */;
 			productType = "com.apple.product-type.application";
@@ -93,6 +137,10 @@
 				LastSwiftUpdateCheck = 2660;
 				LastUpgradeCheck = 2660;
 				TargetAttributes = {
+					3DF33D7BF2B45E62231EF85F = {
+						CreatedOnToolsVersion = 26.6;
+						TestTargetID = BDCCAC5A2FF7E15400FE7C74;
+					};
 					BDCCAC5A2FF7E15400FE7C74 = {
 						CreatedOnToolsVersion = 26.6;
 					};
@@ -113,6 +161,7 @@
 			projectRoot = "";
 			targets = (
 				BDCCAC5A2FF7E15400FE7C74 /* Financially */,
+				3DF33D7BF2B45E62231EF85F /* FinanciallyTests */,
 			);
 		};
 /* End PBXProject section */
@@ -125,9 +174,23 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		F0F59330B289C32233CD75EB /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		A64B10A27683FDE2D8FA027A /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		BDCCAC572FF7E15400FE7C74 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -137,7 +200,35 @@
 		};
 /* End PBXSourcesBuildPhase section */
 
+/* Begin PBXTargetDependency section */
+		D0FE20957CFA9E6BE2C0BFD1 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = Financially;
+			target = BDCCAC5A2FF7E15400FE7C74 /* Financially */;
+			targetProxy = 4C29893E88460547F84D9317 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
 /* Begin XCBuildConfiguration section */
+		88B77CB2F40A5BF1D4098DF1 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = W8DCPFXJ49;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.5;
+				PRODUCT_BUNDLE_IDENTIFIER = com.yaqoobdev.FinanciallyTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = auto;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Financially.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Financially";
+			};
+			name = Release;
+		};
 		BDCCAC6A2FF7E15500FE7C74 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -340,9 +431,37 @@
 			};
 			name = Release;
 		};
+		DAE2BADE8BED49759B4A9ADB /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = W8DCPFXJ49;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.5;
+				PRODUCT_BUNDLE_IDENTIFIER = com.yaqoobdev.FinanciallyTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = auto;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Financially.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Financially";
+			};
+			name = Debug;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		9DAF498AE11A862E76AD1C39 /* Build configuration list for PBXNativeTarget "FinanciallyTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				DAE2BADE8BED49759B4A9ADB /* Debug */,
+				88B77CB2F40A5BF1D4098DF1 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		BDCCAC562FF7E15400FE7C74 /* Build configuration list for PBXProject "Financially" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
