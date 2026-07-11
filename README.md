@@ -71,3 +71,36 @@ Financially/
 
 FinanciallyTests/       # Unit tests (Swift Testing)
 ```
+
+## Releasing
+
+Releases are published as GitHub Releases, tagged `vX.Y.Z` to match `MARKETING_VERSION`
+in the Xcode project. [`.github/workflows/release.yml`](.github/workflows/release.yml)
+does **not** build or sign anything — it only drafts the release notes. The IPA is
+built/exported and attached manually.
+
+1. **Update [`CHANGELOG.md`](CHANGELOG.md).** Move the relevant bullets out of
+   `[Unreleased]` into a new `## [X.Y.Z]` section.
+2. **Bump the version.** Update `MARKETING_VERSION` (and `CURRENT_PROJECT_VERSION`
+   if needed) in the `Financially` target's build settings.
+3. **Commit.** e.g. `git commit -m "Release vX.Y.Z"`.
+4. **Tag and push.**
+   ```sh
+   git tag vX.Y.Z
+   git push origin main vX.Y.Z
+   ```
+   Pushing the tag triggers the `Release` workflow, which creates a **draft**
+   GitHub Release with:
+   - the `[X.Y.Z]` section from `CHANGELOG.md`
+   - an auto-generated list of commits since the previous tag
+5. **Attach the IPA.** Archive and export the `.ipa` from Xcode (or your usual
+   pipeline), then either drag it onto the draft release in the GitHub UI or:
+   ```sh
+   gh release upload vX.Y.Z path/to/Financially.ipa
+   ```
+6. **Review and publish** the draft release on GitHub once the notes and
+   artifact look right.
+
+To regenerate a draft's notes (e.g. after editing `CHANGELOG.md` post-tag)
+without re-tagging, run the workflow manually from the Actions tab
+(`workflow_dispatch`) with the existing tag name as input.

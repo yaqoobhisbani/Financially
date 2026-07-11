@@ -1,0 +1,102 @@
+name: Release
+
+# Triggered by pushing a version tag (e.g. `v1.0.2`). Creates a DRAFT GitHub
+# Release with auto-generated commit history plus the matching CHANGELOG.md
+# section. This workflow does not build or sign anything — attach the IPA
+# artifact and publish the release manually. See README.md#releasing.
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Existing tag to (re-)generate a draft release for, e.g. v1.0.2"
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  draft-release:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Resolve tag and version
+        id: tag
+        run: |
+          TAG="${{ github.event.inputs.tag || github.ref_name }}"
+          if ! git rev-parse "$TAG" >/dev/null 2>&1; then
+            echo "::error::Tag '$TAG' not found in this checkout."
+            exit 1
+          fi
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "version=${TAG#v}" >> "$GITHUB_OUTPUT"
+
+      - name: Extract CHANGELOG.md section
+        id: changelog
+        run: |
+          VERSION="${{ steps.tag.outputs.version }}"
+          NOTES_FILE="$(mktemp)"
+          awk -v ver="$VERSION" '
+            /^## \[/ {
+              if (found) exit
+              if (index($0, "[" ver "]") > 0) { found=1; next }
+              next
+            }
+            found { print }
+          ' CHANGELOG.md > "$NOTES_FILE"
+
+          if [ ! -s "$NOTES_FILE" ]; then
+            echo "_No CHANGELOG.md section found for [$VERSION]. Add one before tagging and re-run this workflow (workflow_dispatch) to refresh the draft._" > "$NOTES_FILE"
+          fi
+          echo "changelog_file=$NOTES_FILE" >> "$GITHUB_OUTPUT"
+
+      - name: Build commit history since previous tag
+        id: commits
+        run: |
+          CURRENT="${{ steps.tag.outputs.tag }}"
+          PREV="$(git tag --sort=-creatordate --merged "$CURRENT" | grep -vFx "$CURRENT" | head -n1 || true)"
+          COMMITS_FILE="$(mktemp)"
+
+          if [ -n "$PREV" ]; then
+            git log "${PREV}..${CURRENT}" --pretty=format:'- %s (%h)' >> "$COMMITS_FILE"
+          else
+            git log "$CURRENT" --pretty=format:'- %s (%h)' >> "$COMMITS_FILE"
+          fi
+          echo "commits_file=$COMMITS_FILE" >> "$GITHUB_OUTPUT"
+          echo "prev=$PREV" >> "$GITHUB_OUTPUT"
+
+      - name: Assemble release notes
+        id: notes
+        run: |
+          NOTES_FILE="$(mktemp)"
+          {
+            echo "## Changes"
+            echo ""
+            cat "${{ steps.changelog.outputs.changelog_file }}"
+            echo ""
+            echo "## Commits"
+            if [ -n "${{ steps.commits.outputs.prev }}" ]; then
+              echo "_Since ${{ steps.commits.outputs.prev }}:_"
+            fi
+            echo ""
+            cat "${{ steps.commits.outputs.commits_file }}"
+            echo ""
+            echo "---"
+            echo "**Note:** the IPA artifact must be attached to this release manually before publishing."
+          } > "$NOTES_FILE"
+          echo "notes_file=$NOTES_FILE" >> "$GITHUB_OUTPUT"
+
+      - name: Create draft release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.tag.outputs.tag }}
+          name: ${{ steps.tag.outputs.tag }}
+          body_path: ${{ steps.notes.outputs.notes_file }}
+          draft: true
