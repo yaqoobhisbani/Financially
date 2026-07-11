@@ -8,6 +8,7 @@ struct DashboardView: View {
     @State private var showExpense = false
     @State private var showIncome = false
     @State private var showTransfer = false
+    @State private var showSettings = false
     @State private var scrollOffset: CGFloat = 0
 
     var body: some View {
@@ -22,6 +23,7 @@ struct DashboardView: View {
         .sheet(isPresented: $showExpense) { AddExpenseView() }
         .sheet(isPresented: $showIncome) { AddIncomeView() }
         .sheet(isPresented: $showTransfer) { TransferView() }
+        .sheet(isPresented: $showSettings) { SettingsView() }
     }
 
     private func content(_ vm: DashboardViewModel) -> some View {
@@ -91,6 +93,13 @@ struct DashboardView: View {
                     .foregroundStyle(scrollOffset > -60 ? .white : .primary)
                     .animation(.easeInOut(duration: 0.2), value: scrollOffset)
             }
+            ToolbarItem(placement: .primaryAction) {
+                Button(action: { showSettings = true }) {
+                    Image(systemName: "gearshape.fill")
+                        .font(.title3)
+                }
+            }
+            ToolbarSpacer(.fixed, placement: .primaryAction)
             ToolbarItem(placement: .primaryAction) {
                 Menu {
                     Button("Expense", systemImage: "cart.fill") { showExpense = true }

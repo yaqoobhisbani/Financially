@@ -4,31 +4,27 @@ import SwiftData
 struct ContentView: View {
     var body: some View {
         TabView {
-            DashboardView()
-                .tabItem {
-                    Label("Dashboard", systemImage: "house.fill")
-                }
+            Tab("Dashboard", systemImage: "house.fill") {
+                DashboardView()
+            }
 
-            AccountsListView()
-                .tabItem {
-                    Label("Accounts", systemImage: "creditcard.fill")
-                }
+            Tab("Accounts", systemImage: "creditcard.fill") {
+                AccountsListView()
+            }
 
-            InvestmentsListView()
-                .tabItem {
-                    Label("Investments", systemImage: "chart.line.uptrend.xyaxis")
-                }
+            Tab("Investments", systemImage: "chart.line.uptrend.xyaxis") {
+                InvestmentsListView()
+            }
 
-            CommitteesListView()
-                .tabItem {
-                    Label("Committees", systemImage: "person.3.fill")
-                }
+            Tab("Committees", systemImage: "person.3.fill") {
+                CommitteesListView()
+            }
 
-            SettingsView()
-                .tabItem {
-                    Label("More", systemImage: "ellipsis.circle.fill")
-                }
+            Tab(role: .search) {
+                GlobalSearchView()
+            }
         }
+        .tabBarMinimizeBehavior(.onScrollDown)
     }
 }
 

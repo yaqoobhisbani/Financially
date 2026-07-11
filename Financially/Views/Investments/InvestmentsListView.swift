@@ -73,7 +73,15 @@ struct InvestmentsListView: View {
             }
             .navigationTitle("Investments")
             .toolbar {
-                ToolbarItem {
+                if selectedSegment == .commodities {
+                    ToolbarItem(placement: .primaryAction) {
+                        Button(action: { showCommodityStatement = true }) {
+                            Label("View Statement", systemImage: "doc.text")
+                        }
+                    }
+                    ToolbarSpacer(.fixed, placement: .primaryAction)
+                }
+                ToolbarItem(placement: .primaryAction) {
                     Button(action: {
                         switch selectedSegment {
                         case .mutualFunds: showCreateMF = true
@@ -82,13 +90,6 @@ struct InvestmentsListView: View {
                         }
                     }) {
                         Label("Add", systemImage: "plus")
-                    }
-                }
-                ToolbarItem(placement: .primaryAction) {
-                    if selectedSegment == .commodities {
-                        Button(action: { showCommodityStatement = true }) {
-                            Label("View Statement", systemImage: "doc.text")
-                        }
                     }
                 }
             }
