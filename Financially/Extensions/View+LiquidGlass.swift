@@ -19,10 +19,12 @@ struct LiquidGlassModifier: ViewModifier {
 }
 
 extension View {
+    @available(*, deprecated, message: "Use .dataCard() instead — this simulates glass with an opaque fill in light mode.")
     func liquidGlassBackground() -> some View {
         self.background(Color(.secondarySystemGroupedBackground))
     }
 
+    @available(*, deprecated, message: "Use .dataCard() (opaque content) or .glassChrome() (floating controls) instead.")
     func liquidGlassCard() -> some View {
         modifier(LiquidGlassModifier())
     }
