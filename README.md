@@ -93,8 +93,21 @@ built/exported and attached manually.
    GitHub Release with:
    - the `[X.Y.Z]` section from `CHANGELOG.md`
    - an auto-generated list of commits since the previous tag
-5. **Attach the IPA.** Archive and export the `.ipa` from Xcode (or your usual
-   pipeline), then either drag it onto the draft release in the GitHub UI or:
+5. **Build and attach the IPA.**
+   ```sh
+   scripts/build_unsigned_ipa.sh
+   ```
+   This cleans, builds `Financially` for a generic iOS device with code
+   signing disabled, and hand-packages the result into
+   `build/Financially-<version>-unsigned.ipa`. It does **not** go through
+   Xcode's archive/export flow, so it needs no provisioning profile or
+   Apple ID — but the IPA is unsigned and must be re-signed (Xcode,
+   AltStore, Sideloadly, or your own pipeline) before it can be installed
+   on a device. If you'd rather ship a properly signed build, archive and
+   export from Xcode instead.
+
+   Either way, attach the resulting `.ipa` by dragging it onto the draft
+   release in the GitHub UI, or:
    ```sh
    gh release upload vX.Y.Z path/to/Financially.ipa
    ```
