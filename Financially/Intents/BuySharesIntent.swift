@@ -74,8 +74,9 @@ struct BuySharesIntent: AppIntent {
             acct.syncFromHoldings(all.filter { $0.accountId == acct.id })
             acct.updatedAt = Date()
 
-            insertStockTransaction(context: context, type: .stockBuy, amount: total, date: date ?? Date(),
-                              description: notes ?? "Buy \(stockInfo.companyName) (\(stockInfo.ticker))", psxAccountId: acct.id)
+            let tx = insertStockTransaction(context: context, type: .stockBuy, amount: total, date: date ?? Date(),
+                              description: notes ?? "Buy \(stockInfo.companyName) (\(stockInfo.ticker))", psxAccountId: acct.id, psxAccountBalance: acct.currentBalance)
+            trade.transactionId = tx.id
             try context.save()
 
             return .result(dialog: "Bought \(shares) shares of \(stockInfo.ticker) for Rs \(total.formatted(.number.precision(.fractionLength(0...2)))).")

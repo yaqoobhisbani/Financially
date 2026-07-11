@@ -23,6 +23,7 @@ final class StockTrade {
     var date: Date
     var notes: String?
     var createdAt: Date
+    var transactionId: UUID?
 
     init(
         id: UUID = UUID(),
@@ -38,7 +39,8 @@ final class StockTrade {
         tax: Decimal = 0,
         netAmount: Decimal,
         date: Date = Date(),
-        notes: String? = nil
+        notes: String? = nil,
+        transactionId: UUID? = nil
     ) {
         self.id = id
         self.accountId = accountId
@@ -55,5 +57,6 @@ final class StockTrade {
         self.date = date
         self.notes = notes
         self.createdAt = Date()
+        self.transactionId = transactionId
     }
 }

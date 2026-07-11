@@ -111,6 +111,11 @@ struct SellSharesView: View {
             List(accountHoldings) { holding in
                 Button {
                     selectedHolding = holding
+                    if let rate = stockList.first(where: { $0.ticker == holding.ticker })?.currentRate, rate > 0 {
+                        pricePerShare = "\(rate)"
+                    } else if let price = holding.currentPrice, price > 0 {
+                        pricePerShare = "\(price)"
+                    }
                     showHoldingPicker = false
                 } label: {
                     HStack {

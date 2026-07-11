@@ -112,6 +112,14 @@ struct CommodityHoldingDetailView: View {
     }
 
     private func deleteTrade(_ trade: CommodityTrade) {
+        if let txnId = trade.transactionId,
+           let transaction = try? modelContext.fetch(FetchDescriptor<Transaction>(predicate: #Predicate { $0.id == txnId })).first {
+            let manager = LedgerManager(modelContext: modelContext)
+            try? manager.deleteTransaction(transaction)
+            return
+        }
+
+        // Legacy trades recorded before cash transactions were linked to trades.
         modelContext.delete(trade)
 
         let remaining = trades.filter { $0.id != trade.id }
@@ -125,8 +133,14 @@ struct CommodityHoldingDetailView: View {
     }
 
     private func deleteHolding() {
+        let manager = LedgerManager(modelContext: modelContext)
         for trade in trades {
-            modelContext.delete(trade)
+            if let txnId = trade.transactionId,
+               let transaction = try? modelContext.fetch(FetchDescriptor<Transaction>(predicate: #Predicate { $0.id == txnId })).first {
+                try? manager.deleteTransaction(transaction)
+            } else {
+                modelContext.delete(trade)
+            }
         }
         modelContext.delete(holding)
         try? modelContext.save()

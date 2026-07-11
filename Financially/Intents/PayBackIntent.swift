@@ -36,6 +36,9 @@ struct PayBackIntent: AppIntent {
             }
 
             let amountDecimal = Decimal(amount)
+            guard amountDecimal <= person.outstandingBalance else {
+                throw IntentError.failed("Payback exceeds outstanding balance of \(person.outstandingBalance.formattedCurrency()).")
+            }
             let service = LedgerService(modelContext: context)
 
             person.totalReturned += amountDecimal

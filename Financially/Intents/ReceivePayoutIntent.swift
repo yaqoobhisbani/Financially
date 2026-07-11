@@ -36,8 +36,8 @@ struct ReceivePayoutIntent: AppIntent {
             let payoutCommitteeId = comm.id
             let payouts = (try? context.fetch(FetchDescriptor<CommitteePayout>(predicate: #Predicate { $0.committeeId == payoutCommitteeId }))) ?? []
             let totalReceived = payouts.reduce(0) { $0 + $1.amount }
-            guard totalReceived + amountDecimal <= comm.totalPayout else {
-                throw IntentError.failed("Total payout would exceed \(comm.totalPayout.formattedCurrency()).")
+            guard totalReceived + amountDecimal <= comm.myTotalPayout else {
+                throw IntentError.failed("Total payout would exceed \(comm.myTotalPayout.formattedCurrency()).")
             }
 
             let service = LedgerService(modelContext: context)

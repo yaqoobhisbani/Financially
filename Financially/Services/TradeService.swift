@@ -28,7 +28,7 @@ struct TradeService {
     ) -> (quantity: Decimal, cost: Decimal, fees: Decimal, avgCost: Decimal) {
         let remaining = currentQuantity - soldQuantity
         if remaining <= 0 {
-            return (0, 0, currentFees, 0)
+            return (0, 0, 0, 0)
         }
         let avgCost = currentCost / currentQuantity
         let newCost = currentCost - (soldQuantity * avgCost)
@@ -61,7 +61,7 @@ struct TradeService {
     ) -> (quantity: Int, cost: Decimal, fees: Decimal, avgCost: Decimal) {
         let remaining = currentQuantity - soldQuantity
         if remaining <= 0 {
-            return (0, 0, currentFees, 0)
+            return (0, 0, 0, 0)
         }
         let avgCost = currentCost / Decimal(currentQuantity)
         let newCost = currentCost - (Decimal(soldQuantity) * avgCost)

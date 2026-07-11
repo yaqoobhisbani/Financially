@@ -48,6 +48,9 @@ final class LoanTransactionViewModel {
         guard let amountValue = Decimal(string: amount), amountValue > 0 else {
             throw LoanError.invalidAmount
         }
+        guard amountValue <= debtor.outstandingBalance else {
+            throw LoanError.exceedsBalance(label: "Repayment")
+        }
 
         debtor.totalRepaid += amountValue
         debtor.updatedAt = Date()
@@ -99,6 +102,9 @@ final class LoanTransactionViewModel {
     func payBack(to creditor: Creditor, amount: String, date: Date, description: String?, sourceAccountId: UUID?) throws {
         guard let amountValue = Decimal(string: amount), amountValue > 0 else {
             throw LoanError.invalidAmount
+        }
+        guard amountValue <= creditor.outstandingBalance else {
+            throw LoanError.exceedsBalance(label: "Payback")
         }
 
         creditor.totalReturned += amountValue

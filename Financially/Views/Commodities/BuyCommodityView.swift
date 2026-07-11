@@ -169,8 +169,9 @@ struct BuyCommodityView: View {
             description: "Buy \(commodity.name) (\(gramsVal.formattedNumber())g)",
             sourceAccountId: isOutside ? nil : sourceAccount?.id
         )
+        let transaction: Transaction
         do {
-            try ledger.execute(request)
+            transaction = try ledger.execute(request)
         } catch {
             errorMessage = error.localizedDescription
             return
@@ -189,7 +190,8 @@ struct BuyCommodityView: View {
             tax: taxValue,
             netAmount: net,
             date: date,
-            notes: notes.isEmpty ? nil : notes
+            notes: notes.isEmpty ? nil : notes,
+            transactionId: transaction.id
         )
 
         try? modelContext.save()

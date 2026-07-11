@@ -17,6 +17,7 @@ final class CommodityTrade {
     var date: Date
     var notes: String?
     var createdAt: Date
+    var transactionId: UUID?
 
     init(
         id: UUID = UUID(),
@@ -31,7 +32,8 @@ final class CommodityTrade {
         tax: Decimal = 0,
         netAmount: Decimal,
         date: Date = Date(),
-        notes: String? = nil
+        notes: String? = nil,
+        transactionId: UUID? = nil
     ) {
         self.id = id
         self.holdingId = holdingId
@@ -47,5 +49,6 @@ final class CommodityTrade {
         self.date = date
         self.notes = notes
         self.createdAt = Date()
+        self.transactionId = transactionId
     }
 }

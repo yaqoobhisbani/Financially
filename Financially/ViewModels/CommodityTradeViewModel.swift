@@ -39,7 +39,7 @@ final class CommodityTradeViewModel {
         return holding
     }
 
-    func buy(symbol: String, commodityName: String, grams: Decimal, pricePerGram: Decimal, brokerageFee: Decimal, tax: Decimal, netAmount: Decimal, date: Date, notes: String?) {
+    func buy(symbol: String, commodityName: String, grams: Decimal, pricePerGram: Decimal, brokerageFee: Decimal, tax: Decimal, netAmount: Decimal, date: Date, notes: String?, transactionId: UUID? = nil) {
         let holding = findOrCreateHolding(commodityName: commodityName)
         let total = grams * pricePerGram
         let fees = brokerageFee + tax
@@ -56,7 +56,8 @@ final class CommodityTradeViewModel {
             tax: tax,
             netAmount: netAmount,
             date: date,
-            notes: notes
+            notes: notes,
+            transactionId: transactionId
         )
         modelContext.insert(trade)
 
@@ -74,7 +75,7 @@ final class CommodityTradeViewModel {
         holding.avgCostPerGram = update.avgCost
     }
 
-    func sell(holding: CommodityHolding, grams: Decimal, pricePerGram: Decimal, brokerageFee: Decimal, tax: Decimal, netProceeds: Decimal, date: Date, notes: String?) {
+    func sell(holding: CommodityHolding, grams: Decimal, pricePerGram: Decimal, brokerageFee: Decimal, tax: Decimal, netProceeds: Decimal, date: Date, notes: String?, transactionId: UUID? = nil) {
         let total = grams * pricePerGram
         let fees = brokerageFee + tax
 
@@ -96,7 +97,8 @@ final class CommodityTradeViewModel {
             tax: tax,
             netAmount: netProceeds,
             date: date,
-            notes: notes
+            notes: notes,
+            transactionId: transactionId
         )
         modelContext.insert(trade)
 

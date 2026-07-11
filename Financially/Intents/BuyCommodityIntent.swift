@@ -79,6 +79,7 @@ struct BuyCommodityIntent: AppIntent {
             let entry = LedgerEntry(transactionId: tx.id, accountId: bank.id, entryType: .debit,
                                     amount: total, runningBalance: bank.currentBalance, date: date ?? Date())
             context.insert(entry)
+            trade.transactionId = tx.id
             try context.save()
 
             return .result(dialog: "Bought \(grams)g of \(commodityInfo.name) for Rs \(total.formatted(.number.precision(.fractionLength(0...2)))).")

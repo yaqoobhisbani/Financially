@@ -13,6 +13,18 @@ final class CommitteeViewModel {
         self.ledgerManager = LedgerManager(modelContext: modelContext)
     }
 
+    enum CommitteeError: LocalizedError {
+        case allSlotsAlreadyPaid
+        case exceedsTotalPayout(remaining: Decimal)
+
+        var errorDescription: String? {
+            switch self {
+            case .allSlotsAlreadyPaid: return "All contributions have already been paid for this committee."
+            case .exceedsTotalPayout(let remaining): return "Amount exceeds remaining payout of \(remaining.formattedCurrency())."
+            }
+        }
+    }
+
     // MARK: - Queries
 
     var committees: [Committee] {
@@ -60,7 +72,7 @@ final class CommitteeViewModel {
 
     func payContribution(committee: Committee, sourceAccountId: UUID?, slots: Int = 1, notes: String?) throws {
         let totalSlots = committee.totalMembers * committee.mySlots
-        guard (committee.totalSlotsPaid ?? 0) < totalSlots else { return }
+        guard (committee.totalSlotsPaid ?? 0) < totalSlots else { throw CommitteeError.allSlotsAlreadyPaid }
 
         let monthOffset = (committee.totalSlotsPaid ?? 0) / committee.mySlots
         let monthDate = currentCommitteeMonth(offset: monthOffset, from: committee.startMonth)
@@ -104,7 +116,9 @@ final class CommitteeViewModel {
 
     func receivePayout(committee: Committee, destinationAccountId: UUID, amount: Decimal, notes: String?) throws {
         let totalReceived = payouts(for: committee.id).reduce(0) { $0 + $1.amount }
-        guard totalReceived + amount <= committee.totalPayout else { return }
+        guard totalReceived + amount <= committee.myTotalPayout else {
+            throw CommitteeError.exceedsTotalPayout(remaining: max(0, committee.myTotalPayout - totalReceived))
+        }
 
         let request = TransactionRequest(
             type: .committeePayout,

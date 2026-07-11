@@ -89,6 +89,7 @@ struct InvestMFIntent: AppIntent {
             let entry = LedgerEntry(transactionId: tx.id, accountId: bank.id, entryType: .debit,
                                     amount: netAmount, runningBalance: bank.currentBalance, date: date ?? Date())
             context.insert(entry)
+            trade.transactionId = tx.id
 
             let all = (try? context.fetch(FetchDescriptor<MutualFundHolding>())) ?? []
             acct.syncFromMFHoldings(all.filter { $0.accountId == acct.id })

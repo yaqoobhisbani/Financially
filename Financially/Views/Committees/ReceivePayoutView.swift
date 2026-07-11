@@ -34,7 +34,7 @@ struct ReceivePayoutView: View {
     }
 
     private var remainingPayout: Decimal {
-        max(0, committee.totalPayout - totalReceived)
+        max(0, committee.myTotalPayout - totalReceived)
     }
 
     var body: some View {
@@ -50,7 +50,7 @@ struct ReceivePayoutView: View {
                     HStack {
                         Text("Total Payout")
                         Spacer()
-                        Text(committee.totalPayout.formattedCurrency())
+                        Text(committee.myTotalPayout.formattedCurrency())
                             .font(.headline)
                     }
                     HStack {

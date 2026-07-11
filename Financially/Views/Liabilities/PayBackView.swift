@@ -64,7 +64,7 @@ struct PayBackView: View {
             }
             .navigationTitle("Pay Back")
             .navigationBarTitleDisplayMode(.inline)
-            .formToolbar(label: "Pay", isDisabled: (sourceAccount == nil && !isOutside) || amount.isEmpty) { save() }
+            .formToolbar(label: "Pay", isDisabled: (sourceAccount == nil && !isOutside) || amount.isEmpty || (Decimal(string: amount) ?? 0) > creditor.outstandingBalance) { save() }
             .sheet(isPresented: $showAccountPicker) {
                 AccountPickerView(accounts: Account.bankAndCash(from: accounts), title: "Select Source", filterType: nil, showNoneOption: true) { account in
                     if let account {

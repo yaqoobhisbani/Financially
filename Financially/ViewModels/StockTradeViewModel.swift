@@ -72,7 +72,8 @@ final class StockTradeViewModel {
         account.currentBalance -= netAmount
         syncAccountFromHoldings()
         account.updatedAt = Date()
-        createTransaction(type: .stockBuy, amount: netAmount, date: date, description: notes ?? "Buy \(companyName) (\(ticker))")
+        let transaction = createTransaction(type: .stockBuy, amount: netAmount, date: date, description: notes ?? "Buy \(companyName) (\(ticker))")
+        trade.transactionId = transaction.id
     }
 
     func sell(holding: StockHolding, shares: Int, pricePerShare: Decimal, brokerageFee: Decimal, tax: Decimal, netProceeds: Decimal, date: Date, notes: String?) {
@@ -115,10 +116,12 @@ final class StockTradeViewModel {
         account.currentBalance += netProceeds
         syncAccountFromHoldings()
         account.updatedAt = Date()
-        createTransaction(type: .stockSell, amount: netProceeds, date: date, description: notes ?? "Sell \(holding.companyName) (\(holding.ticker))")
+        let transaction = createTransaction(type: .stockSell, amount: netProceeds, date: date, description: notes ?? "Sell \(holding.companyName) (\(holding.ticker))")
+        trade.transactionId = transaction.id
     }
 
-    private func createTransaction(type: TransactionType, amount: Decimal, date: Date, description: String) {
+    @discardableResult
+    private func createTransaction(type: TransactionType, amount: Decimal, date: Date, description: String) -> Transaction {
         let transaction = Transaction(
             type: type,
             amount: amount,
@@ -140,6 +143,7 @@ final class StockTradeViewModel {
         )
         entry.account = account
         modelContext.insert(entry)
+        return transaction
     }
 
     private func syncAccountFromHoldings() {

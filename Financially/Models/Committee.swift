@@ -53,6 +53,6 @@ final class Committee {
     }
 
     var totalContributed: Decimal {
-        monthlyAmount * Decimal(monthsCompleted)
+        monthlyAmount * Decimal(totalSlotsPaid ?? 0)
     }
 }

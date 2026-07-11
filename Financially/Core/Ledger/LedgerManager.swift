@@ -14,6 +14,7 @@ struct LedgerManager {
         reverseLedgerEntries(txnId: txnId)
         reverseAccountBalances(for: transaction)
         reverseRelatedEntity(for: transaction)
+        reverseTrade(for: transaction)
         modelContext.delete(transaction)
         try modelContext.save()
     }
@@ -82,8 +83,11 @@ struct LedgerManager {
         case .commoditySell:
             source?.currentBalance -= amount
 
-        case .stockBuy, .stockSell, .mutualFundBuy, .mutualFundSell:
-            break
+        case .stockBuy, .mutualFundBuy:
+            source?.currentBalance += amount
+
+        case .stockSell, .mutualFundSell:
+            destination?.currentBalance -= amount
         }
 
         source?.updatedAt = Date()
@@ -116,6 +120,85 @@ struct LedgerManager {
                 }
                 creditor.updatedAt = Date()
             }
+        default:
+            break
+        }
+    }
+
+    // MARK: - Reverse Trade (Stock/Commodity/Mutual Fund Holdings)
+
+    private func reverseTrade(for transaction: Transaction) {
+        let txnId = transaction.id
+
+        switch transaction.type {
+        case .stockBuy, .stockSell:
+            let fetch = FetchDescriptor<StockTrade>(predicate: #Predicate { $0.transactionId == txnId })
+            guard let trade = try? modelContext.fetch(fetch).first else { return }
+            let holdingId = trade.holdingId
+            let accountId = trade.accountId
+            modelContext.delete(trade)
+
+            let holdingFetch = FetchDescriptor<StockHolding>(predicate: #Predicate { $0.id == holdingId })
+            guard let holding = try? modelContext.fetch(holdingFetch).first else { return }
+
+            let tradesFetch = FetchDescriptor<StockTrade>(predicate: #Predicate { $0.holdingId == holdingId })
+            let remaining = (try? modelContext.fetch(tradesFetch)) ?? []
+            let result = TradeService.recalculateStockHolding(trades: remaining)
+            holding.totalShares = result.totalShares
+            holding.totalCost = result.totalCost
+            holding.totalFeesPaid = result.totalFeesPaid
+            holding.avgCostPerShare = result.avgCostPerShare
+
+            let accountFetch = FetchDescriptor<Account>(predicate: #Predicate { $0.id == accountId })
+            if let account = try? modelContext.fetch(accountFetch).first {
+                let allHoldingsFetch = FetchDescriptor<StockHolding>(predicate: #Predicate { $0.accountId == accountId })
+                let allHoldings = (try? modelContext.fetch(allHoldingsFetch)) ?? []
+                account.syncFromHoldings(allHoldings)
+                account.updatedAt = Date()
+            }
+
+        case .mutualFundBuy, .mutualFundSell:
+            let fetch = FetchDescriptor<MutualFundTrade>(predicate: #Predicate { $0.transactionId == txnId })
+            guard let trade = try? modelContext.fetch(fetch).first else { return }
+            let holdingId = trade.holdingId
+            let accountId = trade.accountId
+            modelContext.delete(trade)
+
+            let holdingFetch = FetchDescriptor<MutualFundHolding>(predicate: #Predicate { $0.id == holdingId })
+            guard let holding = try? modelContext.fetch(holdingFetch).first else { return }
+
+            let tradesFetch = FetchDescriptor<MutualFundTrade>(predicate: #Predicate { $0.holdingId == holdingId })
+            let remaining = (try? modelContext.fetch(tradesFetch)) ?? []
+            let result = TradeService.recalculateMFHolding(trades: remaining)
+            holding.totalUnits = result.totalUnits
+            holding.totalCost = result.totalCost
+            holding.avgNavPrice = result.avgNavPrice
+
+            let accountFetch = FetchDescriptor<Account>(predicate: #Predicate { $0.id == accountId })
+            if let account = try? modelContext.fetch(accountFetch).first {
+                let allHoldingsFetch = FetchDescriptor<MutualFundHolding>(predicate: #Predicate { $0.accountId == accountId })
+                let allHoldings = (try? modelContext.fetch(allHoldingsFetch)) ?? []
+                account.syncFromMFHoldings(allHoldings)
+                account.updatedAt = Date()
+            }
+
+        case .commodityBuy, .commoditySell:
+            let fetch = FetchDescriptor<CommodityTrade>(predicate: #Predicate { $0.transactionId == txnId })
+            guard let trade = try? modelContext.fetch(fetch).first else { return }
+            let holdingId = trade.holdingId
+            modelContext.delete(trade)
+
+            let holdingFetch = FetchDescriptor<CommodityHolding>(predicate: #Predicate { $0.id == holdingId })
+            guard let holding = try? modelContext.fetch(holdingFetch).first else { return }
+
+            let tradesFetch = FetchDescriptor<CommodityTrade>(predicate: #Predicate { $0.holdingId == holdingId })
+            let remaining = (try? modelContext.fetch(tradesFetch)) ?? []
+            let result = TradeService.recalculateCommodityHolding(trades: remaining)
+            holding.totalGrams = result.totalGrams
+            holding.totalCost = result.totalCost
+            holding.totalFeesPaid = result.totalFeesPaid
+            holding.avgCostPerGram = result.avgCostPerGram
+
         default:
             break
         }

@@ -80,7 +80,8 @@ final class MutualFundTradeViewModel {
         modelContext.insert(trade)
 
         let description = notes ?? "Invest in \(scheme.schemeName)"
-        createTransaction(type: .mutualFundBuy, amount: netAmount, date: date, description: description, bankAccountId: bankAccount?.id)
+        let transaction = createTransaction(type: .mutualFundBuy, amount: netAmount, date: date, description: description, bankAccountId: bankAccount?.id)
+        trade.transactionId = transaction.id
 
         syncAccountFromHoldings()
         account.updatedAt = Date()
@@ -132,13 +133,15 @@ final class MutualFundTradeViewModel {
         modelContext.insert(trade)
 
         let description = notes ?? "Redeem \(holding.schemeName)"
-        createTransaction(type: .mutualFundSell, amount: netProceeds, date: date, description: description, bankAccountId: bankAccount.id)
+        let transaction = createTransaction(type: .mutualFundSell, amount: netProceeds, date: date, description: description, bankAccountId: bankAccount.id)
+        trade.transactionId = transaction.id
 
         syncAccountFromHoldings()
         account.updatedAt = Date()
     }
 
-    private func createTransaction(type: TransactionType, amount: Decimal, date: Date, description: String, bankAccountId: UUID?) {
+    @discardableResult
+    private func createTransaction(type: TransactionType, amount: Decimal, date: Date, description: String, bankAccountId: UUID?) -> Transaction {
         let transaction = Transaction(
             type: type,
             amount: amount,
@@ -151,20 +154,22 @@ final class MutualFundTradeViewModel {
         modelContext.insert(transaction)
 
         if let bankId = bankAccountId {
+            let acctId = bankId
+            let bank = try? modelContext.fetch(FetchDescriptor<Account>(predicate: #Predicate { $0.id == acctId })).first
+
             let entry = LedgerEntry(
                 transactionId: transaction.id,
                 accountId: bankId,
                 entryType: type == .mutualFundBuy ? .debit : .credit,
                 amount: amount,
-                runningBalance: 0,
+                runningBalance: bank?.currentBalance ?? 0,
                 date: date
             )
-            let acctId = bankId
-            if let bank = try? modelContext.fetch(FetchDescriptor<Account>(predicate: #Predicate { $0.id == acctId })).first {
-                entry.account = bank
-            }
+            entry.account = bank
             modelContext.insert(entry)
         }
+
+        return transaction
     }
 
     private func syncAccountFromHoldings() {

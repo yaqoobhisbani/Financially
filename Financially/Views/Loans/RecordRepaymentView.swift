@@ -62,7 +62,7 @@ struct RecordRepaymentView: View {
             }
             .navigationTitle("Record Repayment")
             .navigationBarTitleDisplayMode(.inline)
-            .formToolbar(label: "Record", isDisabled: destinationAccount == nil || amount.isEmpty) { save() }
+            .formToolbar(label: "Record", isDisabled: destinationAccount == nil || amount.isEmpty || (Decimal(string: amount) ?? 0) > debtor.outstandingBalance) { save() }
             .sheet(isPresented: $showAccountPicker) {
                 AccountPickerView(accounts: Account.bankAndCash(from: accounts), title: "Select Destination", filterType: nil) { account in
                     destinationAccount = account

@@ -114,6 +114,14 @@ struct HoldingDetailView: View {
     }
 
     private func deleteTrade(_ trade: StockTrade) {
+        if let txnId = trade.transactionId,
+           let transaction = try? modelContext.fetch(FetchDescriptor<Transaction>(predicate: #Predicate { $0.id == txnId })).first {
+            let manager = LedgerManager(modelContext: modelContext)
+            try? manager.deleteTransaction(transaction)
+            return
+        }
+
+        // Legacy trades recorded before cash transactions were linked to trades.
         if trade.type == .buy {
             account.currentBalance += trade.netAmount
         } else {
@@ -136,13 +144,19 @@ struct HoldingDetailView: View {
     }
 
     private func deleteHolding() {
+        let manager = LedgerManager(modelContext: modelContext)
         for trade in trades {
-            if trade.type == .buy {
-                account.currentBalance += trade.netAmount
+            if let txnId = trade.transactionId,
+               let transaction = try? modelContext.fetch(FetchDescriptor<Transaction>(predicate: #Predicate { $0.id == txnId })).first {
+                try? manager.deleteTransaction(transaction)
             } else {
-                account.currentBalance -= trade.netAmount
+                if trade.type == .buy {
+                    account.currentBalance += trade.netAmount
+                } else {
+                    account.currentBalance -= trade.netAmount
+                }
+                modelContext.delete(trade)
             }
-            modelContext.delete(trade)
         }
         modelContext.delete(holding)
 

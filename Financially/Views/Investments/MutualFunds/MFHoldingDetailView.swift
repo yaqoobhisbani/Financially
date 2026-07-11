@@ -127,6 +127,14 @@ struct MFHoldingDetailView: View {
     }
 
     private func deleteTrade(_ trade: MutualFundTrade) {
+        if let txnId = trade.transactionId,
+           let transaction = try? modelContext.fetch(FetchDescriptor<Transaction>(predicate: #Predicate { $0.id == txnId })).first {
+            let manager = LedgerManager(modelContext: modelContext)
+            try? manager.deleteTransaction(transaction)
+            return
+        }
+
+        // Legacy trades recorded before cash transactions were linked to trades.
         let remaining = trades.filter { $0.id != trade.id }
 
         let relatedTxs = allTransactions.filter { $0.relatedEntityId == account.id }

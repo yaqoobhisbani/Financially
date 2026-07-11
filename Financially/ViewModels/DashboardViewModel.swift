@@ -116,7 +116,7 @@ final class DashboardViewModel {
             let received = allCommitteePayouts
                 .filter { $0.committeeId == committee.id }
                 .reduce(0) { $0 + $1.amount }
-            return result + max(0, committee.totalPayout - received)
+            return result + max(0, committee.myTotalPayout - received)
         }
     }
 

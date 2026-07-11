@@ -22,7 +22,8 @@ struct LedgerService {
         self.validator = TransactionValidator(modelContext: modelContext)
     }
 
-    func execute(_ request: TransactionRequest) throws {
+    @discardableResult
+    func execute(_ request: TransactionRequest) throws -> Transaction {
         let sourceAccount: Account?
         if let sourceId = request.sourceAccountId {
             guard let account = fetchAccount(sourceId) else {
@@ -62,12 +63,12 @@ struct LedgerService {
 
         switch request.type {
         case .expense:
-            guard let source = sourceAccount else { return }
+            guard let source = sourceAccount else { return transaction }
             createExpenseEntries(transaction: transaction, source: source)
             source.updatedAt = Date()
 
         case .income:
-            guard let source = sourceAccount else { return }
+            guard let source = sourceAccount else { return transaction }
             createIncomeEntries(transaction: transaction, destination: source)
             source.updatedAt = Date()
 
@@ -94,7 +95,7 @@ struct LedgerService {
             dest.updatedAt = Date()
 
         case .loanGiven:
-            guard let source = sourceAccount else { return }
+            guard let source = sourceAccount else { return transaction }
             createLoanGivenEntries(transaction: transaction, source: source)
             source.updatedAt = Date()
 
@@ -109,17 +110,17 @@ struct LedgerService {
             dest.updatedAt = Date()
 
         case .liabilityPayback:
-            guard let source = sourceAccount else { return }
+            guard let source = sourceAccount else { return transaction }
             createLiabilityPaybackEntries(transaction: transaction, source: source)
             source.updatedAt = Date()
 
         case .investmentProfitLoss:
-            guard let source = sourceAccount else { return }
+            guard let source = sourceAccount else { return transaction }
             createProfitLossEntries(transaction: transaction, investment: source)
             source.updatedAt = Date()
 
         case .committeeContribution:
-            guard let source = sourceAccount else { return }
+            guard let source = sourceAccount else { return transaction }
             createExpenseEntries(transaction: transaction, source: source)
             source.updatedAt = Date()
 
@@ -129,18 +130,20 @@ struct LedgerService {
             dest.updatedAt = Date()
 
         case .commodityBuy:
-            guard let source = sourceAccount else { return }
+            guard let source = sourceAccount else { return transaction }
             createExpenseEntries(transaction: transaction, source: source)
             source.updatedAt = Date()
 
         case .commoditySell:
-            guard let source = sourceAccount else { return }
+            guard let source = sourceAccount else { return transaction }
             createIncomeEntries(transaction: transaction, destination: source)
             source.updatedAt = Date()
 
         case .stockBuy, .stockSell, .mutualFundBuy, .mutualFundSell:
             break
         }
+
+        return transaction
     }
 
     // MARK: - Entry Creators

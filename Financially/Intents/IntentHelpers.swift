@@ -26,7 +26,8 @@ func errorMessage(from error: ValidationError) -> String {
     }
 }
 
-func insertStockTransaction(context: ModelContext, type: TransactionType, amount: Decimal, date: Date, description: String, psxAccountId: UUID) {
+@discardableResult
+func insertStockTransaction(context: ModelContext, type: TransactionType, amount: Decimal, date: Date, description: String, psxAccountId: UUID, psxAccountBalance: Decimal) -> Transaction {
     let tx = Transaction(
         type: type, amount: amount, date: date, description: description,
         fromAccountId: type == .stockBuy ? psxAccountId : nil,
@@ -37,7 +38,8 @@ func insertStockTransaction(context: ModelContext, type: TransactionType, amount
     let entry = LedgerEntry(
         transactionId: tx.id, accountId: psxAccountId,
         entryType: type == .stockBuy ? .debit : .credit,
-        amount: amount, runningBalance: 0, date: date
+        amount: amount, runningBalance: psxAccountBalance, date: date
     )
     context.insert(entry)
+    return tx
 }
