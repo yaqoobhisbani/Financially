@@ -14,7 +14,8 @@ struct DashboardHeaderView: View {
                 .font(.subheadline)
                 .foregroundStyle(.white.opacity(0.8))
                 Text(vm.totalOwnFunds.formattedCurrency())
-                    .font(.system(size: 34, weight: .bold))
+                    .font(.moneyHero)
+                    .tabularNumbers()
                     .foregroundStyle(.white)
                     .lineLimit(1)
                     .minimumScaleFactor(0.5)
@@ -29,7 +30,17 @@ struct DashboardHeaderView: View {
         }
         .padding(.horizontal)
         .padding(.top, 8)
-        .padding(.bottom, 0)
+        .padding(.bottom, DesignSpacing.xl)
+        .frame(maxWidth: .infinity)
+        .background(
+            LinearGradient(
+                colors: [Color.brandTint, Color.brandTint.opacity(0.8)],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+        )
+        .ignoresSafeArea(edges: .top)
+        .backgroundExtensionEffect()
     }
 }
 
@@ -50,6 +61,7 @@ private struct HeaderStat: View {
                     .foregroundStyle(.white.opacity(0.7))
                 Text(amount.formattedCurrency())
                     .font(.caption.bold())
+                    .tabularNumbers()
                     .foregroundStyle(.white)
                     .lineLimit(1)
                     .minimumScaleFactor(0.6)

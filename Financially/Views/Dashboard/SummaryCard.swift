@@ -19,7 +19,8 @@ struct SummaryCard: View {
             }
 
             Text(amount.formattedCurrency())
-                .font(.title3.bold())
+                .font(.moneyTitle)
+                .tabularNumbers()
                 .foregroundStyle(.primary)
                 .lineLimit(1)
                 .minimumScaleFactor(0.6)
@@ -32,6 +33,6 @@ struct SummaryCard: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding()
-        .liquidGlassCard()
+        .dataCard()
     }
 }

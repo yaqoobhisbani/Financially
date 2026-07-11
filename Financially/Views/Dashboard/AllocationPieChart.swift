@@ -39,7 +39,7 @@ struct AllocationPieChart: View {
             }
         }
         .padding()
-        .liquidGlassCard()
+        .dataCard()
     }
 
     private var legend: some View {

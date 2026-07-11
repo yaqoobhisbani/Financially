@@ -8,7 +8,7 @@ struct InvestmentsListView: View {
     @Query private var allMFHoldings: [MutualFundHolding]
     @Query private var allTransactions: [Transaction]
 
-    @State private var selectedSegment: InvestmentSegment = .mutualFunds
+    @State private var selectedSegment: InvestmentSegment
     @State private var showCreatePSX = false
     @State private var showBuyCommodity = false
     @State private var showSellCommodity = false
@@ -16,10 +16,14 @@ struct InvestmentsListView: View {
     @State private var selectedTransaction: Transaction?
     @State private var showCommodityStatement = false
 
-    private enum InvestmentSegment: String, CaseIterable {
+    enum InvestmentSegment: String, CaseIterable {
         case mutualFunds = "Mutual Funds"
         case psx = "PSX"
         case commodities = "Commodities"
+    }
+
+    init(initialSegment: InvestmentSegment = .mutualFunds) {
+        _selectedSegment = State(initialValue: initialSegment)
     }
 
     private var psxAccounts: [Account] {
