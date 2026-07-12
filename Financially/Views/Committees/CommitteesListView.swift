@@ -50,7 +50,7 @@ struct CommitteesListView: View {
                     } label: {
                         Image(systemName: "plus")
                     }
-                    .buttonStyle(.glass)
+                    .glassIconButton()
                 }
             }
             .sheet(isPresented: $showCreate) {

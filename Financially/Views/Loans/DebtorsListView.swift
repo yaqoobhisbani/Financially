@@ -50,7 +50,7 @@ struct DebtorsListView: View {
                 Button(action: { showCreate = true }) {
                     Label("Add Debtor", systemImage: "plus")
                 }
-                .buttonStyle(.glass)
+                .glassIconButton()
             }
         }
         .sheet(isPresented: $showCreate) {

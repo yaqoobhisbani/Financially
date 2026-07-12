@@ -78,7 +78,7 @@ struct InvestmentsListView: View {
                         Button(action: { showCommodityStatement = true }) {
                             Label("View Statement", systemImage: "doc.text")
                         }
-                        .buttonStyle(.glass)
+                        .glassIconButton()
                     }
                     ToolbarSpacer(.fixed, placement: .primaryAction)
                 }
@@ -92,7 +92,7 @@ struct InvestmentsListView: View {
                     }) {
                         Label("Add", systemImage: "plus")
                     }
-                    .buttonStyle(.glass)
+                    .glassIconButton()
                 }
             }
             .sheet(isPresented: $showCreatePSX) {

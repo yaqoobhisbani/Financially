@@ -11,7 +11,7 @@ struct FormToolbar: ViewModifier {
                 Button(action: { dismiss() }) {
                     Image(systemName: "xmark")
                 }
-                .buttonStyle(.glass)
+                .glassIconButton()
                 .accessibilityLabel("Cancel")
             }
             ToolbarItem(placement: .confirmationAction) {

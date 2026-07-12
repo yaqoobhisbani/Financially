@@ -52,7 +52,7 @@ struct AccountsListView: View {
                     Button(action: { showCreateSheet = true }) {
                         Label("Add Account", systemImage: "plus")
                     }
-                    .buttonStyle(.glass)
+                    .glassIconButton()
                 }
             }
             .sheet(isPresented: $showCreateSheet) {

@@ -27,6 +27,14 @@ extension View {
         return self.glassEffect(glass, in: shape)
     }
 
+    /// An icon-only glass button (toolbar "+", gear, ellipsis, trash, cancel "x", …).
+    /// Forces a circular border so the pressed/hover highlight follows the circle instead
+    /// of the glass button style's default rounded-rectangle. Use for single-glyph buttons;
+    /// keep plain `.buttonStyle(.glass)` for text/pill buttons.
+    func glassIconButton() -> some View {
+        buttonStyle(.glass).buttonBorderShape(.circle)
+    }
+
     func dataCard(radius: CGFloat = DesignRadius.inner) -> some View {
         modifier(DataCardModifier(radius: radius))
     }
