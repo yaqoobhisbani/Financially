@@ -21,6 +21,10 @@ struct ExpenseChartWidget: View {
         flow == .expense ? totalExpense : totalIncome
     }
 
+    private func percent(of item: DashboardViewModel.ExpenseBreakdown) -> Decimal {
+        total > 0 ? item.total / total * 100 : 0
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
@@ -43,14 +47,22 @@ struct ExpenseChartWidget: View {
             PieChartView(data: breakdown, total: total)
 
             if !breakdown.isEmpty {
-                ForEach(breakdown.prefix(5)) { item in
-                    HStack {
+                ForEach(Array(breakdown.prefix(5).enumerated()), id: \.element.id) { index, item in
+                    HStack(spacing: 8) {
+                        Circle()
+                            .fill(CategoryPalette.color(at: index))
+                            .frame(width: 8, height: 8)
                         Text(item.category)
                             .font(.caption)
                         Spacer()
                         Text(item.total.formattedCurrency())
                             .font(.caption)
                             .foregroundStyle(.secondary)
+                        Text("\(percent(of: item).formatted(.number.precision(.fractionLength(1))))%")
+                            .font(.caption2)
+                            .tabularNumbers()
+                            .foregroundStyle(.tertiary)
+                            .frame(minWidth: 42, alignment: .trailing)
                     }
                 }
             }
