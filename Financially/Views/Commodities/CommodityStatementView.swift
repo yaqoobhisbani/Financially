@@ -42,7 +42,9 @@ struct CommodityStatementView: View {
                     }
                 }
                 .listStyle(.insetGrouped)
+                .scrollContentBackground(.hidden)
             }
+            .groupedScreenBackground()
             .navigationTitle("Commodity Statement")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {

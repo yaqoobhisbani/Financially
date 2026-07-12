@@ -70,6 +70,7 @@ struct InvestmentsListView: View {
                     commoditiesSection
                 }
             }
+            .groupedScreenBackground()
             .navigationTitle("Investments")
             .toolbar {
                 if selectedSegment == .commodities {
@@ -129,6 +130,7 @@ struct InvestmentsListView: View {
             }
         }
         .listStyle(.insetGrouped)
+        .scrollContentBackground(.hidden)
     }
 
     // MARK: - Commodities Section
@@ -159,6 +161,7 @@ struct InvestmentsListView: View {
             commodityTransactionsSection
         }
         .listStyle(.insetGrouped)
+        .scrollContentBackground(.hidden)
         .sheet(isPresented: $showBuyCommodity) { BuyCommodityView() }
         .sheet(isPresented: $showSellCommodity) { SellCommodityView() }
         .sheet(item: $selectedTransaction) { tx in
@@ -190,6 +193,7 @@ struct InvestmentsListView: View {
             }
         }
         .listStyle(.insetGrouped)
+        .scrollContentBackground(.hidden)
     }
 
     private var commodityTransactionsSection: some View {

@@ -24,6 +24,7 @@ struct LoansListView: View {
                     CreditorsListView()
                 }
             }
+            .groupedScreenBackground()
             .navigationTitle("Loans & Liabilities")
         }
     }

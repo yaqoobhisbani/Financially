@@ -30,6 +30,7 @@ struct NetWorthChart: View {
 
                 canvas
             }
+            .groupedScreenBackground()
             .persistentGlassSheet(
                 isPresented: .constant(true),
                 detents: [.height(130), .medium, .large],

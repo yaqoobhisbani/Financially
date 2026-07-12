@@ -61,7 +61,9 @@ struct LiabilityReport: View {
                         ContentUnavailableView("No Creditors", systemImage: "person.fill.questionmark", description: Text("No liabilities recorded yet"))
                     }
                 }
+                .scrollContentBackground(.hidden)
             }
+            .groupedScreenBackground()
             .navigationTitle("Liability Report")
         }
     }

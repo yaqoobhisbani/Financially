@@ -39,7 +39,9 @@ struct CommitteesListView: View {
                     }
                 }
                 .listStyle(.insetGrouped)
+                .scrollContentBackground(.hidden)
             }
+            .groupedScreenBackground()
             .navigationTitle("Committees")
             .toolbar {
                 ToolbarItem(placement: .primaryAction) {

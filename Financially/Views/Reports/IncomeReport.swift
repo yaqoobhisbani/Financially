@@ -66,7 +66,9 @@ struct IncomeReport: View {
                         }
                     }
                 }
+                .scrollContentBackground(.hidden)
             }
+            .groupedScreenBackground()
             .navigationTitle("Income Report")
         }
         .onAppear {

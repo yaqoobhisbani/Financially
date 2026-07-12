@@ -52,7 +52,9 @@ struct AccountStatementView: View {
                     }
                 }
                 .listStyle(.insetGrouped)
+                .scrollContentBackground(.hidden)
             }
+            .groupedScreenBackground()
             .navigationTitle("Statement")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {

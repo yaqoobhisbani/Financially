@@ -64,7 +64,9 @@ struct InvestmentReport: View {
                         }
                     }
                 }
+                .scrollContentBackground(.hidden)
             }
+            .groupedScreenBackground()
             .navigationTitle("Investment Report")
         }
         .onAppear {

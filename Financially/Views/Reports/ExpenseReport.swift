@@ -65,7 +65,9 @@ struct ExpenseReport: View {
                         }
                     }
                 }
+                .scrollContentBackground(.hidden)
             }
+            .groupedScreenBackground()
             .navigationTitle("Expense Report")
         }
         .onAppear {

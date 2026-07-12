@@ -43,6 +43,7 @@ struct DebtorsListView: View {
                 }
             }
         }
+        .scrollContentBackground(.hidden)
         .navigationTitle("Debtors")
         .toolbar {
             ToolbarItem {

@@ -43,7 +43,9 @@ struct AccountsListView: View {
                     }
                 }
                 .listStyle(.insetGrouped)
+                .scrollContentBackground(.hidden)
             }
+            .groupedScreenBackground()
             .navigationTitle("Accounts")
             .toolbar {
                 ToolbarItem {

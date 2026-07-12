@@ -30,6 +30,14 @@ extension View {
     func dataCard(radius: CGFloat = DesignRadius.inner) -> some View {
         modifier(DataCardModifier(radius: radius))
     }
+
+    /// Fills the whole screen (behind the nav bar too) with the grouped background, so a
+    /// screen that puts a custom header — a segmented control, a date-range picker — above
+    /// a `List` shares one continuous grouped background instead of a white header strip
+    /// over a grey list. Pair with `.scrollContentBackground(.hidden)` on the inner `List`.
+    func groupedScreenBackground() -> some View {
+        background(Color(.systemGroupedBackground).ignoresSafeArea())
+    }
 }
 
 private struct DataCardModifier: ViewModifier {
