@@ -9,6 +9,10 @@ struct DashboardView: View {
     @State private var vm: DashboardViewModel?
     @State private var showSettings = false
     @State private var showAllTransactions = false
+    @State private var showInvestments = false
+    @State private var showDebtors = false
+    @State private var showCreditors = false
+    @State private var showCommittees = false
     @State private var isScrolledPastHero = false
 
     var body: some View {
@@ -87,9 +91,9 @@ struct DashboardView: View {
                         }
                     }
 
-                    if !vm.topHoldings.isEmpty { holdingsWidget(vm) }
                     if vm.monthlyIncome > 0 || vm.monthlyExpense > 0 { incomeVsExpenseWidget(vm) }
-                    if vm.monthlyExpense > 0 { expenseChartWidget(vm) }
+                    if vm.monthlyExpense > 0 || vm.monthlyIncome > 0 { expenseChartWidget(vm) }
+                    if !vm.topHoldings.isEmpty { holdingsWidget(vm) }
                     if !vm.assetAllocation.isEmpty { AllocationPieChart(slices: vm.assetAllocation) }
                     if vm.activeLoanCount > 0 || vm.activeLiabilityCount > 0 || vm.activeCommitteeCount > 0 { activeLoansWidget(vm) }
                     if !vm.recentTransactions.isEmpty { recentTransactionsSection(vm) }
@@ -129,11 +133,25 @@ struct DashboardView: View {
     // MARK: - Holdings
 
     private func holdingsWidget(_ vm: DashboardViewModel) -> some View {
-        VStack(spacing: 0) {
+        let pl = vm.totalUnrealizedPL
+        let plPercent = vm.totalReturnPercentage
+        return VStack(spacing: 0) {
             HStack {
                 Text("Holdings")
                     .font(.headline)
                 Spacer()
+                if pl != 0 {
+                    HStack(spacing: 4) {
+                        Text("\(pl >= 0 ? "+" : "-")\(abs(pl).formattedCurrency())")
+                        Text("· \(plPercent >= 0 ? "+" : "")\(plPercent.formatted(.number.precision(.fractionLength(1))))%")
+                    }
+                    .font(.caption.weight(.semibold))
+                    .tabularNumbers()
+                    .foregroundStyle(pl >= 0 ? .gain : .loss)
+                }
+                Image(systemName: "chevron.right")
+                    .font(.caption2.weight(.semibold))
+                    .foregroundStyle(.tertiary)
             }
             .padding(.horizontal)
             .padding(.top, 12)
@@ -150,6 +168,11 @@ struct DashboardView: View {
             .padding(.bottom, 4)
         }
         .dashboardCard()
+        .contentShape(Rectangle())
+        .onTapGesture { showInvestments = true }
+        .sheet(isPresented: $showInvestments) {
+            NavigationStack { InvestmentsListView(initialSegment: .psx) }
+        }
     }
 
     private func holdingRow(_ holding: DashboardViewModel.HoldingRow) -> some View {
@@ -197,7 +220,12 @@ struct DashboardView: View {
     // MARK: - Expense Chart
 
     private func expenseChartWidget(_ vm: DashboardViewModel) -> some View {
-        ExpenseChartWidget(expenseByCategory: vm.expenseByCategory, totalExpense: vm.monthlyExpense)
+        ExpenseChartWidget(
+            expenseByCategory: vm.expenseByCategory,
+            totalExpense: vm.monthlyExpense,
+            incomeByCategory: vm.incomeByCategory,
+            totalIncome: vm.monthlyIncome
+        )
     }
 
     // MARK: - Income vs Expense
@@ -226,53 +254,68 @@ struct DashboardView: View {
                     count: vm.activeLoanCount,
                     total: vm.activeLoanTotal,
                     icon: "arrow.left.arrow.right",
-                    color: themeManager.theme.accent
+                    color: themeManager.theme.accent,
+                    action: { showDebtors = true }
                 )
                 activeWidget(
                     title: "Liabilities Held",
                     count: vm.activeLiabilityCount,
                     total: vm.activeLiabilityTotal,
                     icon: "arrow.right.circle",
-                    color: .orange
+                    color: .orange,
+                    action: { showCreditors = true }
                 )
                 activeWidget(
                     title: "Active Committees",
                     count: vm.activeCommitteeCount,
                     total: vm.totalCommitteeReceivable,
                     icon: "person.3.fill",
-                    color: .teal
+                    color: .teal,
+                    action: { showCommittees = true }
                 )
             }
         }
+        .sheet(isPresented: $showDebtors) {
+            NavigationStack { LoansListView(initialSegment: .debtors) }
+        }
+        .sheet(isPresented: $showCreditors) {
+            NavigationStack { LoansListView(initialSegment: .creditors) }
+        }
+        .sheet(isPresented: $showCommittees) {
+            NavigationStack { CommitteesListView() }
+        }
     }
 
-    private func activeWidget(title: String, count: Int, total: Decimal, icon: String, color: Color) -> some View {
-        VStack(alignment: .leading, spacing: 6) {
-            HStack(spacing: 4) {
-                Image(systemName: icon)
+    private func activeWidget(title: String, count: Int, total: Decimal, icon: String, color: Color, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            VStack(alignment: .leading, spacing: 6) {
+                HStack(spacing: 4) {
+                    Image(systemName: icon)
+                        .font(.caption)
+                        .foregroundStyle(color)
+                        .fixedSize()
+                    Text(title)
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.7)
+                }
+                Text("\(count)")
+                    .font(.title2.bold())
+                    .tabularNumbers()
+                    .lineLimit(1)
+                Text(total.formattedCurrency())
                     .font(.caption)
-                    .foregroundStyle(color)
-                    .fixedSize()
-                Text(title)
-                    .font(.caption2)
+                    .tabularNumbers()
                     .foregroundStyle(.secondary)
                     .lineLimit(1)
-                    .minimumScaleFactor(0.7)
+                    .minimumScaleFactor(0.6)
             }
-            Text("\(count)")
-                .font(.title2.bold())
-                .tabularNumbers()
-                .lineLimit(1)
-            Text(total.formattedCurrency())
-                .font(.caption)
-                .tabularNumbers()
-                .foregroundStyle(.secondary)
-                .lineLimit(1)
-                .minimumScaleFactor(0.6)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(12)
+            .dashboardCard()
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(12)
-        .dashboardCard()
+        .buttonStyle(.plain)
     }
 
     // MARK: - Recent Transactions
