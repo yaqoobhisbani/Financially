@@ -313,7 +313,7 @@ final class DashboardViewModel {
     }
 
     var recentTransactions: [Transaction] {
-        allTransactions.sorted { $0.date > $1.date }.prefix(10).map { $0 }
+        allTransactions.sorted { $0.date > $1.date }.prefix(5).map { $0 }
     }
 
     var activeLoanCount: Int {
