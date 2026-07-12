@@ -52,7 +52,7 @@ struct DashboardView: View {
                     Image(systemName: "gearshape.fill")
                         .font(.title3)
                 }
-                .glassIconButton()
+                .buttonStyle(.glass)
             }
         }
     }

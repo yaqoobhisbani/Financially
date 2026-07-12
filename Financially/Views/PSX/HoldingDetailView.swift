@@ -87,7 +87,7 @@ struct HoldingDetailView: View {
                 } label: {
                     Image(systemName: "trash")
                 }
-                .glassIconButton()
+                .buttonStyle(.glass)
             }
         }
         .alert("Delete Holding", isPresented: $showDeleteConfirmation) {

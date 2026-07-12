@@ -50,9 +50,10 @@ struct AccountsListView: View {
             .toolbar {
                 ToolbarItem {
                     Button(action: { showCreateSheet = true }) {
-                        Label("Add Account", systemImage: "plus")
+                        Image(systemName: "plus")
                     }
-                    .glassIconButton()
+                    .buttonStyle(.glass)
+                    .accessibilityLabel("Add Account")
                 }
             }
             .sheet(isPresented: $showCreateSheet) {

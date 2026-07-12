@@ -45,7 +45,7 @@ struct PSXAccountDetailView: View {
                 } label: {
                     Image(systemName: "ellipsis.circle")
                 }
-                .glassIconButton()
+                .buttonStyle(.glass)
             }
         }
         .sheet(isPresented: $showStatement) { AccountStatementView(account: account) }

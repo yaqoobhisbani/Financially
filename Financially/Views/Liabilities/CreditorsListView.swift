@@ -48,9 +48,10 @@ struct CreditorsListView: View {
         .toolbar {
             ToolbarItem {
                 Button(action: { showCreate = true }) {
-                    Label("Add Creditor", systemImage: "plus")
+                    Image(systemName: "plus")
                 }
-                .glassIconButton()
+                .buttonStyle(.glass)
+                .accessibilityLabel("Add Creditor")
             }
         }
         .sheet(isPresented: $showCreate) {

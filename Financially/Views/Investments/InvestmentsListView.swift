@@ -76,9 +76,10 @@ struct InvestmentsListView: View {
                 if selectedSegment == .commodities {
                     ToolbarItem(placement: .primaryAction) {
                         Button(action: { showCommodityStatement = true }) {
-                            Label("View Statement", systemImage: "doc.text")
+                            Image(systemName: "doc.text")
                         }
-                        .glassIconButton()
+                        .buttonStyle(.glass)
+                        .accessibilityLabel("View Statement")
                     }
                     ToolbarSpacer(.fixed, placement: .primaryAction)
                 }
@@ -90,9 +91,10 @@ struct InvestmentsListView: View {
                         case .commodities: showBuyCommodity = true
                         }
                     }) {
-                        Label("Add", systemImage: "plus")
+                        Image(systemName: "plus")
                     }
-                    .glassIconButton()
+                    .buttonStyle(.glass)
+                    .accessibilityLabel("Add")
                 }
             }
             .sheet(isPresented: $showCreatePSX) {
