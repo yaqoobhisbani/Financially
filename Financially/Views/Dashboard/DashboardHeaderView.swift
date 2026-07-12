@@ -16,7 +16,7 @@ struct DashboardHeaderView: View {
                 }
                 .font(.subheadline)
                 .foregroundStyle(foreground.opacity(0.75))
-                Text(vm.totalOwnFunds.formattedCurrency())
+                Text(vm.netWorth.formattedCurrency())
                     .font(.moneyHero)
                     .tabularNumbers()
                     .foregroundStyle(foreground)
@@ -43,6 +43,13 @@ struct DashboardHeaderView: View {
                         }
                     }
                     .padding(.top, 4)
+                }
+
+                if vm.netWorthTrend.count >= 2 {
+                    SparklineView(values: vm.netWorthTrend, tint: foreground)
+                        .frame(height: 28)
+                        .padding(.horizontal, 40)
+                        .padding(.top, 8)
                 }
             }
 
