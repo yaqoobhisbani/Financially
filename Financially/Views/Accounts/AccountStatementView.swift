@@ -58,6 +58,7 @@ struct AccountStatementView: View {
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Done") { dismiss() }
+                        .buttonStyle(.glassProminent)
                 }
             }
             .sheet(item: $selectedTransaction) { tx in

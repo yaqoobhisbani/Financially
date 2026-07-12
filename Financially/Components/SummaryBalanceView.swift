@@ -15,6 +15,7 @@ struct SummaryMetric: View {
                 .lineLimit(1)
             Text(value)
                 .font(valueFont)
+                .tabularNumbers()
                 .foregroundStyle(color)
                 .lineLimit(1)
                 .minimumScaleFactor(0.7)

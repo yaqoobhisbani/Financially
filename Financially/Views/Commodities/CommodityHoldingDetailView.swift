@@ -85,6 +85,7 @@ struct CommodityHoldingDetailView: View {
                 } label: {
                     Image(systemName: "trash")
                 }
+                .buttonStyle(.glass)
             }
         }
         .alert("Delete Holding", isPresented: $showDeleteConfirmation) {

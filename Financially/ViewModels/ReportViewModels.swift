@@ -25,6 +25,7 @@ final class NetWorthViewModel {
         let netWorth: Decimal
         let assets: Decimal
         let liabilities: Decimal
+        let receivables: Decimal
     }
 
     func dataPoints(from startDate: Date, to endDate: Date) -> [NetWorthPoint] {
@@ -55,7 +56,8 @@ final class NetWorthViewModel {
                 date: current,
                 netWorth: totalAssets - totalLiabilities + totalReceivables,
                 assets: totalAssets,
-                liabilities: totalLiabilities
+                liabilities: totalLiabilities,
+                receivables: totalReceivables
             ))
             current = calendar.date(byAdding: .month, value: 1, to: current) ?? current
         }
