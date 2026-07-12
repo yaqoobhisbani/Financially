@@ -41,16 +41,44 @@ struct ThemeSettingsView: View {
                         Button {
                             themeManager.select(theme)
                         } label: {
-                            ThemeSwatch(theme: theme, isSelected: theme.id == themeManager.selectedID)
+                            PreviewChip(
+                                gradient: theme.swatchGradient,
+                                pattern: themeManager.pattern,
+                                label: theme.name,
+                                isSelected: theme.id == themeManager.selectedID
+                            )
                         }
                         .buttonStyle(.plain)
                     }
                 }
                 .padding(.vertical, 4)
             } header: {
-                Text("Color Theme")
+                Text("Color")
             } footer: {
-                Text("Each theme sets the app's accent color and the dashboard's gradient and pattern.")
+                Text("Sets the app's accent color and the dashboard hero gradient.")
+            }
+
+            Section {
+                LazyVGrid(columns: columns, spacing: 12) {
+                    ForEach(HeroPattern.allCases) { pattern in
+                        Button {
+                            themeManager.select(pattern)
+                        } label: {
+                            PreviewChip(
+                                gradient: themeManager.theme.swatchGradient,
+                                pattern: pattern,
+                                label: pattern.name,
+                                isSelected: pattern == themeManager.pattern
+                            )
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+                .padding(.vertical, 4)
+            } header: {
+                Text("Dashboard Pattern")
+            } footer: {
+                Text("The texture drawn over the dashboard hero. Any pattern pairs with any color.")
             }
 
             Section {
@@ -74,18 +102,22 @@ struct ThemeSettingsView: View {
     }
 }
 
-/// A tappable chip previewing a theme's gradient + pattern, with its accent and name.
-private struct ThemeSwatch: View {
-    let theme: AppTheme
+/// A tappable chip previewing a gradient with a pattern overlaid, plus a label. Used for
+/// both the color grid (theme gradient + current pattern) and the pattern grid (current
+/// theme gradient + that pattern), so each grid previews the live combination.
+private struct PreviewChip: View {
+    let gradient: LinearGradient
+    let pattern: HeroPattern
+    let label: String
     let isSelected: Bool
 
     var body: some View {
         VStack(spacing: 6) {
             ZStack {
                 let shape = RoundedRectangle(cornerRadius: DesignRadius.control, style: .continuous)
-                shape.fill(theme.swatchGradient)
+                shape.fill(gradient)
 
-                HeroPatternView(pattern: theme.pattern, tint: .white)
+                HeroPatternView(pattern: pattern, tint: .white)
                     .opacity(0.22)
                     .clipShape(shape)
 
@@ -103,7 +135,7 @@ private struct ThemeSwatch: View {
                                   lineWidth: isSelected ? 2 : 0.5)
             )
 
-            Text(theme.name)
+            Text(label)
                 .font(.caption)
                 .foregroundStyle(isSelected ? .primary : .secondary)
         }

@@ -34,7 +34,7 @@ struct DashboardView: View {
             Color(.systemGroupedBackground)
                 .ignoresSafeArea()
 
-            HeroBackgroundView(theme: themeManager.theme)
+            HeroBackgroundView(theme: themeManager.theme, pattern: themeManager.pattern)
 
             scrollBody(vm)
         }

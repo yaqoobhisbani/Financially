@@ -1,9 +1,9 @@
 import SwiftUI
 
-/// A predefined, handpicked app theme. Each theme bundles an accent tint with a matching
-/// dashboard hero treatment — a gradient, a decorative pattern, and a foreground color that
-/// is proven to stay legible on that gradient — so contrast is guaranteed by design rather
-/// than left to chance. Users pick from `AppTheme.all`; there is no free-form color picking.
+/// A predefined, handpicked color theme. Each bundles an accent tint with a matching
+/// dashboard hero gradient and a foreground color proven to stay legible on it, so contrast
+/// is guaranteed by design. The decorative hero pattern is chosen independently (see
+/// `HeroPattern`), so any color can pair with any pattern. Users pick from `AppTheme.all`.
 struct AppTheme: Identifiable, Equatable {
     let id: String
     let name: String
@@ -18,9 +18,6 @@ struct AppTheme: Identifiable, Equatable {
     /// Text / icon color for content sitting on the hero, per appearance.
     private let foregroundLight: Color
     private let foregroundDark: Color
-
-    /// Decorative pattern drawn over the hero gradient.
-    let pattern: HeroPattern
 
     // MARK: - Resolved values
 
@@ -65,8 +62,7 @@ extension AppTheme {
         heroTopLight: Color(hex: 0xA9CCFA),
         heroTopDark: Color(hex: 0x3B5BFF),
         foregroundLight: Color(hex: 0x142150),
-        foregroundDark: .white,
-        pattern: .dots
+        foregroundDark: .white
     )
 
     static let emerald = AppTheme(
@@ -76,8 +72,7 @@ extension AppTheme {
         heroTopLight: Color(hex: 0xA7E8CE),
         heroTopDark: Color(hex: 0x047857),
         foregroundLight: Color(hex: 0x053D2C),
-        foregroundDark: .white,
-        pattern: .waves
+        foregroundDark: .white
     )
 
     static let violet = AppTheme(
@@ -87,8 +82,7 @@ extension AppTheme {
         heroTopLight: Color(hex: 0xD6C6FA),
         heroTopDark: Color(hex: 0x6D28D9),
         foregroundLight: Color(hex: 0x2B0F5B),
-        foregroundDark: .white,
-        pattern: .arcs
+        foregroundDark: .white
     )
 
     static let sunset = AppTheme(
@@ -98,8 +92,7 @@ extension AppTheme {
         heroTopLight: Color(hex: 0xFBD5A5),
         heroTopDark: Color(hex: 0xC2410C),
         foregroundLight: Color(hex: 0x5A2408),
-        foregroundDark: .white,
-        pattern: .diagonalLines
+        foregroundDark: .white
     )
 
     static let teal = AppTheme(
@@ -109,8 +102,7 @@ extension AppTheme {
         heroTopLight: Color(hex: 0xA5E4DD),
         heroTopDark: Color(hex: 0x0F766E),
         foregroundLight: Color(hex: 0x053C38),
-        foregroundDark: .white,
-        pattern: .grid
+        foregroundDark: .white
     )
 
     static let rose = AppTheme(
@@ -120,8 +112,7 @@ extension AppTheme {
         heroTopLight: Color(hex: 0xF7C1DA),
         heroTopDark: Color(hex: 0xBE185D),
         foregroundLight: Color(hex: 0x5A0C33),
-        foregroundDark: .white,
-        pattern: .dots
+        foregroundDark: .white
     )
 
     static let graphite = AppTheme(
@@ -131,8 +122,7 @@ extension AppTheme {
         heroTopLight: Color(hex: 0xCBD5E1),
         heroTopDark: Color(hex: 0x334155),
         foregroundLight: Color(hex: 0x1E293B),
-        foregroundDark: .white,
-        pattern: .grid
+        foregroundDark: .white
     )
 
     /// Every selectable theme, in display order. `first` is the default.
@@ -148,10 +138,32 @@ extension AppTheme {
 
 // MARK: - Hero pattern
 
-/// A decorative motif drawn faintly over the dashboard hero gradient. Kept subtle and
-/// masked to fade out before it reaches the numbers, so it reads as texture, not clutter.
-enum HeroPattern: String, CaseIterable {
+/// A decorative motif drawn faintly over the dashboard hero gradient. Chosen independently
+/// of the color theme, so any pattern pairs with any color. Kept subtle and masked to fade
+/// out before it reaches the numbers, so it reads as texture, not clutter.
+enum HeroPattern: String, CaseIterable, Identifiable {
     case none, dots, diagonalLines, waves, grid, arcs
+
+    var id: String { rawValue }
+
+    /// The default pattern, matching the app's original cobalt look.
+    static let `default`: HeroPattern = .dots
+
+    var name: String {
+        switch self {
+        case .none: return "None"
+        case .dots: return "Dots"
+        case .diagonalLines: return "Lines"
+        case .waves: return "Waves"
+        case .grid: return "Grid"
+        case .arcs: return "Arcs"
+        }
+    }
+
+    /// Resolves a stored raw value back to a pattern, falling back to the default.
+    static func pattern(id: String) -> HeroPattern {
+        HeroPattern(rawValue: id) ?? .default
+    }
 }
 
 // MARK: - Color helpers

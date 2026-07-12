@@ -6,6 +6,7 @@ import SwiftUI
 /// competes with the currency figures.
 struct HeroBackgroundView: View {
     let theme: AppTheme
+    let pattern: HeroPattern
 
     @Environment(\.colorScheme) private var colorScheme
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
@@ -18,8 +19,8 @@ struct HeroBackgroundView: View {
 
     @ViewBuilder
     private var patternLayer: some View {
-        if theme.pattern != .none && !reduceTransparency {
-            HeroPatternView(pattern: theme.pattern, tint: theme.foreground(for: colorScheme))
+        if pattern != .none && !reduceTransparency {
+            HeroPatternView(pattern: pattern, tint: theme.foreground(for: colorScheme))
                 .opacity(colorScheme == .dark ? 0.12 : 0.09)
                 .mask(
                     LinearGradient(
