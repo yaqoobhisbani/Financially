@@ -6,8 +6,7 @@ struct DashboardView: View {
     @Environment(\.colorScheme) private var colorScheme
 
     @State private var vm: DashboardViewModel?
-    @State private var activeSheet: DashboardSheet?
-    @State private var showQuickActions = false
+    @State private var showSettings = false
     @State private var showAllTransactions = false
     @State private var isScrolledPastHero = false
 
@@ -20,15 +19,8 @@ struct DashboardView: View {
         .onAppear {
             vm = DashboardViewModel(modelContext: modelContext)
         }
-        .sheet(item: $activeSheet) { sheet in
-            sheet.destination
-        }
-        .persistentGlassSheet(
-            isPresented: $showQuickActions,
-            detents: [.height(140), .medium, .large],
-            interactiveUpThrough: .height(140)
-        ) {
-            QuickActionsSheetContent(sections: quickActionSections)
+        .sheet(isPresented: $showSettings) {
+            SettingsView()
         }
     }
 
@@ -42,7 +34,6 @@ struct DashboardView: View {
 
             scrollBody(vm)
         }
-        .overlay(alignment: .bottomTrailing) { quickAddButton }
         .navigationBarTitleDisplayMode(.inline)
         .toolbarBackground(.hidden, for: .navigationBar)
         .toolbar {
@@ -53,7 +44,7 @@ struct DashboardView: View {
                     .animation(.easeInOut(duration: 0.2), value: isScrolledPastHero)
             }
             ToolbarItem(placement: .primaryAction) {
-                Button(action: { activeSheet = .settings }) {
+                Button(action: { showSettings = true }) {
                     Image(systemName: "gearshape.fill")
                         .font(.title3)
                 }
@@ -130,48 +121,6 @@ struct DashboardView: View {
         } action: { _, newValue in
             isScrolledPastHero = newValue
         }
-    }
-
-    private var quickAddButton: some View {
-        Button(action: { showQuickActions = true }) {
-            Image(systemName: "plus")
-                .font(.title2.weight(.semibold))
-                .frame(width: 60, height: 60)
-        }
-        .buttonStyle(.glassProminent)
-        .clipShape(Circle())
-        .padding(.trailing, DesignSpacing.lg)
-        .padding(.bottom, DesignSpacing.xxl)
-        .accessibilityLabel("Quick actions")
-    }
-
-    // MARK: - Quick Actions
-
-    private func selectQuickAction(_ sheet: DashboardSheet) {
-        showQuickActions = false
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
-            activeSheet = sheet
-        }
-    }
-
-    private var quickActionSections: [QuickActionSection] {
-        [
-            QuickActionSection(title: "Most Used", items: [
-                QuickActionItem(title: "Expense", systemImage: "arrow.up.circle.fill", tint: .loss) { selectQuickAction(.expense) },
-                QuickActionItem(title: "Income", systemImage: "arrow.down.circle.fill", tint: .gain) { selectQuickAction(.income) },
-                QuickActionItem(title: "Transfer", systemImage: "arrow.left.arrow.right", tint: .brandTint) { selectQuickAction(.transfer) }
-            ]),
-            QuickActionSection(title: "Invest", items: [
-                QuickActionItem(title: "Buy Stock", systemImage: "chart.bar.fill", tint: .indigo) { selectQuickAction(.buyStock) },
-                QuickActionItem(title: "Invest MF", systemImage: "chart.pie.fill", tint: .teal) { selectQuickAction(.investMF) },
-                QuickActionItem(title: "Buy Gold", systemImage: "diamond.fill", tint: .orange) { selectQuickAction(.buyGold) }
-            ]),
-            QuickActionSection(title: "People & Committees", items: [
-                QuickActionItem(title: "Give Loan", systemImage: "arrow.right.circle.fill", tint: .brandTint) { selectQuickAction(.giveLoan) },
-                QuickActionItem(title: "Pay Committee", systemImage: "person.2.fill", tint: .teal) { selectQuickAction(.payCommittee) },
-                QuickActionItem(title: "Pay Back", systemImage: "arrow.up.circle.fill", tint: .loss) { selectQuickAction(.payBack) }
-            ])
-        ]
     }
 
     // MARK: - Empty Dashboard
@@ -350,29 +299,5 @@ struct DashboardView: View {
             .sheet(isPresented: $showAllTransactions) {
                 NavigationStack { TransactionHistoryReport() }
             }
-    }
-}
-
-// MARK: - Sheet Routing
-
-private enum DashboardSheet: String, Identifiable {
-    case expense, income, transfer, buyStock, investMF, buyGold, giveLoan, payCommittee, payBack, settings
-
-    var id: String { rawValue }
-
-    @ViewBuilder
-    var destination: some View {
-        switch self {
-        case .expense: AddExpenseView()
-        case .income: AddIncomeView()
-        case .transfer: TransferView()
-        case .buyStock: InvestmentsListView(initialSegment: .psx)
-        case .investMF: InvestmentsListView(initialSegment: .mutualFunds)
-        case .buyGold: BuyCommodityView()
-        case .giveLoan: LoansListView(initialSegment: .debtors)
-        case .payCommittee: CommitteesListView()
-        case .payBack: LoansListView(initialSegment: .creditors)
-        case .settings: SettingsView()
-        }
     }
 }

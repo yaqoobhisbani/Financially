@@ -4,6 +4,8 @@ struct DashboardHeaderView: View {
     let vm: DashboardViewModel
     var foreground: Color = .white
 
+    @Environment(\.colorScheme) private var colorScheme
+
     var body: some View {
         VStack(spacing: 20) {
             VStack(spacing: 4) {
@@ -22,16 +24,25 @@ struct DashboardHeaderView: View {
                     .minimumScaleFactor(0.5)
 
                 if vm.monthlyIncome > 0 || vm.monthlyExpense > 0 {
+                    let isUp = vm.netFlowThisMonth >= 0
                     HStack(spacing: 4) {
-                        Image(systemName: vm.netFlowThisMonth >= 0 ? "arrow.up.right" : "arrow.down.right")
+                        Image(systemName: isUp ? "arrow.up.right" : "arrow.down.right")
                         Text(abs(vm.netFlowThisMonth).formattedCurrency())
-                        Text("this month · \(vm.netFlowThisMonth >= 0 ? "+" : "-")\(abs(vm.netFlowPercentage).formatted(.number.precision(.fractionLength(1))))%")
-                            .foregroundStyle(foreground.opacity(0.75))
+                        Text("· \(isUp ? "+" : "-")\(abs(vm.netFlowPercentage).formatted(.number.precision(.fractionLength(1))))%")
+                        Text("this month")
+                            .foregroundStyle(foreground.opacity(0.7))
                     }
                     .font(.subheadline.weight(.semibold))
                     .tabularNumbers()
-                    .foregroundStyle(foreground)
-                    .padding(.top, 2)
+                    .foregroundStyle(isUp ? Color.gain : Color.loss)
+                    .padding(.horizontal, colorScheme == .dark ? 12 : 0)
+                    .padding(.vertical, colorScheme == .dark ? 5 : 0)
+                    .background {
+                        if colorScheme == .dark {
+                            Capsule().fill(.ultraThinMaterial)
+                        }
+                    }
+                    .padding(.top, 4)
                 }
             }
 
