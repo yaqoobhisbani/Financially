@@ -6,6 +6,8 @@ struct SummaryCard: View {
     let icon: String
     let color: Color
     var subtitle: String?
+    var valueColored: Bool = false
+    var sparkline: [Decimal]? = nil
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -21,7 +23,7 @@ struct SummaryCard: View {
             Text(amount.formattedCurrency())
                 .font(.moneyTitle)
                 .tabularNumbers()
-                .foregroundStyle(.primary)
+                .foregroundStyle(valueColored ? color : .primary)
                 .lineLimit(1)
                 .minimumScaleFactor(0.6)
 
@@ -29,6 +31,10 @@ struct SummaryCard: View {
                 Text(subtitle)
                     .font(.caption2)
                     .foregroundStyle(.secondary)
+            }
+
+            if let sparkline, sparkline.count >= 2 {
+                SparklineView(values: sparkline, tint: color)
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)

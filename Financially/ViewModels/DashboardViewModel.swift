@@ -43,6 +43,78 @@ final class DashboardViewModel {
         expenseThisMonth
     }
 
+    /// Net cash flow this month (income minus expense) — the hero's "this month" delta.
+    var netFlowThisMonth: Decimal {
+        monthlyIncome - monthlyExpense
+    }
+
+    /// Net flow as a percentage of net worth, for the hero delta line.
+    var netFlowPercentage: Decimal {
+        guard netWorth > 0 else { return 0 }
+        return (netFlowThisMonth / netWorth) * 100
+    }
+
+    /// Six-month income / expense series driving the summary-card sparklines.
+    var incomeSeries: [Decimal] { lastSixMonths.map(\.income) }
+    var expenseSeries: [Decimal] { lastSixMonths.map(\.expense) }
+
+    // MARK: - Top Holdings
+
+    enum HoldingKind {
+        case stock, commodity, mutualFund
+    }
+
+    struct HoldingRow: Identifiable {
+        let id = UUID()
+        let name: String
+        let subtitle: String
+        let value: Decimal
+        let changePercent: Decimal
+        let kind: HoldingKind
+    }
+
+    /// The highest-value investment holdings across PSX, commodities, and mutual funds.
+    var topHoldings: [HoldingRow] {
+        var rows: [HoldingRow] = []
+
+        for holding in allHoldings where holding.totalShares > 0 {
+            rows.append(HoldingRow(
+                name: holding.companyName,
+                subtitle: "\(holding.ticker) · \(holding.totalShares) shares",
+                value: holding.currentValue,
+                changePercent: changePercent(value: holding.currentValue, cost: holding.totalCost),
+                kind: .stock
+            ))
+        }
+
+        for holding in allCommodityHoldings where holding.totalGrams > 0 {
+            rows.append(HoldingRow(
+                name: holding.commodityName,
+                subtitle: "\(holding.totalGrams.formattedNumber()) g",
+                value: holding.currentValue,
+                changePercent: changePercent(value: holding.currentValue, cost: holding.totalCost),
+                kind: .commodity
+            ))
+        }
+
+        for holding in allMFHoldings where holding.totalUnits > 0 {
+            rows.append(HoldingRow(
+                name: holding.schemeName,
+                subtitle: holding.fundCode,
+                value: holding.currentValue,
+                changePercent: changePercent(value: holding.currentValue, cost: holding.totalCost),
+                kind: .mutualFund
+            ))
+        }
+
+        return rows.sorted { $0.value > $1.value }.prefix(4).map { $0 }
+    }
+
+    private func changePercent(value: Decimal, cost: Decimal) -> Decimal {
+        guard cost > 0 else { return 0 }
+        return ((value - cost) / cost) * 100
+    }
+
     // MARK: - Helpers
 
     private var allHoldings: [StockHolding] {

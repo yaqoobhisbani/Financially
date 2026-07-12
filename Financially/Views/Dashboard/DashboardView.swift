@@ -3,11 +3,13 @@ import SwiftData
 
 struct DashboardView: View {
     @Environment(\.modelContext) private var modelContext
+    @Environment(\.colorScheme) private var colorScheme
 
     @State private var vm: DashboardViewModel?
     @State private var activeSheet: DashboardSheet?
     @State private var showQuickActions = false
     @State private var showAllTransactions = false
+    @State private var isScrolledPastHero = false
 
     var body: some View {
         NavigationStack {
@@ -31,9 +33,61 @@ struct DashboardView: View {
     }
 
     private func content(_ vm: DashboardViewModel) -> some View {
+        ZStack(alignment: .top) {
+            Color(.systemGroupedBackground)
+                .ignoresSafeArea()
+
+            heroGradient
+                .ignoresSafeArea()
+
+            scrollBody(vm)
+        }
+        .overlay(alignment: .bottomTrailing) { quickAddButton }
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbarBackground(.hidden, for: .navigationBar)
+        .toolbar {
+            ToolbarItem(placement: .principal) {
+                Text("Dashboard")
+                    .font(.headline)
+                    .foregroundStyle(isScrolledPastHero ? Color.primary : heroForeground)
+                    .animation(.easeInOut(duration: 0.2), value: isScrolledPastHero)
+            }
+            ToolbarItem(placement: .primaryAction) {
+                Button(action: { activeSheet = .settings }) {
+                    Image(systemName: "gearshape.fill")
+                        .font(.title3)
+                }
+                .buttonStyle(.glass)
+            }
+        }
+    }
+
+    /// Full-screen hero wash, top-right → bottom-left. A pale, airy blue in light mode
+    /// (paired with dark text); the deeper cobalt brand tint in dark mode (white text).
+    private var heroGradient: some View {
+        let top = colorScheme == .dark
+            ? Color.brandTint
+            : Color(red: 0.66, green: 0.80, blue: 0.98)
+        return LinearGradient(
+            stops: [
+                .init(color: top, location: 0.0),
+                .init(color: top.opacity(0.9), location: 0.46),
+                .init(color: top.opacity(0.0), location: 0.74)
+            ],
+            startPoint: .topTrailing,
+            endPoint: .bottomLeading
+        )
+    }
+
+    /// Text/icon color for content sitting on the hero gradient.
+    private var heroForeground: Color {
+        colorScheme == .dark ? .white : Color(red: 0.08, green: 0.13, blue: 0.30)
+    }
+
+    private func scrollBody(_ vm: DashboardViewModel) -> some View {
         ScrollView {
             LazyVStack(spacing: DesignSpacing.lg) {
-                DashboardHeaderView(vm: vm)
+                DashboardHeaderView(vm: vm, foreground: heroForeground)
 
                 VStack(spacing: DesignSpacing.lg) {
                     if vm.hasNoData { emptyDashboardCard }
@@ -41,20 +95,25 @@ struct DashboardView: View {
                     if vm.monthlyIncome > 0 || vm.monthlyExpense > 0 {
                         LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
                             SummaryCard(
-                                title: "Monthly Income",
+                                title: "Income",
                                 amount: vm.monthlyIncome,
                                 icon: "arrow.down.circle.fill",
-                                color: .gain
+                                color: .gain,
+                                valueColored: true,
+                                sparkline: vm.incomeSeries
                             )
                             SummaryCard(
-                                title: "Monthly Expense",
+                                title: "Expense",
                                 amount: vm.monthlyExpense,
                                 icon: "arrow.up.circle.fill",
-                                color: .loss
+                                color: .loss,
+                                valueColored: true,
+                                sparkline: vm.expenseSeries
                             )
                         }
                     }
 
+                    if !vm.topHoldings.isEmpty { holdingsWidget(vm) }
                     if vm.monthlyIncome > 0 || vm.monthlyExpense > 0 { incomeVsExpenseWidget(vm) }
                     if vm.monthlyExpense > 0 { expenseChartWidget(vm) }
                     if !vm.assetAllocation.isEmpty { AllocationPieChart(slices: vm.assetAllocation) }
@@ -66,30 +125,24 @@ struct DashboardView: View {
             }
         }
         .scrollClipDisabled()
-        .background(Color(.systemGroupedBackground))
-        .navigationBarTitleDisplayMode(.inline)
-        .toolbarBackground(.hidden, for: .navigationBar)
-        .toolbar {
-            ToolbarItem(placement: .principal) {
-                Text("Dashboard")
-                    .font(.headline)
-            }
-            ToolbarItem(placement: .primaryAction) {
-                Button(action: { activeSheet = .settings }) {
-                    Image(systemName: "gearshape.fill")
-                        .font(.title3)
-                }
-                .buttonStyle(.glass)
-            }
-            ToolbarSpacer(.fixed, placement: .primaryAction)
-            ToolbarItem(placement: .primaryAction) {
-                Button(action: { showQuickActions = true }) {
-                    Image(systemName: "plus")
-                        .font(.title3)
-                }
-                .buttonStyle(.glass)
-            }
+        .onScrollGeometryChange(for: Bool.self) { geometry in
+            geometry.contentOffset.y > 60
+        } action: { _, newValue in
+            isScrolledPastHero = newValue
         }
+    }
+
+    private var quickAddButton: some View {
+        Button(action: { showQuickActions = true }) {
+            Image(systemName: "plus")
+                .font(.title2.weight(.semibold))
+                .frame(width: 60, height: 60)
+        }
+        .buttonStyle(.glassProminent)
+        .clipShape(Circle())
+        .padding(.trailing, DesignSpacing.lg)
+        .padding(.bottom, DesignSpacing.xxl)
+        .accessibilityLabel("Quick actions")
     }
 
     // MARK: - Quick Actions
@@ -139,6 +192,74 @@ struct DashboardView: View {
         .padding(.vertical, 40)
         .padding(.horizontal, 24)
         .dataCard()
+    }
+
+    // MARK: - Holdings
+
+    private func holdingsWidget(_ vm: DashboardViewModel) -> some View {
+        VStack(spacing: 0) {
+            HStack {
+                Text("Holdings")
+                    .font(.headline)
+                Spacer()
+            }
+            .padding(.horizontal)
+            .padding(.top, 12)
+            .padding(.bottom, 8)
+
+            ForEach(Array(vm.topHoldings.enumerated()), id: \.element.id) { index, holding in
+                holdingRow(holding)
+                    .padding(.horizontal)
+                    .padding(.vertical, 8)
+                if index != vm.topHoldings.count - 1 {
+                    Divider().padding(.leading, 64)
+                }
+            }
+            .padding(.bottom, 4)
+        }
+        .dataCard()
+    }
+
+    private func holdingRow(_ holding: DashboardViewModel.HoldingRow) -> some View {
+        let style = holdingStyle(holding.kind)
+        return HStack(spacing: 12) {
+            Image(systemName: style.icon)
+                .font(.subheadline)
+                .foregroundStyle(style.tint)
+                .frame(width: 40, height: 40)
+                .background(style.tint.opacity(0.15), in: RoundedRectangle(cornerRadius: DesignRadius.control, style: .continuous))
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text(holding.name)
+                    .font(.subheadline.weight(.medium))
+                    .lineLimit(1)
+                Text(holding.subtitle)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+            }
+
+            Spacer()
+
+            VStack(alignment: .trailing, spacing: 2) {
+                Text(holding.value.formattedCurrency())
+                    .font(.subheadline.weight(.semibold))
+                    .tabularNumbers()
+                    .lineLimit(1)
+                Text("\(holding.changePercent >= 0 ? "+" : "")\(holding.changePercent.formatted(.number.precision(.fractionLength(1))))%")
+                    .font(.caption)
+                    .tabularNumbers()
+                    .foregroundStyle(holding.changePercent >= 0 ? .gain : .loss)
+            }
+        }
+    }
+
+    private func holdingStyle(_ kind: DashboardViewModel.HoldingKind) -> (icon: String, tint: Color) {
+        switch kind {
+        case .stock: return ("chart.bar.fill", .indigo)
+        case .commodity: return ("diamond.fill", .orange)
+        case .mutualFund: return ("chart.pie.fill", .teal)
+        }
     }
 
     // MARK: - Expense Chart
