@@ -92,7 +92,7 @@ struct InvestmentsListView: View {
                     }) {
                         Label("Add", systemImage: "plus")
                     }
-                    .buttonStyle(.glassProminent)
+                    .buttonStyle(.glass)
                 }
             }
             .sheet(isPresented: $showCreatePSX) {

@@ -22,9 +22,9 @@ struct QuickAddAccessory: View {
                 HStack(spacing: 10) {
                     Image(systemName: "plus")
                         .font(.subheadline.weight(.semibold))
-                        .foregroundStyle(.white)
+                        .foregroundStyle(themeManager.theme.accent)
                         .frame(width: 28, height: 28)
-                        .background(themeManager.theme.accent, in: Circle())
+                        .glassChrome(in: Circle())
 
                     Text("Quick Add")
                         .font(.subheadline.weight(.medium))

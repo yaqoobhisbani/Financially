@@ -33,7 +33,7 @@ struct EmptyStateView: View {
 
             if let buttonLabel, let action = action {
                 Button(buttonLabel, action: action)
-                    .buttonStyle(.glassProminent)
+                    .buttonStyle(.glass)
             }
         }
         .frame(maxWidth: .infinity)

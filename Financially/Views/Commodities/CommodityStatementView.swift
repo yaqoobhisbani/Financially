@@ -50,7 +50,7 @@ struct CommodityStatementView: View {
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Done") { dismiss() }
-                        .buttonStyle(.glassProminent)
+                        .buttonStyle(.glass)
                 }
             }
             .sheet(item: $selectedTransaction) { tx in

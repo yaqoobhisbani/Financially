@@ -16,7 +16,7 @@ struct FormToolbar: ViewModifier {
             }
             ToolbarItem(placement: .confirmationAction) {
                 Button(label) { action() }
-                    .buttonStyle(.glassProminent)
+                    .buttonStyle(.glass)
                     .disabled(isDisabled)
             }
         }

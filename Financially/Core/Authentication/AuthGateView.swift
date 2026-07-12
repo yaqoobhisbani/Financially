@@ -65,8 +65,7 @@ struct AuthGateView<Content: View>: View {
                                 .foregroundStyle(themeManager.theme.accent)
                                 .frame(maxWidth: .infinity)
                             }
-                            .buttonStyle(.glassProminent)
-                            .tint(.white)
+                            .buttonStyle(.glass)
                             .controlSize(.large)
                             .padding(.horizontal, 32)
                         }
