@@ -26,13 +26,15 @@ struct PieChartView: View {
                 ForEach(Array(data.enumerated()), id: \.element.id) { index, item in
                     SectorMark(
                         angle: .value("Amount", item.total),
-                        innerRadius: .ratio(0.6)
+                        innerRadius: .ratio(0.6),
+                        outerRadius: .ratio(0.95)
                     )
                     .foregroundStyle(CategoryPalette.color(at: index))
+                    .cornerRadius(4)
                 }
             }
             .chartLegend(.hidden)
-            .frame(height: 200)
+            .frame(height: 240)
         }
     }
 }
