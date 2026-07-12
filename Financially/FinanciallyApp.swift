@@ -5,6 +5,7 @@ import AppIntents
 @main
 struct FinanciallyApp: App {
     @State private var authManager = BiometricAuthManager.shared
+    @State private var themeManager = ThemeManager.shared
     @AppStorage("colorScheme") private var colorScheme: String = "System"
 
     var body: some Scene {
@@ -18,6 +19,8 @@ struct FinanciallyApp: App {
                     }
             }
             .environment(authManager)
+            .environment(themeManager)
+            .tint(themeManager.theme.accent)
             .preferredColorScheme(scheme)
             .onAppear {
                 authManager.checkAvailability()

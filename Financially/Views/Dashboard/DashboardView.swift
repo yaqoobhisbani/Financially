@@ -4,6 +4,7 @@ import SwiftData
 struct DashboardView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.colorScheme) private var colorScheme
+    @Environment(ThemeManager.self) private var themeManager
 
     @State private var vm: DashboardViewModel?
     @State private var showSettings = false
@@ -29,8 +30,7 @@ struct DashboardView: View {
             Color(.systemGroupedBackground)
                 .ignoresSafeArea()
 
-            heroGradient
-                .ignoresSafeArea()
+            HeroBackgroundView(theme: themeManager.theme)
 
             scrollBody(vm)
         }
@@ -53,26 +53,9 @@ struct DashboardView: View {
         }
     }
 
-    /// Full-screen hero wash, top-right → bottom-left. A pale, airy blue in light mode
-    /// (paired with dark text); the deeper cobalt brand tint in dark mode (white text).
-    private var heroGradient: some View {
-        let top = colorScheme == .dark
-            ? Color.brandTint
-            : Color(red: 0.66, green: 0.80, blue: 0.98)
-        return LinearGradient(
-            stops: [
-                .init(color: top, location: 0.0),
-                .init(color: top.opacity(0.9), location: 0.46),
-                .init(color: top.opacity(0.0), location: 0.74)
-            ],
-            startPoint: .topTrailing,
-            endPoint: .bottomLeading
-        )
-    }
-
-    /// Text/icon color for content sitting on the hero gradient.
+    /// Text/icon color for content sitting on the hero gradient, from the active theme.
     private var heroForeground: Color {
-        colorScheme == .dark ? .white : Color(red: 0.08, green: 0.13, blue: 0.30)
+        themeManager.theme.foreground(for: colorScheme)
     }
 
     private func scrollBody(_ vm: DashboardViewModel) -> some View {
@@ -140,7 +123,7 @@ struct DashboardView: View {
         .frame(maxWidth: .infinity)
         .padding(.vertical, 40)
         .padding(.horizontal, 24)
-        .dataCard()
+        .dashboardCard()
     }
 
     // MARK: - Holdings
@@ -166,7 +149,7 @@ struct DashboardView: View {
             }
             .padding(.bottom, 4)
         }
-        .dataCard()
+        .dashboardCard()
     }
 
     private func holdingRow(_ holding: DashboardViewModel.HoldingRow) -> some View {
@@ -227,7 +210,7 @@ struct DashboardView: View {
             BarChartView(data: vm.lastSixMonths)
         }
         .padding()
-        .dataCard()
+        .dashboardCard()
     }
 
     // MARK: - Active Loans / Liabilities
@@ -243,7 +226,7 @@ struct DashboardView: View {
                     count: vm.activeLoanCount,
                     total: vm.activeLoanTotal,
                     icon: "arrow.left.arrow.right",
-                    color: .brandTint
+                    color: themeManager.theme.accent
                 )
                 activeWidget(
                     title: "Liabilities Held",
@@ -289,7 +272,7 @@ struct DashboardView: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(12)
-        .dataCard()
+        .dashboardCard()
     }
 
     // MARK: - Recent Transactions

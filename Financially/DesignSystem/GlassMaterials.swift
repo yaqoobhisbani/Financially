@@ -31,6 +31,14 @@ extension View {
         modifier(DataCardModifier(radius: radius))
     }
 
+    /// A dashboard content card. Opaque `.dataCard()` by default; when the user turns on
+    /// "Glass dashboard cards" in Settings, it renders on Liquid Glass — but with an opaque
+    /// scrim behind the content so currency figures stay legible (see the "never money on
+    /// bare glass" rule above). Falls back to opaque under Reduce Transparency.
+    func dashboardCard(radius: CGFloat = DesignRadius.inner) -> some View {
+        modifier(DashboardCardModifier(radius: radius))
+    }
+
     /// Fills the whole screen (behind the nav bar too) with the grouped background, so a
     /// screen that puts a custom header — a segmented control, a date-range picker — above
     /// a `List` shares one continuous grouped background instead of a white header strip
@@ -51,5 +59,29 @@ private struct DataCardModifier: ViewModifier {
                     .strokeBorder(Color(.separator).opacity(0.5), lineWidth: 0.5)
             )
             .shadow(color: .black.opacity(0.08), radius: 10, y: 3)
+    }
+}
+
+/// Switches a dashboard card between the opaque data card and a glass variant based on the
+/// user's "Glass dashboard cards" setting (default off).
+private struct DashboardCardModifier: ViewModifier {
+    let radius: CGFloat
+
+    @AppStorage("dashboardGlassCards") private var glassCards = false
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+
+    func body(content: Content) -> some View {
+        if glassCards && !reduceTransparency {
+            let shape = RoundedRectangle(cornerRadius: radius, style: .continuous)
+            content
+                // A translucent scrim between the glass and the content keeps currency
+                // figures legible while still letting the hero refract through the edges.
+                .background(Color(.secondarySystemGroupedBackground).opacity(0.4), in: shape)
+                .glassEffect(.regular, in: shape)
+                .overlay(shape.strokeBorder(Color.white.opacity(0.12), lineWidth: 0.5))
+                .shadow(color: .black.opacity(0.08), radius: 10, y: 3)
+        } else {
+            content.dataCard(radius: radius)
+        }
     }
 }

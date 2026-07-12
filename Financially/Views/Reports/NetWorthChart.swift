@@ -4,6 +4,7 @@ import Charts
 
 struct NetWorthChart: View {
     @Environment(\.modelContext) private var modelContext
+    @Environment(ThemeManager.self) private var themeManager
 
     @State private var vm: NetWorthViewModel?
     @State private var startDate = Date().startOfYear
@@ -85,7 +86,7 @@ struct NetWorthChart: View {
                         x: .value("Date", point.date),
                         y: .value("Net Worth", point.netWorth)
                     )
-                    .foregroundStyle(Color.brandTint)
+                    .foregroundStyle(themeManager.theme.accent)
                     .interpolationMethod(.monotone)
 
                     AreaMark(
@@ -94,7 +95,7 @@ struct NetWorthChart: View {
                     )
                     .foregroundStyle(
                         LinearGradient(
-                            colors: [Color.brandTint.opacity(0.28), Color.brandTint.opacity(0)],
+                            colors: [themeManager.theme.accent.opacity(0.28), themeManager.theme.accent.opacity(0)],
                             startPoint: .top,
                             endPoint: .bottom
                         )
@@ -130,9 +131,9 @@ struct NetWorthChart: View {
         NavigationStack {
             List {
                 Section("Current Snapshot") {
-                    breakdownRow(label: "Net Worth", value: latest?.netWorth ?? 0, icon: "heart.fill", tint: .brandTint)
+                    breakdownRow(label: "Net Worth", value: latest?.netWorth ?? 0, icon: "heart.fill", tint: themeManager.theme.accent)
                     breakdownRow(label: "Total Assets", value: latest?.assets ?? 0, icon: "building.columns.fill", tint: .gain)
-                    breakdownRow(label: "Receivables", value: latest?.receivables ?? 0, icon: "arrow.left.circle.fill", tint: .brandTint)
+                    breakdownRow(label: "Receivables", value: latest?.receivables ?? 0, icon: "arrow.left.circle.fill", tint: themeManager.theme.accent)
                     breakdownRow(label: "Liabilities Owed", value: latest?.liabilities ?? 0, icon: "arrow.right.circle.fill", tint: .loss)
                 }
             }

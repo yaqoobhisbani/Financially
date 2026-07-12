@@ -2,6 +2,7 @@ import SwiftUI
 
 struct AuthGateView<Content: View>: View {
     @Environment(BiometricAuthManager.self) private var authManager
+    @Environment(ThemeManager.self) private var themeManager
     let content: Content
 
     init(@ViewBuilder content: () -> Content) {
@@ -15,7 +16,7 @@ struct AuthGateView<Content: View>: View {
             } else {
                 ZStack {
                     LinearGradient(
-                        colors: [Color.brandTint, Color.brandTint.opacity(0.8)],
+                        colors: [themeManager.theme.accent, themeManager.theme.accent.opacity(0.8)],
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing
                     )
@@ -61,7 +62,7 @@ struct AuthGateView<Content: View>: View {
                                     "Unlock with \(authManager.biometricType.displayName)",
                                     systemImage: authManager.biometricType.icon
                                 )
-                                .foregroundStyle(Color.brandTint)
+                                .foregroundStyle(themeManager.theme.accent)
                                 .frame(maxWidth: .infinity)
                             }
                             .buttonStyle(.glassProminent)

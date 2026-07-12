@@ -7,6 +7,7 @@ struct QuickAddAccessory: View {
     let onOpen: () -> Void
 
     @Environment(\.tabViewBottomAccessoryPlacement) private var placement
+    @Environment(ThemeManager.self) private var themeManager
 
     var body: some View {
         Button(action: onOpen) {
@@ -14,7 +15,7 @@ struct QuickAddAccessory: View {
                 // Minimized tab bar: compact icon-only affordance.
                 Image(systemName: "plus")
                     .font(.headline)
-                    .foregroundStyle(Color.brandTint)
+                    .foregroundStyle(themeManager.theme.accent)
                     .frame(maxWidth: .infinity)
                     .contentShape(Rectangle())
             } else {
@@ -23,7 +24,7 @@ struct QuickAddAccessory: View {
                         .font(.subheadline.weight(.semibold))
                         .foregroundStyle(.white)
                         .frame(width: 28, height: 28)
-                        .background(Color.brandTint, in: Circle())
+                        .background(themeManager.theme.accent, in: Circle())
 
                     Text("Quick Add")
                         .font(.subheadline.weight(.medium))

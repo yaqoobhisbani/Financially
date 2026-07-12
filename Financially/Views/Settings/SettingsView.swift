@@ -62,10 +62,8 @@ struct SettingsView: View {
                 }
 
                 Section("Appearance") {
-                    Picker("Theme", selection: $colorScheme) {
-                        ForEach(ColorSchemeOption.allCases, id: \.rawValue) { option in
-                            Text(option.rawValue).tag(option)
-                        }
+                    NavigationLink(destination: ThemeSettingsView()) {
+                        Label("Theme", systemImage: "paintpalette.fill")
                     }
                 }
 
@@ -77,14 +75,6 @@ struct SettingsView: View {
             }
             .navigationTitle("Settings")
             .preferredColorScheme(colorScheme == .system ? nil : colorScheme == .dark ? .dark : .light)
-        }
-    }
-
-    private func icon(for option: ColorSchemeOption) -> String {
-        switch option {
-        case .light: return "sun.max.fill"
-        case .dark: return "moon.fill"
-        case .system: return "iphone"
         }
     }
 }

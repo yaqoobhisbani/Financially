@@ -2,6 +2,7 @@ import SwiftUI
 import SwiftData
 
 struct ContentView: View {
+    @Environment(ThemeManager.self) private var themeManager
     @State private var selection: AppTab = .dashboard
     @State private var showQuickActions = false
     @State private var activeQuickAction: QuickAction?
@@ -58,7 +59,7 @@ struct ContentView: View {
             QuickActionSection(title: "Most Used", items: [
                 QuickActionItem(title: "Expense", systemImage: "arrow.up.circle.fill", tint: .loss) { selectQuickAction(.expense) },
                 QuickActionItem(title: "Income", systemImage: "arrow.down.circle.fill", tint: .gain) { selectQuickAction(.income) },
-                QuickActionItem(title: "Transfer", systemImage: "arrow.left.arrow.right", tint: .brandTint) { selectQuickAction(.transfer) }
+                QuickActionItem(title: "Transfer", systemImage: "arrow.left.arrow.right", tint: themeManager.theme.accent) { selectQuickAction(.transfer) }
             ]),
             QuickActionSection(title: "Invest", items: [
                 QuickActionItem(title: "Buy Stock", systemImage: "chart.bar.fill", tint: .indigo) { selectQuickAction(.buyStock) },
@@ -66,7 +67,7 @@ struct ContentView: View {
                 QuickActionItem(title: "Buy Gold", systemImage: "diamond.fill", tint: .orange) { selectQuickAction(.buyGold) }
             ]),
             QuickActionSection(title: "People & Committees", items: [
-                QuickActionItem(title: "Give Loan", systemImage: "arrow.right.circle.fill", tint: .brandTint) { selectQuickAction(.giveLoan) },
+                QuickActionItem(title: "Give Loan", systemImage: "arrow.right.circle.fill", tint: themeManager.theme.accent) { selectQuickAction(.giveLoan) },
                 QuickActionItem(title: "Pay Committee", systemImage: "person.2.fill", tint: .teal) { selectQuickAction(.payCommittee) },
                 QuickActionItem(title: "Pay Back", systemImage: "arrow.up.circle.fill", tint: .loss) { selectQuickAction(.payBack) }
             ])
@@ -103,5 +104,6 @@ enum QuickAction: String, Identifiable {
 
 #Preview {
     ContentView()
+        .environment(ThemeManager.shared)
         .modelContainer(for: [Account.self, Transaction.self, LedgerEntry.self, Debtor.self, Creditor.self, InvestmentEntry.self, Category.self], inMemory: true)
 }

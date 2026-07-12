@@ -31,6 +31,6 @@ struct ExpenseChartWidget: View {
             }
         }
         .padding()
-        .dataCard()
+        .dashboardCard()
     }
 }

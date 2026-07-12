@@ -53,7 +53,7 @@ struct RecentTransactionsView: View {
             }
         }
         .padding(.vertical, 12)
-        .dataCard()
+        .dashboardCard()
         .sheet(item: $selectedTransaction) { tx in
             NavigationStack {
                 TransactionDetailView(transaction: tx)
