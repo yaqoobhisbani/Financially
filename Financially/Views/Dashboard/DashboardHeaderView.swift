@@ -50,11 +50,11 @@ private struct HeaderStat: View {
     let icon: String
 
     var body: some View {
-        HStack(spacing: 8) {
+        HStack(alignment: .top, spacing: 8) {
             Image(systemName: icon)
-                .font(.caption)
+                .font(.system(size: 13))
                 .foregroundStyle(.white.opacity(0.9))
-                .frame(width: 16)
+                .frame(width: 16, height: 16)
             VStack(alignment: .leading, spacing: 1) {
                 Text(title)
                     .font(.caption2)

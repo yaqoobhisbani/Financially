@@ -9,6 +9,7 @@ struct GlassSegmentedControl<Option: Hashable>: View {
     let title: (Option) -> String
 
     @Namespace private var namespace
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
         HStack(spacing: 2) {
@@ -30,7 +31,7 @@ struct GlassSegmentedControl<Option: Hashable>: View {
                     }
                     .contentShape(Capsule())
                     .onTapGesture {
-                        withAnimation(.easeInOut(duration: 0.22)) { selection = option }
+                        withAnimation(reduceMotion ? nil : .easeInOut(duration: 0.22)) { selection = option }
                     }
             }
         }

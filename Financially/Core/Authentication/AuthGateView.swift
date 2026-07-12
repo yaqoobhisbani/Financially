@@ -13,41 +13,65 @@ struct AuthGateView<Content: View>: View {
             if authManager.isAuthenticated || !authManager.biometricEnabled {
                 content
             } else {
-                VStack(spacing: 24) {
-                    Image(systemName: authManager.biometricType.icon)
-                        .font(.system(size: 64))
-                        .foregroundStyle(.tint)
+                ZStack {
+                    LinearGradient(
+                        colors: [Color.brandTint, Color.brandTint.opacity(0.8)],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                    .ignoresSafeArea()
 
-                    Text("Financially")
-                        .font(.largeTitle.bold())
+                    VStack(spacing: 28) {
+                        Spacer()
 
-                    Text("Your financial data is protected")
-                        .foregroundStyle(.secondary)
+                        VStack(spacing: 12) {
+                            Image(systemName: authManager.biometricType.icon)
+                                .font(.system(size: 60))
+                                .foregroundStyle(.white)
 
-                    if let error = authManager.errorMessage {
-                        Text(error)
-                            .font(.callout)
-                            .foregroundStyle(.red)
-                            .multilineTextAlignment(.center)
-                    }
+                            Text("Financially")
+                                .font(.system(size: 34, weight: .bold, design: .rounded))
+                                .foregroundStyle(.white)
 
-                    if authManager.isProcessing {
-                        ProgressView()
-                            .controlSize(.large)
-                    } else {
-                        Button {
-                            Task { await authManager.authenticate() }
-                        } label: {
-                            Label(
-                                "Unlock with \(authManager.biometricType.displayName)",
-                                systemImage: authManager.biometricType.icon
-                            )
+                            Text("Your financial data is protected")
+                                .font(.subheadline)
+                                .foregroundStyle(.white.opacity(0.8))
                         }
-                        .buttonStyle(.borderedProminent)
-                        .controlSize(.large)
+
+                        if let error = authManager.errorMessage {
+                            Label(error, systemImage: "exclamationmark.triangle.fill")
+                                .font(.subheadline)
+                                .foregroundStyle(.white)
+                                .padding(.horizontal, 16)
+                                .padding(.vertical, 10)
+                                .background(.white.opacity(0.16), in: Capsule())
+                        }
+
+                        Spacer()
+
+                        if authManager.isProcessing {
+                            ProgressView()
+                                .tint(.white)
+                                .controlSize(.large)
+                        } else {
+                            Button {
+                                Task { await authManager.authenticate() }
+                            } label: {
+                                Label(
+                                    "Unlock with \(authManager.biometricType.displayName)",
+                                    systemImage: authManager.biometricType.icon
+                                )
+                                .foregroundStyle(Color.brandTint)
+                                .frame(maxWidth: .infinity)
+                            }
+                            .buttonStyle(.glassProminent)
+                            .tint(.white)
+                            .controlSize(.large)
+                            .padding(.horizontal, 32)
+                        }
                     }
+                    .padding(.vertical, 48)
                 }
-                .padding()
                 .onAppear {
                     if authManager.biometricEnabled {
                         Task { await authManager.authenticate() }
