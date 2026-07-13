@@ -50,9 +50,9 @@ struct DashboardView: View {
             ToolbarItem(placement: .primaryAction) {
                 Button(action: { showSearch = true }) {
                     Image(systemName: "magnifyingglass")
-                        .font(.title3)
                 }
                 .tint(.primary)
+                .accessibilityLabel("Search")
             }
         }
     }
