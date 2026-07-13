@@ -7,7 +7,7 @@ struct DashboardView: View {
     @Environment(ThemeManager.self) private var themeManager
 
     @State private var vm: DashboardViewModel?
-    @State private var showSettings = false
+    @State private var showSearch = false
     @State private var showAllTransactions = false
     @State private var showInvestments = false
     @State private var showDebtors = false
@@ -24,8 +24,8 @@ struct DashboardView: View {
         .onAppear {
             vm = DashboardViewModel(modelContext: modelContext)
         }
-        .sheet(isPresented: $showSettings) {
-            SettingsView()
+        .sheet(isPresented: $showSearch) {
+            GlobalSearchView()
         }
     }
 
@@ -48,8 +48,8 @@ struct DashboardView: View {
                     .animation(.easeInOut(duration: 0.2), value: isScrolledPastHero)
             }
             ToolbarItem(placement: .primaryAction) {
-                Button(action: { showSettings = true }) {
-                    Image(systemName: "gearshape.fill")
+                Button(action: { showSearch = true }) {
+                    Image(systemName: "magnifyingglass")
                         .font(.title3)
                 }
                 .tint(.primary)

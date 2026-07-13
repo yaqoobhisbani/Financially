@@ -25,8 +25,8 @@ struct ContentView: View {
                 CommitteesListView()
             }
 
-            Tab(value: AppTab.search, role: .search) {
-                GlobalSearchView()
+            Tab("More", systemImage: "ellipsis.circle", value: AppTab.more) {
+                SettingsView()
             }
         }
         .tabBarMinimizeBehavior(.onScrollDown)
@@ -76,7 +76,7 @@ struct ContentView: View {
 }
 
 private enum AppTab: Hashable {
-    case dashboard, accounts, investments, committees, search
+    case dashboard, accounts, investments, committees, more
 }
 
 // MARK: - Quick Action Routing
