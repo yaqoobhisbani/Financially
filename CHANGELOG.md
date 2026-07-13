@@ -17,6 +17,26 @@ notes — see [Releasing](README.md#releasing) for the full process.
 
 ### Fixed
 
+## [1.1.0] - 2026-07-13
+
+A ground-up "Liquid Glass" UI/UX revamp of the entire app.
+
+### Added
+- Selectable color themes and dashboard hero patterns
+- Quick Actions sheet (tab accessory) for fast logging, opening at medium height on a single tap
+
+### Changed
+- New "Liquid Glass" design system across the app: glass dashboard cards, list segments, monospaced rows, and transparent glass CTAs and form chrome
+- Migrated root navigation to the native Tab API; moved Search to the Dashboard top bar and More/Settings to a bottom tab
+- Rebuilt the Dashboard: hero net-worth header, labeled sections (with a month on "This Month"), asset-allocation and expense-breakdown cards
+- Rebuilt the Net Worth report as a Maps-style draggable sheet
+- Expense breakdown now shows per-category colors and percentages on each row
+- Dashboard now shows 5 recent transactions instead of 10
+- Polish pass: branded lock screen, refined motion, and accessibility improvements
+
+### Fixed
+- Corrected the Dashboard net-worth calculation
+
 ## [1.0.1] - 2026-07-11
 
 First tagged release.
