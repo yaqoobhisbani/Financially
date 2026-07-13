@@ -62,6 +62,28 @@ struct DashboardView: View {
         themeManager.theme.foreground(for: colorScheme)
     }
 
+    /// A lightweight grouping header for the dashboard stack — an uppercased caption
+    /// with optional trailing context (a month label) or a "View All" action.
+    private func sectionHeader(_ title: String, trailing: String? = nil,
+                               viewAll: (() -> Void)? = nil) -> some View {
+        HStack {
+            Text(title.uppercased())
+                .font(.caption.weight(.medium))
+                .foregroundStyle(.secondary)
+            Spacer()
+            if let trailing {
+                Text(trailing)
+                    .font(.caption.weight(.medium))
+                    .foregroundStyle(.secondary)
+            }
+            if let viewAll {
+                Button("View All", action: viewAll)
+                    .font(.caption)
+            }
+        }
+        .padding(.top, DesignSpacing.sm)
+    }
+
     private func scrollBody(_ vm: DashboardViewModel) -> some View {
         ScrollView {
             LazyVStack(spacing: DesignSpacing.lg) {
@@ -70,7 +92,9 @@ struct DashboardView: View {
                 VStack(spacing: DesignSpacing.lg) {
                     if vm.hasNoData { emptyDashboardCard }
 
+                    // This Month — cash-flow analytics for the current month
                     if vm.monthlyIncome > 0 || vm.monthlyExpense > 0 {
+                        sectionHeader("This Month", trailing: Date().monthYear())
                         LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
                             SummaryCard(
                                 title: "Income",
@@ -89,14 +113,28 @@ struct DashboardView: View {
                                 sparkline: vm.expenseSeries
                             )
                         }
+                        incomeVsExpenseWidget(vm)
+                        expenseChartWidget(vm)
                     }
 
-                    if vm.monthlyIncome > 0 || vm.monthlyExpense > 0 { incomeVsExpenseWidget(vm) }
-                    if vm.monthlyExpense > 0 || vm.monthlyIncome > 0 { expenseChartWidget(vm) }
-                    if !vm.topHoldings.isEmpty { holdingsWidget(vm) }
-                    if !vm.assetAllocation.isEmpty { AllocationPieChart(slices: vm.assetAllocation) }
-                    if vm.activeLoanCount > 0 || vm.activeLiabilityCount > 0 || vm.activeCommitteeCount > 0 { activeLoansWidget(vm) }
-                    if !vm.recentTransactions.isEmpty { recentTransactionsSection(vm) }
+                    // Investments — holdings and asset allocation
+                    if !vm.topHoldings.isEmpty || !vm.assetAllocation.isEmpty {
+                        sectionHeader("Investments")
+                        if !vm.topHoldings.isEmpty { holdingsWidget(vm) }
+                        if !vm.assetAllocation.isEmpty { AllocationPieChart(slices: vm.assetAllocation) }
+                    }
+
+                    // Commitments — loans, liabilities, committees
+                    if vm.activeLoanCount > 0 || vm.activeLiabilityCount > 0 || vm.activeCommitteeCount > 0 {
+                        sectionHeader("Commitments")
+                        activeLoansWidget(vm)
+                    }
+
+                    // Recent activity
+                    if !vm.recentTransactions.isEmpty {
+                        sectionHeader("Recent", viewAll: { showAllTransactions = true })
+                        recentTransactionsSection(vm)
+                    }
                 }
                 .padding(.horizontal)
                 .padding(.bottom)
@@ -245,9 +283,6 @@ struct DashboardView: View {
 
     private func activeLoansWidget(_ vm: DashboardViewModel) -> some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("Commitments")
-                .font(.headline)
-
             HStack(spacing: 12) {
                 activeWidget(
                     title: "Active Loans",
@@ -321,7 +356,7 @@ struct DashboardView: View {
     // MARK: - Recent Transactions
 
     private func recentTransactionsSection(_ vm: DashboardViewModel) -> some View {
-        RecentTransactionsView(transactions: vm.recentTransactions, onViewAll: { showAllTransactions = true })
+        RecentTransactionsView(transactions: vm.recentTransactions, showsHeader: false)
             .sheet(isPresented: $showAllTransactions) {
                 NavigationStack { TransactionHistoryReport() }
             }
