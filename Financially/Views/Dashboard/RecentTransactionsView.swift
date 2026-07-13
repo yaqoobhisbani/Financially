@@ -29,7 +29,7 @@ struct RecentTransactionsView: View {
                 }
             }
             .padding(.horizontal)
-            .padding(.bottom, 8)
+            .padding(.bottom, 14)
 
             if transactions.isEmpty {
                 EmptyStateView(title: "No transactions yet", systemImage: "arrow.left.arrow.right")
