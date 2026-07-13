@@ -50,7 +50,9 @@ struct LedgerManager {
         case .expense:
             source?.currentBalance += amount
         case .income:
-            destination?.currentBalance -= amount
+            // Income is recorded against the source account (fromAccountId), so its
+            // balance is what must be decremented on reversal — mirroring LedgerService.
+            source?.currentBalance -= amount
         case .transfer:
             source?.currentBalance += amount
             destination?.currentBalance -= amount

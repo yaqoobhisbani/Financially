@@ -22,6 +22,21 @@ struct LedgerManagerCashReversalTests {
         #expect(remainingEntries.isEmpty)
     }
 
+    @Test func deletingIncomeRemovesBalanceAndEntry() throws {
+        let context = TestSupport.makeContext()
+        let account = TestSupport.makeAccount(in: context, name: "Bank", type: .bank, initialBalance: 1000)
+        let service = LedgerService(modelContext: context)
+        let tx = try service.execute(TransactionRequest(type: .income, amount: 500, date: Date(), sourceAccountId: account.id))
+        #expect(account.currentBalance == 1500)
+
+        try LedgerManager(modelContext: context).deleteTransaction(tx)
+
+        #expect(account.currentBalance == 1000)
+        let txnId = tx.id
+        let remainingEntries = try context.fetch(FetchDescriptor<LedgerEntry>(predicate: #Predicate { $0.transactionId == txnId }))
+        #expect(remainingEntries.isEmpty)
+    }
+
     @Test func deletingTransferRestoresBothBalances() throws {
         let context = TestSupport.makeContext()
         let source = TestSupport.makeAccount(in: context, name: "Bank", type: .bank, initialBalance: 1000)
