@@ -14,52 +14,35 @@ struct QuickActionSection: Identifiable {
     let items: [QuickActionItem]
 }
 
-/// The resizable command sheet behind the Dashboard's "+" — a searchable, grouped
-/// grid that scales to any number of actions without a redesign, unlike a fixed menu.
+/// The resizable command sheet behind the Dashboard's "+" — a grouped grid that
+/// scales to any number of actions without a redesign, unlike a fixed menu.
 struct QuickActionsSheetContent: View {
     let sections: [QuickActionSection]
-
-    @State private var query = ""
-
-    private var filteredSections: [QuickActionSection] {
-        let trimmed = query.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmed.isEmpty else { return sections }
-        return sections.compactMap { section in
-            let items = section.items.filter { $0.title.localizedCaseInsensitiveContains(trimmed) }
-            return items.isEmpty ? nil : QuickActionSection(title: section.title, items: items)
-        }
-    }
 
     private let columns = [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())]
 
     var body: some View {
         NavigationStack {
             ScrollView {
-                if filteredSections.isEmpty {
-                    ContentUnavailableView.search(text: query)
-                        .padding(.top, 60)
-                } else {
-                    VStack(alignment: .leading, spacing: DesignSpacing.xl) {
-                        ForEach(filteredSections) { section in
-                            VStack(alignment: .leading, spacing: DesignSpacing.sm) {
-                                Text(section.title.uppercased())
-                                    .font(.caption.weight(.medium))
-                                    .foregroundStyle(.secondary)
+                VStack(alignment: .leading, spacing: DesignSpacing.xl) {
+                    ForEach(sections) { section in
+                        VStack(alignment: .leading, spacing: DesignSpacing.sm) {
+                            Text(section.title.uppercased())
+                                .font(.caption.weight(.medium))
+                                .foregroundStyle(.secondary)
 
-                                LazyVGrid(columns: columns, spacing: DesignSpacing.sm) {
-                                    ForEach(section.items) { item in
-                                        QuickActionTile(item: item)
-                                    }
+                            LazyVGrid(columns: columns, spacing: DesignSpacing.sm) {
+                                ForEach(section.items) { item in
+                                    QuickActionTile(item: item)
                                 }
                             }
                         }
                     }
-                    .padding(DesignSpacing.lg)
                 }
+                .padding(DesignSpacing.lg)
             }
             .navigationTitle("Quick Actions")
             .navigationBarTitleDisplayMode(.inline)
-            .searchable(text: $query, placement: .navigationBarDrawer(displayMode: .always), prompt: "Search actions")
         }
     }
 }
