@@ -29,13 +29,8 @@ struct AccountsListView: View {
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
-                Picker("Segment", selection: $selectedSegment) {
-                    ForEach(AccountSegment.allCases, id: \.self) { segment in
-                        Text(segment.rawValue).tag(segment)
-                    }
-                }
-                .pickerStyle(.segmented)
-                .padding()
+                GlassSegmentedControl(options: AccountSegment.allCases, selection: $selectedSegment) { $0.rawValue }
+                    .padding()
 
                 List {
                     if filteredAccounts.isEmpty {
@@ -48,13 +43,17 @@ struct AccountsListView: View {
                     }
                 }
                 .listStyle(.insetGrouped)
+                .scrollContentBackground(.hidden)
             }
+            .groupedScreenBackground()
             .navigationTitle("Accounts")
             .toolbar {
                 ToolbarItem {
                     Button(action: { showCreateSheet = true }) {
-                        Label("Add Account", systemImage: "plus")
+                        Image(systemName: "plus")
                     }
+                    .tint(.primary)
+                    .accessibilityLabel("Add Account")
                 }
             }
             .sheet(isPresented: $showCreateSheet) {

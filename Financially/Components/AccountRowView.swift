@@ -36,6 +36,7 @@ struct AccountRowView: View {
 
             Text(displayBalance.formattedCurrency(currency: account.currency))
                 .font(.headline)
+                .tabularNumbers()
                 .fixedSize(horizontal: true, vertical: false)
         }
         .opacity(account.isActive ? 1 : 0.5)

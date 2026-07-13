@@ -1,16 +1,16 @@
 import SwiftUI
 
 extension Color {
-    static let incomeGreen = Color.green
-    static let expenseRed = Color.red
+    static let incomeGreen = Color.gain
+    static let expenseRed = Color.loss
 
-    static let netWorthAccent = Color.blue
-    static let assetsAccent = Color.green
+    static let netWorthAccent = Color.brandTint
+    static let assetsAccent = Color.gain
     static let liabilitiesAccent = Color.orange
     static let receivablesAccent = Color.purple
 
-    static let accountBank = Color.blue
-    static let accountCash = Color.green
+    static let accountBank = Color.brandTint
+    static let accountCash = Color.gain
     static let accountPSX = Color.indigo
 }
 

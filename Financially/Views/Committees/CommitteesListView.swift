@@ -24,13 +24,8 @@ struct CommitteesListView: View {
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
-                Picker("Segment", selection: $selectedSegment) {
-                    ForEach(CommitteeSegment.allCases, id: \.self) { segment in
-                        Text(segment.rawValue).tag(segment)
-                    }
-                }
-                .pickerStyle(.segmented)
-                .padding()
+                GlassSegmentedControl(options: CommitteeSegment.allCases, selection: $selectedSegment) { $0.rawValue }
+                    .padding()
 
                 List {
                     if filteredCommittees.isEmpty {
@@ -44,7 +39,9 @@ struct CommitteesListView: View {
                     }
                 }
                 .listStyle(.insetGrouped)
+                .scrollContentBackground(.hidden)
             }
+            .groupedScreenBackground()
             .navigationTitle("Committees")
             .toolbar {
                 ToolbarItem(placement: .primaryAction) {
@@ -53,6 +50,7 @@ struct CommitteesListView: View {
                     } label: {
                         Image(systemName: "plus")
                     }
+                    .tint(.primary)
                 }
             }
             .sheet(isPresented: $showCreate) {
@@ -62,26 +60,35 @@ struct CommitteesListView: View {
     }
 
     private func committeeRow(_ committee: Committee) -> some View {
-        VStack(alignment: .leading, spacing: 4) {
-            HStack {
+        HStack(spacing: 12) {
+            Image(systemName: "person.3.fill")
+                .font(.title3)
+                .foregroundStyle(.teal)
+                .frame(width: 40, height: 40)
+
+            VStack(alignment: .leading, spacing: 2) {
                 Text(committee.name)
-                    .font(.subheadline.bold())
-                Spacer()
-                Text("PKR \(committee.monthlyAmount.formatted())")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
-            HStack {
+                    .font(.headline)
+                    .lineLimit(1)
                 Text("\(committee.monthsCompleted)/\(committee.totalMembers) months")
                     .font(.caption)
                     .foregroundStyle(.secondary)
-                Spacer()
+            }
+
+            Spacer()
+
+            VStack(alignment: .trailing, spacing: 2) {
+                Text(committee.monthlyAmount.formattedCurrency())
+                    .font(.headline)
+                    .tabularNumbers()
+                    .fixedSize(horizontal: true, vertical: false)
                 Text(committee.totalContributed.formattedCurrency())
                     .font(.caption)
+                    .tabularNumbers()
                     .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: true, vertical: false)
             }
         }
-        .padding(.vertical, 2)
     }
 
     private var emptyState: some View {

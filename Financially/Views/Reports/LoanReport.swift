@@ -61,7 +61,9 @@ struct LoanReport: View {
                         ContentUnavailableView("No Debtors", systemImage: "person.fill.questionmark", description: Text("No loans recorded yet"))
                     }
                 }
+                .scrollContentBackground(.hidden)
             }
+            .groupedScreenBackground()
             .navigationTitle("Loan Report")
         }
     }

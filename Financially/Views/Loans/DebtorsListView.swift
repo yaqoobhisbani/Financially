@@ -43,12 +43,15 @@ struct DebtorsListView: View {
                 }
             }
         }
+        .scrollContentBackground(.hidden)
         .navigationTitle("Debtors")
         .toolbar {
             ToolbarItem {
                 Button(action: { showCreate = true }) {
-                    Label("Add Debtor", systemImage: "plus")
+                    Image(systemName: "plus")
                 }
+                .tint(.primary)
+                .accessibilityLabel("Add Debtor")
             }
         }
         .sheet(isPresented: $showCreate) {

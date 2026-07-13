@@ -42,12 +42,15 @@ struct CommodityStatementView: View {
                     }
                 }
                 .listStyle(.insetGrouped)
+                .scrollContentBackground(.hidden)
             }
+            .groupedScreenBackground()
             .navigationTitle("Commodity Statement")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Done") { dismiss() }
+                        .tint(.primary)
                 }
             }
             .sheet(item: $selectedTransaction) { tx in

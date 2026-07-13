@@ -6,8 +6,14 @@ struct FormErrorSection: View {
     var body: some View {
         if let message {
             Section {
-                Text(message)
-                    .foregroundStyle(.red)
+                Label {
+                    Text(message)
+                        .font(.subheadline)
+                } icon: {
+                    Image(systemName: "exclamationmark.triangle.fill")
+                }
+                .foregroundStyle(.loss)
+                .listRowBackground(Color.loss.opacity(0.12))
             }
         }
     }

@@ -108,6 +108,44 @@ struct DashboardViewModelTests {
         #expect(slices.map(\.label) == ["Cash", "Banks"]) // descending by value, PSX/Commodity/etc omitted (zero)
     }
 
+    @Test func totalUnrealizedPLAggregatesAcrossPortfolio() {
+        let context = TestSupport.makeContext()
+        let psx = TestSupport.makeAccount(in: context, name: "PSX", type: .psx)
+        psx.investedAmount = 300
+        psx.totalProfitLoss = 50
+        let gold = CommodityHolding(commodityName: "Gold", symbol: "XAU", totalGrams: 10, totalCost: 1000, currentPricePerGram: 120)
+        context.insert(gold) // currentValue 1200, unrealizedPAndL 200
+        let vm = DashboardViewModel(modelContext: context)
+
+        #expect(vm.totalUnrealizedPL == 250) // 50 (PSX) + 200 (gold)
+        // cost basis = investedAmount(300) + totalCost(1000) = 1300
+        #expect(vm.totalReturnPercentage == (Decimal(250) / Decimal(1300)) * 100)
+    }
+
+    @Test func totalReturnPercentageIsZeroWithoutCostBasis() {
+        let context = TestSupport.makeContext()
+        TestSupport.makeAccount(in: context, name: "Bank", type: .bank, initialBalance: 1000)
+        let vm = DashboardViewModel(modelContext: context)
+
+        #expect(vm.totalUnrealizedPL == 0)
+        #expect(vm.totalReturnPercentage == 0)
+    }
+
+    @Test func incomeByCategoryGroupsAndRelabelsInflows() {
+        let context = TestSupport.makeContext()
+        let now = Date()
+        context.insert(Transaction(type: .income, amount: 1000, date: now, category: "Salary"))
+        context.insert(Transaction(type: .income, amount: 200, date: now, category: "Salary"))
+        context.insert(Transaction(type: .commoditySell, amount: 500, date: now))
+        let vm = DashboardViewModel(modelContext: context)
+
+        let breakdown = vm.incomeByCategory
+        #expect(breakdown.count == 2)
+        #expect(breakdown.first?.category == "Salary") // 1200, sorted descending
+        #expect(breakdown.first?.total == 1200)
+        #expect(breakdown.contains { $0.category == "Commodity" && $0.total == 500 })
+    }
+
     @Test func psxProfitLossIsCurrentValueMinusTotalCostAcrossHoldings() {
         let context = TestSupport.makeContext()
         let account = TestSupport.makeAccount(in: context, name: "PSX", type: .psx)

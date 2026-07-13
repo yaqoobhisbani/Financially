@@ -3,12 +3,17 @@ import SwiftData
 
 struct DashboardView: View {
     @Environment(\.modelContext) private var modelContext
+    @Environment(\.colorScheme) private var colorScheme
+    @Environment(ThemeManager.self) private var themeManager
 
     @State private var vm: DashboardViewModel?
-    @State private var showExpense = false
-    @State private var showIncome = false
-    @State private var showTransfer = false
-    @State private var scrollOffset: CGFloat = 0
+    @State private var showSearch = false
+    @State private var showAllTransactions = false
+    @State private var showInvestments = false
+    @State private var showDebtors = false
+    @State private var showCreditors = false
+    @State private var showCommittees = false
+    @State private var isScrolledPastHero = false
 
     var body: some View {
         NavigationStack {
@@ -19,68 +24,19 @@ struct DashboardView: View {
         .onAppear {
             vm = DashboardViewModel(modelContext: modelContext)
         }
-        .sheet(isPresented: $showExpense) { AddExpenseView() }
-        .sheet(isPresented: $showIncome) { AddIncomeView() }
-        .sheet(isPresented: $showTransfer) { TransferView() }
+        .sheet(isPresented: $showSearch) {
+            GlobalSearchView()
+        }
     }
 
     private func content(_ vm: DashboardViewModel) -> some View {
-        GeometryReader { geo in
-            let heroHeight = geo.size.height * 0.55
-            ZStack(alignment: .top) {
-                Color(.systemGroupedBackground)
-                    .ignoresSafeArea()
-
-                LinearGradient(
-                    colors: [Color(hex: "#2563EB") ?? .blue, Color(hex: "#1D4ED8") ?? Color(red: 0.11, green: 0.31, blue: 0.85)],
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                )
-                .frame(height: heroHeight)
+        ZStack(alignment: .top) {
+            Color(.systemGroupedBackground)
                 .ignoresSafeArea()
 
-                ScrollView {
-                    LazyVStack(spacing: 16) {
-                        DashboardHeaderView(vm: vm)
-                            .padding(.horizontal, -16)
+            HeroBackgroundView(theme: themeManager.theme, pattern: themeManager.pattern)
 
-                        if vm.hasNoData { emptyDashboardCard }
-
-                        if vm.monthlyIncome > 0 || vm.monthlyExpense > 0 {
-                            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
-                                SummaryCard(
-                                    title: "Monthly Income",
-                                    amount: vm.monthlyIncome,
-                                    icon: "arrow.down.circle.fill",
-                                    color: .incomeGreen
-                                )
-                                SummaryCard(
-                                    title: "Monthly Expense",
-                                    amount: vm.monthlyExpense,
-                                    icon: "arrow.up.circle.fill",
-                                    color: .expenseRed
-                                )
-                            }
-                        }
-
-                        if vm.monthlyIncome > 0 || vm.monthlyExpense > 0 { incomeVsExpenseWidget(vm) }
-                        if vm.monthlyExpense > 0 { expenseChartWidget(vm) }
-                        if !vm.assetAllocation.isEmpty { AllocationPieChart(slices: vm.assetAllocation) }
-                        if vm.activeLoanCount > 0 || vm.activeLiabilityCount > 0 || vm.activeCommitteeCount > 0 { activeLoansWidget(vm) }
-                        if !vm.recentTransactions.isEmpty { recentTransactionsSection(vm) }
-                    }
-                    .padding(.horizontal)
-                    .padding(.bottom)
-                    .frame(minHeight: geo.size.height, alignment: .top)
-                    .background(GeometryReader { proxy in
-                        Color.clear
-                            .preference(key: ScrollOffsetKey.self, value: proxy.frame(in: .named("scroll")).minY)
-                    })
-                }
-                .scrollClipDisabled(true)
-                .coordinateSpace(name: "scroll")
-                .onPreferenceChange(ScrollOffsetKey.self) { scrollOffset = $0 }
-            }
+            scrollBody(vm)
         }
         .navigationBarTitleDisplayMode(.inline)
         .toolbarBackground(.hidden, for: .navigationBar)
@@ -88,19 +44,106 @@ struct DashboardView: View {
             ToolbarItem(placement: .principal) {
                 Text("Dashboard")
                     .font(.headline)
-                    .foregroundStyle(scrollOffset > -60 ? .white : .primary)
-                    .animation(.easeInOut(duration: 0.2), value: scrollOffset)
+                    .foregroundStyle(isScrolledPastHero ? Color.primary : heroForeground)
+                    .animation(.easeInOut(duration: 0.2), value: isScrolledPastHero)
             }
             ToolbarItem(placement: .primaryAction) {
-                Menu {
-                    Button("Expense", systemImage: "cart.fill") { showExpense = true }
-                    Button("Income", systemImage: "dollarsign.circle.fill") { showIncome = true }
-                    Button("Transfer", systemImage: "arrow.left.arrow.right") { showTransfer = true }
-                } label: {
-                    Image(systemName: "plus")
-                        .font(.title3)
+                Button(action: { showSearch = true }) {
+                    Image(systemName: "magnifyingglass")
                 }
+                .tint(.primary)
+                .accessibilityLabel("Search")
             }
+        }
+    }
+
+    /// Text/icon color for content sitting on the hero gradient, from the active theme.
+    private var heroForeground: Color {
+        themeManager.theme.foreground(for: colorScheme)
+    }
+
+    /// A lightweight grouping header for the dashboard stack — an uppercased caption
+    /// with optional trailing context (a month label) or a "View All" action.
+    private func sectionHeader(_ title: String, trailing: String? = nil,
+                               viewAll: (() -> Void)? = nil) -> some View {
+        HStack {
+            Text(title.uppercased())
+                .font(.caption.weight(.medium))
+                .foregroundStyle(.secondary)
+            Spacer()
+            if let trailing {
+                Text(trailing)
+                    .font(.caption.weight(.medium))
+                    .foregroundStyle(.secondary)
+            }
+            if let viewAll {
+                Button("View All", action: viewAll)
+                    .font(.caption)
+            }
+        }
+        .padding(.top, DesignSpacing.sm)
+    }
+
+    private func scrollBody(_ vm: DashboardViewModel) -> some View {
+        ScrollView {
+            LazyVStack(spacing: DesignSpacing.lg) {
+                DashboardHeaderView(vm: vm, foreground: heroForeground)
+
+                VStack(spacing: DesignSpacing.lg) {
+                    if vm.hasNoData { emptyDashboardCard }
+
+                    // This Month — cash-flow analytics for the current month
+                    if vm.monthlyIncome > 0 || vm.monthlyExpense > 0 {
+                        sectionHeader("This Month", trailing: Date().monthYear())
+                        LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
+                            SummaryCard(
+                                title: "Income",
+                                amount: vm.monthlyIncome,
+                                icon: "arrow.down.circle.fill",
+                                color: .gain,
+                                valueColored: true,
+                                sparkline: vm.incomeSeries
+                            )
+                            SummaryCard(
+                                title: "Expense",
+                                amount: vm.monthlyExpense,
+                                icon: "arrow.up.circle.fill",
+                                color: .loss,
+                                valueColored: true,
+                                sparkline: vm.expenseSeries
+                            )
+                        }
+                        incomeVsExpenseWidget(vm)
+                        expenseChartWidget(vm)
+                    }
+
+                    // Investments — holdings and asset allocation
+                    if !vm.topHoldings.isEmpty || !vm.assetAllocation.isEmpty {
+                        sectionHeader("Investments")
+                        if !vm.topHoldings.isEmpty { holdingsWidget(vm) }
+                        if !vm.assetAllocation.isEmpty { AllocationPieChart(slices: vm.assetAllocation) }
+                    }
+
+                    // Commitments — loans, liabilities, committees
+                    if vm.activeLoanCount > 0 || vm.activeLiabilityCount > 0 || vm.activeCommitteeCount > 0 {
+                        sectionHeader("Commitments")
+                        activeLoansWidget(vm)
+                    }
+
+                    // Recent activity
+                    if !vm.recentTransactions.isEmpty {
+                        recentTransactionsSection(vm)
+                    }
+                }
+                .padding(.horizontal)
+                .padding(.bottom)
+            }
+        }
+        .scrollClipDisabled()
+        .onScrollGeometryChange(for: Bool.self) { geometry in
+            geometry.contentOffset.y > 60
+        } action: { _, newValue in
+            isScrolledPastHero = newValue
         }
     }
 
@@ -121,13 +164,105 @@ struct DashboardView: View {
         .frame(maxWidth: .infinity)
         .padding(.vertical, 40)
         .padding(.horizontal, 24)
-        .liquidGlassCard()
+        .dashboardCard()
+    }
+
+    // MARK: - Holdings
+
+    private func holdingsWidget(_ vm: DashboardViewModel) -> some View {
+        let pl = vm.totalUnrealizedPL
+        let plPercent = vm.totalReturnPercentage
+        return VStack(spacing: 0) {
+            HStack {
+                Text("Holdings")
+                    .font(.headline)
+                Spacer()
+                if pl != 0 {
+                    HStack(spacing: 4) {
+                        Text("\(pl >= 0 ? "+" : "-")\(abs(pl).formattedCurrency())")
+                        Text("· \(plPercent >= 0 ? "+" : "")\(plPercent.formatted(.number.precision(.fractionLength(1))))%")
+                    }
+                    .font(.caption.weight(.semibold))
+                    .tabularNumbers()
+                    .foregroundStyle(pl >= 0 ? .gain : .loss)
+                }
+                Image(systemName: "chevron.right")
+                    .font(.caption2.weight(.semibold))
+                    .foregroundStyle(.tertiary)
+            }
+            .padding(.horizontal)
+            .padding(.top, 12)
+            .padding(.bottom, 8)
+
+            ForEach(Array(vm.topHoldings.enumerated()), id: \.element.id) { index, holding in
+                holdingRow(holding)
+                    .padding(.horizontal)
+                    .padding(.vertical, 8)
+                if index != vm.topHoldings.count - 1 {
+                    Divider().padding(.leading, 64)
+                }
+            }
+            .padding(.bottom, 4)
+        }
+        .dashboardCard()
+        .contentShape(Rectangle())
+        .onTapGesture { showInvestments = true }
+        .sheet(isPresented: $showInvestments) {
+            NavigationStack { InvestmentsListView(initialSegment: .psx) }
+        }
+    }
+
+    private func holdingRow(_ holding: DashboardViewModel.HoldingRow) -> some View {
+        let style = holdingStyle(holding.kind)
+        return HStack(spacing: 12) {
+            Image(systemName: style.icon)
+                .font(.subheadline)
+                .foregroundStyle(style.tint)
+                .frame(width: 40, height: 40)
+                .background(style.tint.opacity(0.15), in: RoundedRectangle(cornerRadius: DesignRadius.control, style: .continuous))
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text(holding.name)
+                    .font(.subheadline.weight(.medium))
+                    .lineLimit(1)
+                Text(holding.subtitle)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+            }
+
+            Spacer()
+
+            VStack(alignment: .trailing, spacing: 2) {
+                Text(holding.value.formattedCurrency())
+                    .font(.subheadline.weight(.semibold))
+                    .tabularNumbers()
+                    .lineLimit(1)
+                Text("\(holding.changePercent >= 0 ? "+" : "")\(holding.changePercent.formatted(.number.precision(.fractionLength(1))))%")
+                    .font(.caption)
+                    .tabularNumbers()
+                    .foregroundStyle(holding.changePercent >= 0 ? .gain : .loss)
+            }
+        }
+    }
+
+    private func holdingStyle(_ kind: DashboardViewModel.HoldingKind) -> (icon: String, tint: Color) {
+        switch kind {
+        case .stock: return ("chart.bar.fill", .indigo)
+        case .commodity: return ("diamond.fill", .orange)
+        case .mutualFund: return ("chart.pie.fill", .teal)
+        }
     }
 
     // MARK: - Expense Chart
 
     private func expenseChartWidget(_ vm: DashboardViewModel) -> some View {
-        ExpenseChartWidget(expenseByCategory: vm.expenseByCategory, totalExpense: vm.monthlyExpense)
+        ExpenseChartWidget(
+            expenseByCategory: vm.expenseByCategory,
+            totalExpense: vm.monthlyExpense,
+            incomeByCategory: vm.incomeByCategory,
+            totalIncome: vm.monthlyIncome
+        )
     }
 
     // MARK: - Income vs Expense
@@ -140,86 +275,89 @@ struct DashboardView: View {
             BarChartView(data: vm.lastSixMonths)
         }
         .padding()
-        .liquidGlassCard()
+        .dashboardCard()
     }
 
     // MARK: - Active Loans / Liabilities
 
     private func activeLoansWidget(_ vm: DashboardViewModel) -> some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("Commitments")
-                .font(.headline)
-                .foregroundStyle(scrollOffset > -200 ? .white : .primary)
-                .animation(.easeInOut(duration: 0.15), value: scrollOffset)
-
             HStack(spacing: 12) {
                 activeWidget(
                     title: "Active Loans",
                     count: vm.activeLoanCount,
                     total: vm.activeLoanTotal,
                     icon: "arrow.left.arrow.right",
-                    color: .blue
+                    color: themeManager.theme.accent,
+                    action: { showDebtors = true }
                 )
                 activeWidget(
                     title: "Liabilities Held",
                     count: vm.activeLiabilityCount,
                     total: vm.activeLiabilityTotal,
                     icon: "arrow.right.circle",
-                    color: .orange
+                    color: .orange,
+                    action: { showCreditors = true }
                 )
                 activeWidget(
                     title: "Active Committees",
                     count: vm.activeCommitteeCount,
                     total: vm.totalCommitteeReceivable,
                     icon: "person.3.fill",
-                    color: .teal
+                    color: .teal,
+                    action: { showCommittees = true }
                 )
             }
         }
+        .sheet(isPresented: $showDebtors) {
+            NavigationStack { LoansListView(initialSegment: .debtors) }
+        }
+        .sheet(isPresented: $showCreditors) {
+            NavigationStack { LoansListView(initialSegment: .creditors) }
+        }
+        .sheet(isPresented: $showCommittees) {
+            NavigationStack { CommitteesListView() }
+        }
     }
 
-    private func activeWidget(title: String, count: Int, total: Decimal, icon: String, color: Color) -> some View {
-        VStack(alignment: .leading, spacing: 6) {
-            HStack(spacing: 4) {
-                Image(systemName: icon)
+    private func activeWidget(title: String, count: Int, total: Decimal, icon: String, color: Color, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            VStack(alignment: .leading, spacing: 6) {
+                HStack(spacing: 4) {
+                    Image(systemName: icon)
+                        .font(.caption)
+                        .foregroundStyle(color)
+                        .fixedSize()
+                    Text(title)
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.7)
+                }
+                Text("\(count)")
+                    .font(.title2.bold())
+                    .tabularNumbers()
+                    .lineLimit(1)
+                Text(total.formattedCurrency())
                     .font(.caption)
-                    .foregroundStyle(color)
-                    .fixedSize()
-                Text(title)
-                    .font(.caption2)
+                    .tabularNumbers()
                     .foregroundStyle(.secondary)
                     .lineLimit(1)
-                    .minimumScaleFactor(0.7)
+                    .minimumScaleFactor(0.6)
             }
-            Text("\(count)")
-                .font(.title2.bold())
-                .lineLimit(1)
-            Text(total.formattedCurrency())
-                .font(.caption)
-                .foregroundStyle(.secondary)
-                .lineLimit(1)
-                .minimumScaleFactor(0.6)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(12)
+            .dashboardCard()
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(12)
-        .liquidGlassCard()
+        .buttonStyle(.plain)
     }
 
     // MARK: - Recent Transactions
-
-    @State private var showAllTransactions = false
 
     private func recentTransactionsSection(_ vm: DashboardViewModel) -> some View {
         RecentTransactionsView(transactions: vm.recentTransactions, onViewAll: { showAllTransactions = true })
             .sheet(isPresented: $showAllTransactions) {
                 NavigationStack { TransactionHistoryReport() }
             }
-    }
-}
-
-struct ScrollOffsetKey: PreferenceKey {
-    static var defaultValue: CGFloat = 0
-    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
-        value = nextValue()
     }
 }

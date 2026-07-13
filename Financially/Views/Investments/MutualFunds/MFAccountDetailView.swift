@@ -43,6 +43,7 @@ struct MFAccountDetailView: View {
                 } label: {
                     Image(systemName: "ellipsis.circle")
                 }
+                .tint(.primary)
             }
         }
         .sheet(isPresented: $showInvest) { InvestView(account: account) }

@@ -8,7 +8,7 @@ struct InvestmentsListView: View {
     @Query private var allMFHoldings: [MutualFundHolding]
     @Query private var allTransactions: [Transaction]
 
-    @State private var selectedSegment: InvestmentSegment = .mutualFunds
+    @State private var selectedSegment: InvestmentSegment
     @State private var showCreatePSX = false
     @State private var showBuyCommodity = false
     @State private var showSellCommodity = false
@@ -16,10 +16,14 @@ struct InvestmentsListView: View {
     @State private var selectedTransaction: Transaction?
     @State private var showCommodityStatement = false
 
-    private enum InvestmentSegment: String, CaseIterable {
+    enum InvestmentSegment: String, CaseIterable {
         case mutualFunds = "Mutual Funds"
         case psx = "PSX"
         case commodities = "Commodities"
+    }
+
+    init(initialSegment: InvestmentSegment = .mutualFunds) {
+        _selectedSegment = State(initialValue: initialSegment)
     }
 
     private var psxAccounts: [Account] {
@@ -54,13 +58,8 @@ struct InvestmentsListView: View {
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
-                Picker("Segment", selection: $selectedSegment) {
-                    ForEach(InvestmentSegment.allCases, id: \.self) { segment in
-                        Text(segment.rawValue).tag(segment)
-                    }
-                }
-                .pickerStyle(.segmented)
-                .padding()
+                GlassSegmentedControl(options: InvestmentSegment.allCases, selection: $selectedSegment) { $0.rawValue }
+                    .padding()
 
                 switch selectedSegment {
                 case .mutualFunds:
@@ -71,9 +70,20 @@ struct InvestmentsListView: View {
                     commoditiesSection
                 }
             }
+            .groupedScreenBackground()
             .navigationTitle("Investments")
             .toolbar {
-                ToolbarItem {
+                if selectedSegment == .commodities {
+                    ToolbarItem(placement: .primaryAction) {
+                        Button(action: { showCommodityStatement = true }) {
+                            Image(systemName: "doc.text")
+                        }
+                        .tint(.primary)
+                        .accessibilityLabel("View Statement")
+                    }
+                    ToolbarSpacer(.fixed, placement: .primaryAction)
+                }
+                ToolbarItem(placement: .primaryAction) {
                     Button(action: {
                         switch selectedSegment {
                         case .mutualFunds: showCreateMF = true
@@ -81,15 +91,10 @@ struct InvestmentsListView: View {
                         case .commodities: showBuyCommodity = true
                         }
                     }) {
-                        Label("Add", systemImage: "plus")
+                        Image(systemName: "plus")
                     }
-                }
-                ToolbarItem(placement: .primaryAction) {
-                    if selectedSegment == .commodities {
-                        Button(action: { showCommodityStatement = true }) {
-                            Label("View Statement", systemImage: "doc.text")
-                        }
-                    }
+                    .tint(.primary)
+                    .accessibilityLabel("Add")
                 }
             }
             .sheet(isPresented: $showCreatePSX) {
@@ -127,6 +132,7 @@ struct InvestmentsListView: View {
             }
         }
         .listStyle(.insetGrouped)
+        .scrollContentBackground(.hidden)
     }
 
     // MARK: - Commodities Section
@@ -157,6 +163,7 @@ struct InvestmentsListView: View {
             commodityTransactionsSection
         }
         .listStyle(.insetGrouped)
+        .scrollContentBackground(.hidden)
         .sheet(isPresented: $showBuyCommodity) { BuyCommodityView() }
         .sheet(isPresented: $showSellCommodity) { SellCommodityView() }
         .sheet(item: $selectedTransaction) { tx in
@@ -188,6 +195,7 @@ struct InvestmentsListView: View {
             }
         }
         .listStyle(.insetGrouped)
+        .scrollContentBackground(.hidden)
     }
 
     private var commodityTransactionsSection: some View {
@@ -294,10 +302,12 @@ struct PSXAccountRowView: View {
                 let totalValue = account.currentBalance + psxPortfolioValue
                 Text(totalValue.formattedCurrency(currency: account.currency))
                     .font(.headline)
+                    .tabularNumbers()
                     .fixedSize(horizontal: true, vertical: false)
                 Text(psxProfitLoss.formattedCurrency(currency: account.currency))
                     .font(.caption)
-                    .foregroundStyle(psxProfitLoss >= 0 ? .incomeGreen : .expenseRed)
+                    .tabularNumbers()
+                    .foregroundStyle(psxProfitLoss >= 0 ? .gain : .loss)
                     .fixedSize(horizontal: true, vertical: false)
             }
         }
@@ -347,10 +357,12 @@ struct MFAccountRowView: View {
             VStack(alignment: .trailing, spacing: 2) {
                 Text(portfolioValue.formattedCurrency())
                     .font(.headline)
+                    .tabularNumbers()
                     .fixedSize(horizontal: true, vertical: false)
                 Text(profitLoss.formattedCurrency())
                     .font(.caption)
-                    .foregroundStyle(profitLoss >= 0 ? .incomeGreen : .expenseRed)
+                    .tabularNumbers()
+                    .foregroundStyle(profitLoss >= 0 ? .gain : .loss)
                     .fixedSize(horizontal: true, vertical: false)
             }
         }
@@ -381,11 +393,13 @@ struct CommodityRowView: View {
             VStack(alignment: .trailing, spacing: 2) {
                 Text(holding.currentValue.formattedCurrency())
                     .font(.headline)
+                    .tabularNumbers()
                     .lineLimit(1)
                     .fixedSize(horizontal: true, vertical: false)
                 Text(holding.unrealizedPAndL.formattedCurrency())
                     .font(.caption)
-                    .foregroundStyle(holding.unrealizedPAndL >= 0 ? .incomeGreen : .expenseRed)
+                    .tabularNumbers()
+                    .foregroundStyle(holding.unrealizedPAndL >= 0 ? .gain : .loss)
                     .lineLimit(1)
                     .fixedSize(horizontal: true, vertical: false)
             }

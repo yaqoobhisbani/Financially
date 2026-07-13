@@ -33,7 +33,9 @@ struct TransactionHistoryReport: View {
                     TransactionRowView(transaction: tx, showIcon: false)
                 }
             }
+            .scrollContentBackground(.hidden)
         }
+        .groupedScreenBackground()
         .navigationTitle("Transaction History")
         .onAppear {
             vm = TransactionHistoryReportViewModel(modelContext: modelContext)

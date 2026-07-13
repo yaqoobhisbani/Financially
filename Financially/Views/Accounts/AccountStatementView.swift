@@ -52,12 +52,15 @@ struct AccountStatementView: View {
                     }
                 }
                 .listStyle(.insetGrouped)
+                .scrollContentBackground(.hidden)
             }
+            .groupedScreenBackground()
             .navigationTitle("Statement")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Done") { dismiss() }
+                        .tint(.primary)
                 }
             }
             .sheet(item: $selectedTransaction) { tx in

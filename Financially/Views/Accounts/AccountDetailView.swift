@@ -51,6 +51,7 @@ struct BankCashAccountDetailView: View {
                 } label: {
                     Image(systemName: "ellipsis.circle")
                 }
+                .tint(.primary)
             }
         }
         .sheet(isPresented: $showStatement) {

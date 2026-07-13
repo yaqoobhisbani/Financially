@@ -43,6 +43,123 @@ final class DashboardViewModel {
         expenseThisMonth
     }
 
+    /// Net cash flow this month (income minus expense) — the hero's "this month" delta.
+    var netFlowThisMonth: Decimal {
+        monthlyIncome - monthlyExpense
+    }
+
+    /// This month's net cash flow as a percentage of net worth — the "· ±x%" figure
+    /// beside the hero. Shares the same base (`netWorth`) as the hero number so the
+    /// percentage reads as "this month's flow relative to total net worth."
+    var netFlowPercentage: Decimal {
+        guard netWorth > 0 else { return 0 }
+        return (netFlowThisMonth / netWorth) * 100
+    }
+
+    /// Six-month income / expense series driving the summary-card sparklines.
+    var incomeSeries: [Decimal] { lastSixMonths.map(\.income) }
+    var expenseSeries: [Decimal] { lastSixMonths.map(\.expense) }
+
+    /// Six monthly net-worth values (oldest → newest) for the hero trend sparkline.
+    /// Reuses `NetWorthViewModel`'s historical reconstruction (ledger running
+    /// balances + loan/liability transactions). Note: investment/commodity holdings
+    /// are valued at their *current* price for every month, so the trend is an
+    /// approximation of past net worth, accurate for cash/account movement.
+    var netWorthTrend: [Decimal] {
+        let calendar = Calendar.current
+        let now = Date()
+        guard let thisMonth = calendar.date(from: calendar.dateComponents([.year, .month], from: now)),
+              let start = calendar.date(byAdding: .month, value: -5, to: thisMonth) else { return [] }
+        return NetWorthViewModel(modelContext: modelContext)
+            .dataPoints(from: start, to: now)
+            .map(\.netWorth)
+    }
+
+    // MARK: - Portfolio Gain / Loss
+
+    /// Total unrealized profit/loss across the whole portfolio — PSX brokerage
+    /// accounts, commodity holdings, and mutual-fund holdings — matching the set
+    /// summed by `totalInvested`.
+    var totalUnrealizedPL: Decimal {
+        let psxPL = accounts.filter { $0.accountType == .psx }
+            .reduce(0) { $0 + $1.totalProfitLoss }
+        let commodityPL = allCommodityHoldings.filter { $0.totalGrams > 0 }
+            .reduce(0) { $0 + $1.unrealizedPAndL }
+        let mfPL = allMFHoldings.filter { $0.totalUnits > 0 }
+            .reduce(0) { $0 + $1.unrealizedPAndL }
+        return psxPL + commodityPL + mfPL
+    }
+
+    /// `totalUnrealizedPL` as a percentage of invested cost basis.
+    var totalReturnPercentage: Decimal {
+        let psxCost = accounts.filter { $0.accountType == .psx }
+            .reduce(0) { $0 + $1.investedAmount }
+        let commodityCost = allCommodityHoldings.filter { $0.totalGrams > 0 }
+            .reduce(0) { $0 + $1.totalCost }
+        let mfCost = allMFHoldings.filter { $0.totalUnits > 0 }
+            .reduce(0) { $0 + $1.totalCost }
+        let costBasis = psxCost + commodityCost + mfCost
+        guard costBasis > 0 else { return 0 }
+        return (totalUnrealizedPL / costBasis) * 100
+    }
+
+    // MARK: - Top Holdings
+
+    enum HoldingKind {
+        case stock, commodity, mutualFund
+    }
+
+    struct HoldingRow: Identifiable {
+        let id = UUID()
+        let name: String
+        let subtitle: String
+        let value: Decimal
+        let changePercent: Decimal
+        let kind: HoldingKind
+    }
+
+    /// The highest-value investment holdings across PSX, commodities, and mutual funds.
+    var topHoldings: [HoldingRow] {
+        var rows: [HoldingRow] = []
+
+        for holding in allHoldings where holding.totalShares > 0 {
+            rows.append(HoldingRow(
+                name: holding.companyName,
+                subtitle: "\(holding.ticker) · \(holding.totalShares) shares",
+                value: holding.currentValue,
+                changePercent: changePercent(value: holding.currentValue, cost: holding.totalCost),
+                kind: .stock
+            ))
+        }
+
+        for holding in allCommodityHoldings where holding.totalGrams > 0 {
+            rows.append(HoldingRow(
+                name: holding.commodityName,
+                subtitle: "\(holding.totalGrams.formattedNumber()) g",
+                value: holding.currentValue,
+                changePercent: changePercent(value: holding.currentValue, cost: holding.totalCost),
+                kind: .commodity
+            ))
+        }
+
+        for holding in allMFHoldings where holding.totalUnits > 0 {
+            rows.append(HoldingRow(
+                name: holding.schemeName,
+                subtitle: holding.fundCode,
+                value: holding.currentValue,
+                changePercent: changePercent(value: holding.currentValue, cost: holding.totalCost),
+                kind: .mutualFund
+            ))
+        }
+
+        return rows.sorted { $0.value > $1.value }.prefix(4).map { $0 }
+    }
+
+    private func changePercent(value: Decimal, cost: Decimal) -> Decimal {
+        guard cost > 0 else { return 0 }
+        return ((value - cost) / cost) * 100
+    }
+
     // MARK: - Helpers
 
     private var allHoldings: [StockHolding] {
@@ -158,6 +275,23 @@ final class DashboardViewModel {
             .sorted { $0.total > $1.total }
     }
 
+    /// This month's income grouped by category, mirroring `expenseByCategory`.
+    /// Investment/committee inflows are relabeled to their source rather than the
+    /// underlying transaction category.
+    var incomeByCategory: [ExpenseBreakdown] {
+        let transactions = allTransactions.filter { $0.date.isInCurrentMonth && ($0.type == .income || $0.type == .committeePayout || $0.type == .commoditySell || $0.type == .mutualFundSell) }
+        let labeled = transactions.map { tx -> (label: String, amount: Decimal) in
+            if tx.type == .committeePayout { return ("Committee", tx.amount) }
+            if tx.type == .commoditySell { return ("Commodity", tx.amount) }
+            if tx.type == .mutualFundSell { return ("Mutual Fund", tx.amount) }
+            return (tx.category ?? "Other", tx.amount)
+        }
+        let grouped = Dictionary(grouping: labeled, by: \.label)
+        return grouped.map { ExpenseBreakdown(category: $0.key, total: $0.value.reduce(0) { $0 + $1.amount }) }
+            .filter { $0.total > 0 }
+            .sorted { $0.total > $1.total }
+    }
+
     struct MonthlyComparison: Identifiable {
         let id = UUID()
         let month: Date
@@ -179,7 +313,7 @@ final class DashboardViewModel {
     }
 
     var recentTransactions: [Transaction] {
-        allTransactions.sorted { $0.date > $1.date }.prefix(10).map { $0 }
+        allTransactions.sorted { $0.date > $1.date }.prefix(5).map { $0 }
     }
 
     var activeLoanCount: Int {

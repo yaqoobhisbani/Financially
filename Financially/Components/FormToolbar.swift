@@ -8,10 +8,15 @@ struct FormToolbar: ViewModifier {
     func body(content: Content) -> some View {
         content.toolbar {
             ToolbarItem(placement: .cancellationAction) {
-                Button("Cancel") { dismiss() }
+                Button(action: { dismiss() }) {
+                    Image(systemName: "xmark")
+                }
+                .tint(.primary)
+                .accessibilityLabel("Cancel")
             }
             ToolbarItem(placement: .confirmationAction) {
                 Button(label) { action() }
+                    .tint(.primary)
                     .disabled(isDisabled)
             }
         }

@@ -62,7 +62,9 @@ struct MarketRatesView: View {
                     commoditiesSection
                 }
             }
+            .scrollContentBackground(.hidden)
         }
+        .groupedScreenBackground()
         .navigationTitle("Market Rates")
         .toolbar {
             ToolbarItem(placement: .primaryAction) {

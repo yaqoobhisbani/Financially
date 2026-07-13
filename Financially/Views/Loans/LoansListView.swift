@@ -1,23 +1,22 @@
 import SwiftUI
 
 struct LoansListView: View {
-    @State private var selectedSegment: LoanSegment = .debtors
+    @State private var selectedSegment: LoanSegment
 
     enum LoanSegment: String, CaseIterable {
         case debtors = "Debtors"
         case creditors = "Creditors"
     }
 
+    init(initialSegment: LoanSegment = .debtors) {
+        _selectedSegment = State(initialValue: initialSegment)
+    }
+
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
-                Picker("Type", selection: $selectedSegment) {
-                    ForEach(LoanSegment.allCases, id: \.rawValue) { segment in
-                        Text(segment.rawValue).tag(segment)
-                    }
-                }
-                .pickerStyle(.segmented)
-                .padding()
+                GlassSegmentedControl(options: LoanSegment.allCases, selection: $selectedSegment) { $0.rawValue }
+                    .padding()
 
                 if selectedSegment == .debtors {
                     DebtorsListView()
@@ -25,6 +24,7 @@ struct LoansListView: View {
                     CreditorsListView()
                 }
             }
+            .groupedScreenBackground()
             .navigationTitle("Loans & Liabilities")
         }
     }

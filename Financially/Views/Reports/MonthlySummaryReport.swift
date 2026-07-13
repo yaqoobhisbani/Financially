@@ -73,7 +73,9 @@ struct MonthlySummaryReport: View {
                         }
                     }
                 }
+                .scrollContentBackground(.hidden)
             }
+            .groupedScreenBackground()
             .navigationTitle("Monthly Summary")
         }
         .onAppear {
