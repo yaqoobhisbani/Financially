@@ -17,6 +17,14 @@ notes — see [Releasing](README.md#releasing) for the full process.
 
 ### Fixed
 
+## [1.2.0] - 2026-07-13
+
+### Added
+- "Erase All Data" in Data settings — a factory reset that clears all data and restores the app to its fresh-install state (default categories are kept)
+
+### Fixed
+- Deleting an income transaction now correctly decreases the account balance
+
 ## [1.1.0] - 2026-07-13
 
 A ground-up "Liquid Glass" UI/UX revamp of the entire app.
