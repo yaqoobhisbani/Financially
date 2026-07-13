@@ -4,14 +4,12 @@ import SwiftData
 struct RecentTransactionsView: View {
     let transactions: [Transaction]
     let onViewAll: (() -> Void)?
-    var showsHeader: Bool = true
     @State private var selectedTransaction: Transaction?
 
     @Query private var allAccounts: [Account]
 
-    init(transactions: [Transaction], showsHeader: Bool = true, onViewAll: (() -> Void)? = nil) {
+    init(transactions: [Transaction], onViewAll: (() -> Void)? = nil) {
         self.transactions = transactions
-        self.showsHeader = showsHeader
         self.onViewAll = onViewAll
     }
 
@@ -21,19 +19,17 @@ struct RecentTransactionsView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            if showsHeader {
-                HStack {
-                    Text("Recent Transactions")
-                        .font(.headline)
-                    Spacer()
-                    if let onViewAll {
-                        Button("View All", action: onViewAll)
-                            .font(.subheadline)
-                    }
+            HStack {
+                Text("Recent Transactions")
+                    .font(.headline)
+                Spacer()
+                if let onViewAll {
+                    Button("View All", action: onViewAll)
+                        .font(.subheadline)
                 }
-                .padding(.horizontal)
-                .padding(.bottom, 8)
             }
+            .padding(.horizontal)
+            .padding(.bottom, 8)
 
             if transactions.isEmpty {
                 EmptyStateView(title: "No transactions yet", systemImage: "arrow.left.arrow.right")

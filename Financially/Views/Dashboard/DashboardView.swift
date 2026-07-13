@@ -132,7 +132,6 @@ struct DashboardView: View {
 
                     // Recent activity
                     if !vm.recentTransactions.isEmpty {
-                        sectionHeader("Recent", viewAll: { showAllTransactions = true })
                         recentTransactionsSection(vm)
                     }
                 }
@@ -356,7 +355,7 @@ struct DashboardView: View {
     // MARK: - Recent Transactions
 
     private func recentTransactionsSection(_ vm: DashboardViewModel) -> some View {
-        RecentTransactionsView(transactions: vm.recentTransactions, showsHeader: false)
+        RecentTransactionsView(transactions: vm.recentTransactions, onViewAll: { showAllTransactions = true })
             .sheet(isPresented: $showAllTransactions) {
                 NavigationStack { TransactionHistoryReport() }
             }
