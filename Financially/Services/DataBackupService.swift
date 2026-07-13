@@ -402,6 +402,16 @@ final class DataBackupService {
         try deleteAll(Transaction.self)
     }
 
+    /// Wipes every user record, then restores the default seed data (expense/income
+    /// categories and the Gold/Silver commodity infos) — leaving the SwiftData store
+    /// exactly as it is on a fresh install.
+    func factoryReset() throws {
+        try clearAll()
+        try modelContext.save()
+        SeedCategories.seedIfNeeded(modelContext: modelContext)
+        SeedCategories.seedCommoditiesIfNeeded(modelContext: modelContext)
+    }
+
     func importFrom(data: Data) throws -> Int {
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .iso8601

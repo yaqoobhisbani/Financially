@@ -8,6 +8,7 @@ struct DataManagementView: View {
     @State private var isImporting = false
     @State private var isWorking = false
     @State private var showConfirmation = false
+    @State private var showResetConfirmation = false
     @State private var importedData: Data?
     @State private var importedRecordCount = 0
     @State private var exportFile: URL?
@@ -68,6 +69,17 @@ struct DataManagementView: View {
                         .foregroundStyle(.secondary)
                 }
             }
+
+            Section {
+                Button(role: .destructive, action: { showResetConfirmation = true }) {
+                    Label("Erase All Data", systemImage: "trash")
+                }
+                .disabled(isWorking)
+            } header: {
+                Text("Reset")
+            } footer: {
+                Text("Permanently deletes all accounts, transactions, investments, loans, and committees, resetting the app to a fresh install. Default categories are kept. This cannot be undone.")
+            }
         }
         .navigationTitle("Export / Import")
         .fileImporter(isPresented: $isImporting, allowedContentTypes: [.json]) { result in
@@ -117,6 +129,14 @@ struct DataManagementView: View {
         } message: {
             Text("This will replace all existing data with \(importedRecordCount) records from the backup. This action cannot be undone.")
         }
+        .alert("Erase All Data", isPresented: $showResetConfirmation) {
+            Button("Cancel", role: .cancel) {}
+            Button("Erase Everything", role: .destructive) {
+                Task { await performReset() }
+            }
+        } message: {
+            Text("This permanently deletes all your data and resets the app like a fresh install. Default categories are kept. This cannot be undone.")
+        }
     }
 
     private func performExport() async {
@@ -157,6 +177,22 @@ struct DataManagementView: View {
 
         importedData = nil
         importedRecordCount = 0
+        isWorking = false
+    }
+
+    private func performReset() async {
+        isWorking = true
+        errorMessage = nil
+        successMessage = nil
+
+        do {
+            let service = DataBackupService(modelContext: modelContext)
+            try service.factoryReset()
+            successMessage = "All data erased. The app has been reset to its default state."
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+
         isWorking = false
     }
 
