@@ -52,7 +52,7 @@ struct AccountsListView: View {
                     Button(action: { showCreateSheet = true }) {
                         Image(systemName: "plus")
                     }
-                    .buttonStyle(.glass)
+                    .tint(.primary)
                     .accessibilityLabel("Add Account")
                 }
             }

@@ -50,7 +50,7 @@ struct CreditorsListView: View {
                 Button(action: { showCreate = true }) {
                     Image(systemName: "plus")
                 }
-                .buttonStyle(.glass)
+                .tint(.primary)
                 .accessibilityLabel("Add Creditor")
             }
         }

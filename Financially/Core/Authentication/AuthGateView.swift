@@ -62,7 +62,7 @@ struct AuthGateView<Content: View>: View {
                                     "Unlock with \(authManager.biometricType.displayName)",
                                     systemImage: authManager.biometricType.icon
                                 )
-                                .foregroundStyle(themeManager.theme.accent)
+                                .foregroundStyle(.white)
                                 .frame(maxWidth: .infinity)
                             }
                             .buttonStyle(.glass)

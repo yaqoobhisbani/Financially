@@ -11,12 +11,12 @@ struct FormToolbar: ViewModifier {
                 Button(action: { dismiss() }) {
                     Image(systemName: "xmark")
                 }
-                .buttonStyle(.glass)
+                .tint(.primary)
                 .accessibilityLabel("Cancel")
             }
             ToolbarItem(placement: .confirmationAction) {
                 Button(label) { action() }
-                    .buttonStyle(.glass)
+                    .tint(.primary)
                     .disabled(isDisabled)
             }
         }

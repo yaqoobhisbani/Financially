@@ -78,7 +78,7 @@ struct InvestmentsListView: View {
                         Button(action: { showCommodityStatement = true }) {
                             Image(systemName: "doc.text")
                         }
-                        .buttonStyle(.glass)
+                        .tint(.primary)
                         .accessibilityLabel("View Statement")
                     }
                     ToolbarSpacer(.fixed, placement: .primaryAction)
@@ -93,7 +93,7 @@ struct InvestmentsListView: View {
                     }) {
                         Image(systemName: "plus")
                     }
-                    .buttonStyle(.glass)
+                    .tint(.primary)
                     .accessibilityLabel("Add")
                 }
             }
