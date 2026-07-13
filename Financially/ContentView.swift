@@ -5,6 +5,7 @@ struct ContentView: View {
     @Environment(ThemeManager.self) private var themeManager
     @State private var selection: AppTab = .dashboard
     @State private var showQuickActions = false
+    @State private var quickActionsDetent: PresentationDetent = .medium
     @State private var activeQuickAction: QuickAction?
 
     var body: some View {
@@ -31,7 +32,10 @@ struct ContentView: View {
         }
         .tabBarMinimizeBehavior(.onScrollDown)
         .tabViewBottomAccessory(isEnabled: selection == .dashboard) {
-            QuickAddAccessory(onOpen: { showQuickActions = true })
+            QuickAddAccessory(onOpen: {
+                quickActionsDetent = .medium
+                showQuickActions = true
+            })
         }
         .sheet(item: $activeQuickAction) { action in
             action.destination
@@ -39,6 +43,7 @@ struct ContentView: View {
         .persistentGlassSheet(
             isPresented: $showQuickActions,
             detents: [.height(140), .medium, .large],
+            selection: $quickActionsDetent,
             interactiveUpThrough: .height(140)
         ) {
             QuickActionsSheetContent(sections: quickActionSections)
