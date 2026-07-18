@@ -305,63 +305,21 @@ struct MarketRatesView: View {
 
     private func syncAll() async {
         isSyncing = true
-        let baseTotal = stockList.count + commodityList.count
-        let mfTotal = mfSchemeList.count
-        let total = max(baseTotal + mfTotal, 1)
-        syncTotal = total
         syncCurrent = 0
+        syncTotal = max(stockList.count + commodityList.count + mfSchemeList.count, 1)
         syncProgress = 0
+        syncMessage = "Syncing market rates..."
 
         let service = MarketRateService(modelContext: modelContext)
-
-        if baseTotal > 0 {
-            await service.syncAll { current, total, message in
-                syncCurrent = current
-                syncTotal = total + mfTotal
-                syncMessage = message
-                syncProgress = Double(current)
-            }
-        }
-
-        if mfTotal > 0 {
-            syncMessage = "Fetching mutual fund NAVs..."
-            syncCurrent = baseTotal
-            syncProgress = Double(baseTotal)
-            let allNavs = await service.fetchAllMFNavs()
-            await MainActor.run {
-                syncMFSchemes(service: service, allNavs: allNavs)
-                syncCurrent = total
-                syncProgress = Double(total)
-            }
+        await service.syncAll { current, total, message in
+            syncCurrent = current
+            syncTotal = total
+            syncMessage = message
+            syncProgress = Double(current)
         }
 
         syncMessage = "Done!"
         isSyncing = false
-    }
-
-    @MainActor
-    private func syncMFSchemes(service: MarketRateService, allNavs: [String: Decimal]) {
-        let remaining = mfSchemeList.count
-        var current = 0
-
-        for scheme in mfSchemeList {
-            current += 1
-            syncMessage = "Syncing \(scheme.schemeName)..."
-            syncCurrent = syncTotal - remaining + current
-            syncProgress = Double(syncCurrent)
-
-            let matched = allNavs.first { name, _ in
-                name.localizedCaseInsensitiveContains(scheme.schemeName) || scheme.schemeName.localizedCaseInsensitiveContains(name)
-            }
-
-            if let navPrice = matched?.value {
-                scheme.navPrice = navPrice
-                scheme.lastUpdatedAt = Date()
-                service.syncMFToHoldings(fundCode: scheme.fundCode, navPrice: navPrice)
-            }
-        }
-
-        try? modelContext.save()
     }
 
     private func syncRateToHoldings(ticker: String, rate: Decimal) {

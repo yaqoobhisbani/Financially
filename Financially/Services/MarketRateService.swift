@@ -8,41 +8,106 @@ final class MarketRateService {
         self.modelContext = modelContext
     }
 
+    /// Fetches the latest rates for every stock, commodity, and mutual-fund scheme and
+    /// applies them to the matching holdings.
+    ///
+    /// Each domain — PSX (`dps.psx.com.pk`), the commodities API (`sarmaaya.pk`), and MUFAP
+    /// (`mufap.com.pk`) — is fetched **concurrently**, while requests to the *same* host stay
+    /// **sequential** so no single domain is hammered (which is what gets a client blocked).
     func syncAll(progress: ((Int, Int, String) -> Void)? = nil) async {
         let stocks = (try? modelContext.fetch(FetchDescriptor<StockInfo>())) ?? []
         let commodities = (try? modelContext.fetch(FetchDescriptor<CommodityInfo>())) ?? []
-        let total = max(stocks.count + commodities.count, 1)
-        var current = 0
+        let schemes = (try? modelContext.fetch(FetchDescriptor<MutualFundScheme>())) ?? []
+
+        // Plain, Sendable inputs so the concurrent fetches never touch the model context.
+        let tickers = stocks.map(\.ticker)
+        let commodityNames = commodities.map(\.name)
+
+        // Kick off all three domains at once; each helper is sequential within its host.
+        async let stockRates = fetchStockRatesSequentially(tickers)
+        async let commodityRates = fetchCommodityRatesSequentially(commodityNames)
+        async let mfNavs = fetchMFNavsIfNeeded(schemesEmpty: schemes.isEmpty)
+
+        let stockResults = await stockRates
+        let commodityResults = await commodityRates
+        let navResults = await mfNavs
+
+        // Apply results on the (main-actor) model context.
+        let total = max(stocks.count + commodities.count + schemes.count, 1)
+        var done = 0
 
         for stock in stocks {
-            current += 1
-            progress?(current, total, "Fetching \(stock.ticker)...")
-            if let price = await fetchStockPrice(ticker: stock.ticker) {
-                stock.currentRate = price
+            done += 1
+            progress?(done, total, "Updating \(stock.ticker)...")
+            if let rate = stockResults[stock.ticker] {
+                stock.currentRate = rate
                 stock.lastUpdatedAt = Date()
-                syncRateToHoldings(ticker: stock.ticker, rate: price)
+                syncRateToHoldings(ticker: stock.ticker, rate: rate)
             }
         }
 
         for commodity in commodities {
-            current += 1
-            progress?(current, total, "Syncing \(commodity.name)...")
+            done += 1
+            progress?(done, total, "Updating \(commodity.name)...")
+            if let rate = commodityResults[commodity.name] {
+                commodity.currentRatePerGram = rate
+                commodity.lastUpdatedAt = Date()
+                syncRateToHoldings(commodityName: commodity.name, rate: rate)
+            }
+        }
+
+        for scheme in schemes {
+            done += 1
+            progress?(done, total, "Updating \(scheme.schemeName)...")
+            let matched = navResults.first { name, _ in
+                name.localizedCaseInsensitiveContains(scheme.schemeName) || scheme.schemeName.localizedCaseInsensitiveContains(name)
+            }
+            if let navPrice = matched?.value {
+                scheme.navPrice = navPrice
+                scheme.lastUpdatedAt = Date()
+                syncMFToHoldings(fundCode: scheme.fundCode, navPrice: navPrice)
+            }
+        }
+
+        try? modelContext.save()
+    }
+
+    // MARK: - Per-domain sequential fetchers
+
+    /// PSX quotes (`dps.psx.com.pk`) — one ticker at a time to avoid being blocked.
+    private func fetchStockRatesSequentially(_ tickers: [String]) async -> [String: Decimal] {
+        var result: [String: Decimal] = [:]
+        for ticker in tickers {
+            if let price = await fetchStockPrice(ticker: ticker) {
+                result[ticker] = price
+            }
+        }
+        return result
+    }
+
+    /// Commodity rates (`beta-restapi.sarmaaya.pk`) — gold then silver, sequentially.
+    private func fetchCommodityRatesSequentially(_ names: [String]) async -> [String: Decimal] {
+        var result: [String: Decimal] = [:]
+        for name in names {
             let price: Decimal?
-            if commodity.name.localizedCaseInsensitiveContains("gold") {
+            if name.localizedCaseInsensitiveContains("gold") {
                 price = await fetchGoldPrice()
-            } else if commodity.name.localizedCaseInsensitiveContains("silver") {
+            } else if name.localizedCaseInsensitiveContains("silver") {
                 price = await fetchSilverPrice()
             } else {
                 price = nil
             }
             if let price {
-                commodity.currentRatePerGram = price
-                commodity.lastUpdatedAt = Date()
-                syncRateToHoldings(commodityName: commodity.name, rate: price)
+                result[name] = price
             }
         }
+        return result
+    }
 
-        try? modelContext.save()
+    /// MUFAP daily NAV table (`mufap.com.pk`) — a single request, skipped when unused.
+    private func fetchMFNavsIfNeeded(schemesEmpty: Bool) async -> [String: Decimal] {
+        guard !schemesEmpty else { return [:] }
+        return await fetchAllMFNavs()
     }
 
     func fetchStockPrice(ticker: String) async -> Decimal? {
