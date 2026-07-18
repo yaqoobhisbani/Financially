@@ -17,6 +17,17 @@ notes — see [Releasing](README.md#releasing) for the full process.
 
 ### Fixed
 
+## [1.3.0] - 2026-07-18
+
+### Added
+- Editable sell NAV when redeeming mutual funds — type the NAV instead of only using the current market rate (stock selling already supported a typed price)
+
+### Changed
+- Market-rate sync now fetches PSX quotes, commodity rates, and MUFAP NAVs concurrently (requests to the same host stay sequential to avoid being blocked), making sync noticeably faster; the progress bar advances smoothly as each request completes
+
+### Fixed
+- The About screen now shows the real app version and build number instead of a hardcoded value
+
 ## [1.2.0] - 2026-07-13
 
 ### Added
