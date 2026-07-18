@@ -4,6 +4,12 @@ import SwiftData
 final class MarketRateService {
     private let modelContext: ModelContext
 
+    // Progress shared across the concurrent per-domain fetchers. Safe because the whole
+    // service is MainActor-isolated, so these are only ever touched on the main actor.
+    private var progressHandler: ((Int, Int, String) -> Void)?
+    private var progressTotal = 1
+    private var progressDone = 0
+
     init(modelContext: ModelContext) {
         self.modelContext = modelContext
     }
@@ -23,6 +29,13 @@ final class MarketRateService {
         let tickers = stocks.map(\.ticker)
         let commodityNames = commodities.map(\.name)
 
+        // One progress unit per network request — each ticker, each commodity, and the single
+        // MUFAP call — reported as each fetch finishes so the bar advances during the network
+        // phase rather than jumping at the end.
+        progressHandler = progress
+        progressTotal = max(tickers.count + commodityNames.count + (schemes.isEmpty ? 0 : 1), 1)
+        progressDone = 0
+
         // Kick off all three domains at once; each helper is sequential within its host.
         async let stockRates = fetchStockRatesSequentially(tickers)
         async let commodityRates = fetchCommodityRatesSequentially(commodityNames)
@@ -33,12 +46,7 @@ final class MarketRateService {
         let navResults = await mfNavs
 
         // Apply results on the (main-actor) model context.
-        let total = max(stocks.count + commodities.count + schemes.count, 1)
-        var done = 0
-
         for stock in stocks {
-            done += 1
-            progress?(done, total, "Updating \(stock.ticker)...")
             if let rate = stockResults[stock.ticker] {
                 stock.currentRate = rate
                 stock.lastUpdatedAt = Date()
@@ -47,8 +55,6 @@ final class MarketRateService {
         }
 
         for commodity in commodities {
-            done += 1
-            progress?(done, total, "Updating \(commodity.name)...")
             if let rate = commodityResults[commodity.name] {
                 commodity.currentRatePerGram = rate
                 commodity.lastUpdatedAt = Date()
@@ -57,8 +63,6 @@ final class MarketRateService {
         }
 
         for scheme in schemes {
-            done += 1
-            progress?(done, total, "Updating \(scheme.schemeName)...")
             let matched = navResults.first { name, _ in
                 name.localizedCaseInsensitiveContains(scheme.schemeName) || scheme.schemeName.localizedCaseInsensitiveContains(name)
             }
@@ -70,9 +74,17 @@ final class MarketRateService {
         }
 
         try? modelContext.save()
+        progressHandler?(progressTotal, progressTotal, "Done!")
+        progressHandler = nil
     }
 
     // MARK: - Per-domain sequential fetchers
+
+    /// Advances the shared progress counter by one completed request (main-actor serialized).
+    private func reportProgress(_ message: String) {
+        progressDone += 1
+        progressHandler?(min(progressDone, progressTotal), progressTotal, message)
+    }
 
     /// PSX quotes (`dps.psx.com.pk`) — one ticker at a time to avoid being blocked.
     private func fetchStockRatesSequentially(_ tickers: [String]) async -> [String: Decimal] {
@@ -81,6 +93,7 @@ final class MarketRateService {
             if let price = await fetchStockPrice(ticker: ticker) {
                 result[ticker] = price
             }
+            reportProgress("Updated \(ticker)")
         }
         return result
     }
@@ -100,6 +113,7 @@ final class MarketRateService {
             if let price {
                 result[name] = price
             }
+            reportProgress("Updated \(name)")
         }
         return result
     }
@@ -107,7 +121,9 @@ final class MarketRateService {
     /// MUFAP daily NAV table (`mufap.com.pk`) — a single request, skipped when unused.
     private func fetchMFNavsIfNeeded(schemesEmpty: Bool) async -> [String: Decimal] {
         guard !schemesEmpty else { return [:] }
-        return await fetchAllMFNavs()
+        let navs = await fetchAllMFNavs()
+        reportProgress("Updated mutual fund NAVs")
+        return navs
     }
 
     func fetchStockPrice(ticker: String) async -> Decimal? {
