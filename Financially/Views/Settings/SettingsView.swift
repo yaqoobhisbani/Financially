@@ -80,6 +80,16 @@ struct SettingsView: View {
 }
 
 struct AboutView: View {
+    /// The app's marketing version and build number from the bundle, e.g. "1.2.0 (2)".
+    private var appVersion: String {
+        let version = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "—"
+        let build = Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String
+        if let build, !build.isEmpty {
+            return "\(version) (\(build))"
+        }
+        return version
+    }
+
     var body: some View {
         List {
             Section {
@@ -89,7 +99,7 @@ struct AboutView: View {
                         .foregroundStyle(.tint)
                     Text("Financially")
                         .font(.title.bold())
-                    Text("Version 1.0")
+                    Text("Version \(appVersion)")
                         .foregroundStyle(.secondary)
                 }
                 .frame(maxWidth: .infinity)
