@@ -13,6 +13,7 @@ struct RedeemView: View {
     @State private var selectedHolding: MutualFundHolding?
     @State private var selectedBank: Account?
     @State private var unitsValue = ""
+    @State private var navPriceValue = ""
     @State private var date = Date()
     @State private var notes = ""
     @State private var showHoldingPicker = false
@@ -27,17 +28,17 @@ struct RedeemView: View {
         allMFHoldings.filter { $0.accountId == account.id && $0.totalUnits > 0 }
     }
 
-    private var currentNavPrice: Decimal {
-        guard let holding = selectedHolding else { return 0 }
-        return holding.currentNavPrice ?? schemeList.first(where: { $0.fundCode == holding.fundCode })?.navPrice ?? 0
+    /// The sell NAV the user typed (defaults to the market NAV on selection).
+    private var sellNavPrice: Decimal {
+        Decimal(string: navPriceValue) ?? 0
     }
 
     private var calculatedAmount: Decimal {
-        (Decimal(string: unitsValue) ?? 0) * currentNavPrice
+        (Decimal(string: unitsValue) ?? 0) * sellNavPrice
     }
 
     private var isFormValid: Bool {
-        selectedHolding != nil && selectedBank != nil && !unitsValue.isEmpty && calculatedAmount > 0
+        selectedHolding != nil && selectedBank != nil && !unitsValue.isEmpty && sellNavPrice > 0 && calculatedAmount > 0
     }
 
     var body: some View {
@@ -82,17 +83,19 @@ struct RedeemView: View {
                         }
                     }
 
-                    if currentNavPrice > 0, let units = Decimal(string: unitsValue), units > 0 {
+                    HStack {
+                        Text("Sell NAV Price")
+                        Spacer()
+                        TextField("0.00", text: $navPriceValue)
+                            .keyboardType(.decimalPad)
+                            .multilineTextAlignment(.trailing)
+                    }
+
+                    if sellNavPrice > 0, let units = Decimal(string: unitsValue), units > 0 {
                         HStack {
                             Text("Redeem Amount")
                             Spacer()
                             Text(calculatedAmount.formattedCurrency())
-                                .foregroundStyle(.secondary)
-                        }
-                        HStack {
-                            Text("NAV Price")
-                            Spacer()
-                            Text(currentNavPrice.formattedNAVPrice())
                                 .foregroundStyle(.secondary)
                         }
                     }
@@ -140,6 +143,8 @@ struct RedeemView: View {
             List(accountHoldings) { holding in
                 Button(action: {
                     selectedHolding = holding
+                    let nav = holding.currentNavPrice ?? schemeList.first(where: { $0.fundCode == holding.fundCode })?.navPrice ?? 0
+                    if nav > 0 { navPriceValue = "\(nav)" }
                     showHoldingPicker = false
                 }) {
                     HStack {
@@ -180,12 +185,16 @@ struct RedeemView: View {
             errorMessage = "Cannot redeem more than \(holding.totalUnits.formattedNumber()) units"
             return
         }
+        guard sellNavPrice > 0 else {
+            errorMessage = "Please enter a valid NAV price"
+            return
+        }
 
         let vm = MutualFundTradeViewModel(modelContext: modelContext, account: account, schemeList: schemeList, holdings: allMFHoldings)
         vm.redeem(
             holding: holding,
             units: units,
-            navPrice: currentNavPrice,
+            navPrice: sellNavPrice,
             fees: 0,
             bankAccount: bank,
             date: date,
