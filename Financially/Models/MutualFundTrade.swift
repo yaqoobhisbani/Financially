@@ -13,6 +13,7 @@ final class MutualFundTrade {
     var navPrice: Decimal
     var totalAmount: Decimal
     var fees: Decimal
+    var tax: Decimal
     var netAmount: Decimal
     var date: Date
     var notes: String?
@@ -30,6 +31,7 @@ final class MutualFundTrade {
         navPrice: Decimal,
         totalAmount: Decimal,
         fees: Decimal = 0,
+        tax: Decimal = 0,
         netAmount: Decimal,
         date: Date = Date(),
         notes: String? = nil,
@@ -45,6 +47,7 @@ final class MutualFundTrade {
         self.navPrice = navPrice
         self.totalAmount = totalAmount
         self.fees = fees
+        self.tax = tax
         self.netAmount = netAmount
         self.date = date
         self.notes = notes

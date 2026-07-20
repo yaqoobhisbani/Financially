@@ -298,6 +298,7 @@ struct BackupMutualFundTrade: Codable {
     let navPrice: Decimal
     let totalAmount: Decimal
     let fees: Decimal
+    let tax: Decimal?
     let netAmount: Decimal
     let date: Date
     let notes: String?
@@ -915,7 +916,7 @@ private extension MutualFundTrade {
             type: type, fundCode: fundCode,
             schemeName: schemeName, units: units,
             navPrice: navPrice, totalAmount: totalAmount,
-            fees: fees, netAmount: netAmount, date: date,
+            fees: fees, tax: tax, netAmount: netAmount, date: date,
             notes: notes, createdAt: createdAt
         )
     }
@@ -928,7 +929,7 @@ private extension BackupMutualFundTrade {
             type: type, fundCode: fundCode,
             schemeName: schemeName, units: units,
             navPrice: navPrice, totalAmount: totalAmount,
-            fees: fees, netAmount: netAmount, date: date,
+            fees: fees, tax: tax ?? 0, netAmount: netAmount, date: date,
             notes: notes
         )
     }

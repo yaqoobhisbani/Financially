@@ -14,6 +14,8 @@ struct RedeemView: View {
     @State private var selectedBank: Account?
     @State private var unitsValue = ""
     @State private var navPriceValue = ""
+    @State private var feesValue = ""
+    @State private var taxValue = ""
     @State private var date = Date()
     @State private var notes = ""
     @State private var showHoldingPicker = false
@@ -35,6 +37,18 @@ struct RedeemView: View {
 
     private var calculatedAmount: Decimal {
         (Decimal(string: unitsValue) ?? 0) * sellNavPrice
+    }
+
+    private var enteredFees: Decimal {
+        Decimal(string: feesValue) ?? 0
+    }
+
+    private var enteredTax: Decimal {
+        Decimal(string: taxValue) ?? 0
+    }
+
+    private var netProceeds: Decimal {
+        calculatedAmount - enteredFees - enteredTax
     }
 
     private var isFormValid: Bool {
@@ -100,6 +114,14 @@ struct RedeemView: View {
                         }
                     }
                 }
+
+                FeeSection(
+                    brokerageFee: $feesValue,
+                    tax: $taxValue,
+                    feeLabel: "Fees",
+                    netLabel: "Net Proceeds",
+                    netValue: calculatedAmount > 0 ? netProceeds.formattedCurrency() : nil
+                )
 
                 Section("Bank Account") {
                     Button(action: { showBankPicker = true }) {
@@ -195,7 +217,8 @@ struct RedeemView: View {
             holding: holding,
             units: units,
             navPrice: sellNavPrice,
-            fees: 0,
+            fees: enteredFees,
+            tax: enteredTax,
             bankAccount: bank,
             date: date,
             notes: notes.isEmpty ? nil : notes

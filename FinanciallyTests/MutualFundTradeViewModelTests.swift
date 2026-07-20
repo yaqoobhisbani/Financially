@@ -31,6 +31,40 @@ struct MutualFundTradeViewModelTests {
         #expect(mfAccount.investedAmount == 1000)
     }
 
+    @Test func investDeductsFeesAndTaxFromBank() {
+        let context = TestSupport.makeContext()
+        let bank = TestSupport.makeAccount(in: context, name: "Bank", type: .bank, initialBalance: 5000)
+        let mfAccount = TestSupport.makeAccount(in: context, name: "MF", type: .mutualFund)
+        let scheme = makeScheme()
+        let vm = MutualFundTradeViewModel(modelContext: context, account: mfAccount, schemeList: [scheme], holdings: [])
+
+        vm.invest(bankAccount: bank, scheme: scheme, units: 100, navPrice: 10, fees: 25, tax: 15, date: Date(), notes: nil)
+
+        #expect(bank.currentBalance == 3960) // 5000 - (100*10 + 25 + 15)
+        let trade = (try? context.fetch(FetchDescriptor<MutualFundTrade>()))?.first
+        #expect(trade?.fees == 25)
+        #expect(trade?.tax == 15)
+        #expect(trade?.netAmount == 1040)
+    }
+
+    @Test func redeemDeductsFeesAndTaxFromProceeds() {
+        let context = TestSupport.makeContext()
+        let bank = TestSupport.makeAccount(in: context, name: "Bank", type: .bank, initialBalance: 5000)
+        let mfAccount = TestSupport.makeAccount(in: context, name: "MF", type: .mutualFund)
+        let scheme = makeScheme()
+        let vm = MutualFundTradeViewModel(modelContext: context, account: mfAccount, schemeList: [scheme], holdings: [])
+        vm.invest(bankAccount: bank, scheme: scheme, units: 100, navPrice: 10, fees: 0, date: Date(), notes: nil)
+        let holding = fetchHoldings(context).first!
+
+        vm.redeem(holding: holding, units: 40, navPrice: 12, fees: 10, tax: 20, bankAccount: bank, date: Date(), notes: nil)
+
+        #expect(bank.currentBalance == 4450) // 4000 after invest + (40*12 - 10 - 20)
+        let sellTrade = (try? context.fetch(FetchDescriptor<MutualFundTrade>()))?.first { $0.type == .sell }
+        #expect(sellTrade?.fees == 10)
+        #expect(sellTrade?.tax == 20)
+        #expect(sellTrade?.netAmount == 450)
+    }
+
     @Test func investWithoutBankAccountLeavesCashUntouched() {
         let context = TestSupport.makeContext()
         let mfAccount = TestSupport.makeAccount(in: context, name: "MF", type: .mutualFund)
