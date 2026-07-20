@@ -72,12 +72,18 @@ Financially/
 FinanciallyTests/       # Unit tests (Swift Testing)
 ```
 
+## Continuous Integration
+
+[`.github/workflows/ci.yml`](.github/workflows/ci.yml) builds the app and runs the
+`FinanciallyTests` suite on every pull request and push to `main`, so build or test
+breakage is caught before a release is tagged.
+
 ## Releasing
 
 Releases are published as GitHub Releases, tagged `vX.Y.Z` to match `MARKETING_VERSION`
 in the Xcode project. [`.github/workflows/release.yml`](.github/workflows/release.yml)
-does **not** build or sign anything — it only drafts the release notes. The IPA is
-built/exported and attached manually.
+now **builds the unsigned IPA and attaches it to the draft automatically** — you only
+prepare the changelog/version, tag, then review and publish.
 
 1. **Update [`CHANGELOG.md`](CHANGELOG.md).** Move the relevant bullets out of
    `[Unreleased]` into a new `## [X.Y.Z]` section.
@@ -89,31 +95,31 @@ built/exported and attached manually.
    git tag vX.Y.Z
    git push origin main vX.Y.Z
    ```
-   Pushing the tag triggers the `Release` workflow, which creates a **draft**
-   GitHub Release with:
-   - the `[X.Y.Z]` section from `CHANGELOG.md`
-   - an auto-generated list of commits since the previous tag
-5. **Build and attach the IPA.**
-   ```sh
-   scripts/build_unsigned_ipa.sh
-   ```
-   This cleans, builds `Financially` for a generic iOS device with code
-   signing disabled, and hand-packages the result into
-   `build/Financially-<version>-unsigned.ipa`. It does **not** go through
-   Xcode's archive/export flow, so it needs no provisioning profile or
-   Apple ID — but the IPA is unsigned and must be re-signed (Xcode,
-   AltStore, Sideloadly, or your own pipeline) before it can be installed
-   on a device. If you'd rather ship a properly signed build, archive and
-   export from Xcode instead.
+   Pushing the tag triggers the `Release` workflow, which:
+   - runs [`scripts/build_unsigned_ipa.sh`](scripts/build_unsigned_ipa.sh) to build
+     `Financially` for a generic iOS device with code signing disabled and
+     hand-package it into `build/Financially-<version>-unsigned.ipa`, and
+   - creates a **draft** GitHub Release with the `[X.Y.Z]` section from
+     `CHANGELOG.md`, an auto-generated list of commits since the previous tag, and
+     the unsigned `.ipa` attached.
 
-   Either way, attach the resulting `.ipa` by dragging it onto the draft
-   release in the GitHub UI, or:
-   ```sh
-   gh release upload vX.Y.Z path/to/Financially.ipa
-   ```
-6. **Review and publish** the draft release on GitHub once the notes and
+   The attached IPA is **unsigned** — it must be re-signed (Xcode, AltStore,
+   Sideloadly, or your own pipeline) before it can be installed on a device. If you
+   need a properly signed build, archive and export from Xcode instead.
+5. **Review and publish** the draft release on GitHub once the notes and
    artifact look right.
 
-To regenerate a draft's notes (e.g. after editing `CHANGELOG.md` post-tag)
-without re-tagging, run the workflow manually from the Actions tab
-(`workflow_dispatch`) with the existing tag name as input.
+To regenerate a draft (e.g. after editing `CHANGELOG.md` post-tag) without
+re-tagging, run the workflow manually from the Actions tab (`workflow_dispatch`)
+with the existing tag name as input — this rebuilds and re-attaches the IPA too.
+
+### Building the IPA locally
+
+You can also build the unsigned IPA outside CI (e.g. to test the packaging) with
+the same script the Release workflow uses:
+
+```sh
+scripts/build_unsigned_ipa.sh
+```
+
+The result lands at `build/Financially-<version>-unsigned.ipa`.

@@ -1,0 +1,38 @@
+name: CI
+
+# Builds the app and runs the FinanciallyTests suite on pull requests and pushes
+# to main, so build/test breakage is caught before a release is tagged. This
+# workflow does not sign or package anything — the unsigned IPA is produced by
+# the Release workflow (release.yml).
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-test:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Select Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
+
+      - name: Build and test
+        run: |
+          xcodebuild test \
+            -project Financially.xcodeproj \
+            -scheme Financially \
+            -destination 'platform=iOS Simulator,name=iPhone 17 Pro' \
+            CODE_SIGNING_ALLOWED=NO
