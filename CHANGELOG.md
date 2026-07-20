@@ -17,6 +17,11 @@ notes — see [Releasing](README.md#releasing) for the full process.
 
 ### Fixed
 
+## [1.4.0] - 2026-07-20
+
+### Added
+- Separate **Fees** and **Tax** fields when investing in and redeeming mutual funds — mutual fund buy/sell now captures both amounts (matching the PSX stock screens), folded into the net cost/proceeds shown and the holding's cost basis
+
 ## [1.3.0] - 2026-07-18
 
 ### Added
