@@ -16,6 +16,7 @@ struct InvestView: View {
     @State private var unitsValue = ""
     @State private var navPriceValue = ""
     @State private var feesValue = ""
+    @State private var taxValue = ""
     @State private var date = Date()
     @State private var notes = ""
     @State private var showBankPicker = false
@@ -36,6 +37,18 @@ struct InvestView: View {
 
     private var calculatedAmount: Decimal {
         enteredUnits * enteredNavPrice
+    }
+
+    private var enteredFees: Decimal {
+        Decimal(string: feesValue) ?? 0
+    }
+
+    private var enteredTax: Decimal {
+        Decimal(string: taxValue) ?? 0
+    }
+
+    private var netCost: Decimal {
+        calculatedAmount + enteredFees + enteredTax
     }
 
     private var isFormValid: Bool {
@@ -99,15 +112,15 @@ struct InvestView: View {
                         Text(calculatedAmount.formattedCurrency())
                             .foregroundStyle(.secondary)
                     }
-
-                    HStack {
-                        Text("Fees")
-                        Spacer()
-                        TextField("0", text: $feesValue)
-                            .keyboardType(.decimalPad)
-                            .multilineTextAlignment(.trailing)
-                    }
                 }
+
+                FeeSection(
+                    brokerageFee: $feesValue,
+                    tax: $taxValue,
+                    feeLabel: "Fees",
+                    netLabel: "Net Cost",
+                    netValue: calculatedAmount > 0 ? netCost.formattedCurrency() : nil
+                )
 
                 Section { DatePicker("Date", selection: $date, displayedComponents: .date) }
 
@@ -180,14 +193,16 @@ struct InvestView: View {
             errorMessage = "Please enter valid units and NAV price"
             return
         }
+        let fees = enteredFees
+        let tax = enteredTax
+        let totalCost = amount + fees + tax
+
         if let bank = selectedBank, !isOutside {
-            guard amount <= bank.currentBalance else {
+            guard totalCost <= bank.currentBalance else {
                 errorMessage = "Insufficient balance in \(bank.name)"
                 return
             }
         }
-
-        let fees = Decimal(string: feesValue) ?? 0
 
         let vm = MutualFundTradeViewModel(modelContext: modelContext, account: account, schemeList: schemeList, holdings: allMFHoldings)
         vm.invest(
@@ -196,6 +211,7 @@ struct InvestView: View {
             units: units,
             navPrice: navPrice,
             fees: fees,
+            tax: tax,
             date: date,
             notes: notes.isEmpty ? nil : notes
         )

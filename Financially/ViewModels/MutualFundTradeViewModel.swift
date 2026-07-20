@@ -34,10 +34,11 @@ final class MutualFundTradeViewModel {
         units: Decimal,
         navPrice: Decimal,
         fees: Decimal,
+        tax: Decimal = 0,
         date: Date,
         notes: String?
     ) {
-        let netAmount = units * navPrice + fees
+        let netAmount = units * navPrice + fees + tax
 
         if let bank = bankAccount {
             bank.currentBalance -= netAmount
@@ -57,7 +58,7 @@ final class MutualFundTradeViewModel {
             currentFees: 0,
             addedQuantity: units,
             addedCost: units * navPrice,
-            addedFees: fees
+            addedFees: fees + tax
         )
         holding.totalUnits = update.quantity
         holding.totalCost = update.cost
@@ -73,6 +74,7 @@ final class MutualFundTradeViewModel {
             navPrice: navPrice,
             totalAmount: units * navPrice,
             fees: fees,
+            tax: tax,
             netAmount: netAmount,
             date: date,
             notes: notes
@@ -92,11 +94,12 @@ final class MutualFundTradeViewModel {
         units: Decimal,
         navPrice: Decimal,
         fees: Decimal,
+        tax: Decimal = 0,
         bankAccount: Account,
         date: Date,
         notes: String?
     ) {
-        let netProceeds = units * navPrice - fees
+        let netProceeds = units * navPrice - fees - tax
 
         bankAccount.currentBalance += netProceeds
         bankAccount.updatedAt = Date()
@@ -126,6 +129,7 @@ final class MutualFundTradeViewModel {
             navPrice: navPrice,
             totalAmount: units * navPrice,
             fees: fees,
+            tax: tax,
             netAmount: netProceeds,
             date: date,
             notes: notes

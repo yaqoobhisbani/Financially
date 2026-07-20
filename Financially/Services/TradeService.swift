@@ -154,7 +154,7 @@ struct TradeService {
                     currentFees: totalFeesPaid,
                     addedQuantity: trade.units,
                     addedCost: trade.totalAmount,
-                    addedFees: trade.fees
+                    addedFees: trade.fees + trade.tax
                 )
                 totalUnits = result.quantity
                 totalCost = result.cost

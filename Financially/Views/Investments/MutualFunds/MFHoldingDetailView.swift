@@ -74,7 +74,7 @@ struct MFHoldingDetailView: View {
                         detail: "\(trade.units.formattedNumber()) units @ \(trade.navPrice.formattedNAVPrice())",
                         date: trade.date,
                         netAmount: trade.netAmount.formattedCurrency(),
-                        fee: trade.fees,
+                        fee: trade.fees + trade.tax,
                         currency: "PKR"
                     )
                     .swipeActions(edge: .trailing) {
